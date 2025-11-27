@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Application.Abstraction\Karim.Customer.HrApplication.Application.Abstraction.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Domain\Karim.Customer.HrApplication.Domain.csproj" />
     <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
   </ItemGroup>
 

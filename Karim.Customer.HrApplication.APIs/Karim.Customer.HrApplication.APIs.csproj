@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Karim.Customer.HrApplication.APIs.Controllers\Karim.Customer.HrApplication.APIs.Controllers.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Infrastructure.Persistence\Karim.Customer.HrApplication.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
   </ItemGroup>
 
