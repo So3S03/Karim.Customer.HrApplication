@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="_Common\" />
+  </ItemGroup>
+
 </Project>
