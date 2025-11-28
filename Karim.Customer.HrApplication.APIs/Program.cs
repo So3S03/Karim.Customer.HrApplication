@@ -7,14 +7,17 @@ namespace Karim.Customer.HrApplication.APIs
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            #region Dependancy Injection Container
             // Add services to the container.
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+            #endregion
 
             var app = builder.Build();
 
+            #region Middilewares
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -27,6 +30,7 @@ namespace Karim.Customer.HrApplication.APIs
 
 
             app.MapControllers();
+            #endregion
 
             app.Run();
         }

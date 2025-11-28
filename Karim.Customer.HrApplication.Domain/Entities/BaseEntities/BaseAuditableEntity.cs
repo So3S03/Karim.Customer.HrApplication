@@ -1,6 +1,6 @@
 ﻿namespace Karim.Customer.HrApplication.Domain.Entities.BaseEntities
 {
-    public class BaseAuditableEntity<TKey> : BaseEntity<TKey>
+    public abstract class BaseAuditableEntity<TKey> : BaseEntity<TKey>
         where TKey : IEquatable<TKey>
     {
         public required DateTime CreatedOn { get; set; }
