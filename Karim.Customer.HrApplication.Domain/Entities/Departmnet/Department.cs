@@ -4,12 +4,15 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
 {
     public class Department: BaseAuditableEntity<string>
     {
+        public required string DepartmentCode { get; set; }
         public required string DepartmentName { get; set; }
+        public required string NormalizedName { get; set; } //For Searching
+        public string? Description { get; set; }
+        public bool isActive { get; set; }
         public DateTime ActualCreationDate { get; set; }
-        public int TeamSize { get; set; }
-        public decimal DepartmentBudget { get; set; }
-        public int NumberOfProjects { get; set; }
-        public int DepartmentEmployeesNumber { get; set; }
         public string? DepartmentPhotoUrl { get; set; }
+        public decimal DepartmentBudget { get; set; }
+        //public int NumberOfProjects { get; set; } //it will came from project module
+        //public int DepartmentEmployeesNumber { get; set; } //it will came from employee module
     }
 }
