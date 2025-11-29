@@ -1,9 +1,13 @@
 
+using Karim.Customer.HrApplication.APIs.Extentions;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+using System.Threading.Tasks;
+
 namespace Karim.Customer.HrApplication.APIs
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +19,10 @@ namespace Karim.Customer.HrApplication.APIs
             builder.Services.AddOpenApi();
             #endregion
 
-            var app = builder.Build();
+           var app = builder.Build();
+
+            //Migrate Database
+            await app.DbMigrate<HRMSDBContext>();
 
             #region Middilewares
             // Configure the HTTP request pipeline.
