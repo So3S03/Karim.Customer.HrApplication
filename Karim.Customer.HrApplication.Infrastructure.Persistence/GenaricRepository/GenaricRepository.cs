@@ -1,5 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.GenaricRepository;
+using Karim.Customer.HrApplication.Domain.Specifications;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricRepository
@@ -8,11 +10,9 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
         where TEntity : BaseEntity<TKey>
         where TKey : IEquatable<TKey>
     {
-        public IQueryable<TEntity> GetAllQueryable() => dbContext.Set<TEntity>().AsQueryable();
+        public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).ToListAsync();
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync(bool AsNoTracking) => await (AsNoTracking ? dbContext.Set<TEntity>().AsNoTracking().ToListAsync() : dbContext.Set<TEntity>().ToListAsync());
-
-        public async Task<TEntity?> GetById(TKey id) => await dbContext.Set<TEntity>().FindAsync(id);
+        public async Task<TEntity?> GetById(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).FirstOrDefaultAsync();
 
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 
@@ -25,5 +25,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
         public void Delete(TKey id) => dbContext.Remove(id);
 
         public void DeleteRange(IEnumerable<TEntity> entities) => dbContext.RemoveRange(entities); //it will be for upload bulk methods
+
+
+        //helper method
+        private IQueryable<TEntity> Evaluator(ISpecifications<TEntity, TKey> specs)
+           => SpecificationEvaluator.CreateQuery<TEntity, TKey>(dbContext.Set<TEntity>(), specs);
     }
 }
