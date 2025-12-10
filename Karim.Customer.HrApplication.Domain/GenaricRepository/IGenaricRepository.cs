@@ -1,4 +1,5 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
+using Karim.Customer.HrApplication.Domain.Specifications;
 
 namespace Karim.Customer.HrApplication.Domain.GenaricRepository
 {
@@ -6,9 +7,8 @@ namespace Karim.Customer.HrApplication.Domain.GenaricRepository
         where TEntity : BaseEntity<TKey>
         where TKey : IEquatable<TKey>
     {
-        IQueryable<TEntity> GetAllQueryable();
-        Task<IEnumerable<TEntity>> GetAllAsync(bool AsNoTraking);
-        Task<TEntity?> GetById(TKey id);
+        Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TEntity, TKey> specifications);
+        Task<TEntity?> GetById(ISpecifications<TEntity, TKey> specifications);
         Task AddAsync(TEntity entity);
         Task AddRangeAsync(IEnumerable<TEntity> entities); //it will be for upload bulk methods
         void Update(TEntity entity);
