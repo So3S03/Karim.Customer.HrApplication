@@ -4,6 +4,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
 {
     public interface IDepartmentService
     {
-        public Task<ICollection<DepartmentToReturnDto>> GetDepartments(int type);
+        public Task<ICollection<DepartmentToReturnDto>> GetDepartments(int? type);
     }
 }

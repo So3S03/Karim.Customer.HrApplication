@@ -1,4 +1,6 @@
-﻿using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+﻿using Karim.Customer.HrApplication.Domain.UnitOfWork;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI
             {
                 optionAction.UseSqlServer(configuration.GetConnectionString("HRMSContext"));
             });
+
+            services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork.UnitOfWork<HRMSDBContext>));
             return services;
         }
     }

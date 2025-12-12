@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.UnitOfWork
 {
-    public class UnitOfWork(DbContext dbContext) : IUnitOfWork
+    public class UnitOfWork<TContext>(TContext dbContext) : IUnitOfWork where TContext : DbContext
     {
         private readonly ConcurrentDictionary<string, object> storedRepos = new ConcurrentDictionary<string, object>();
         public IGenaricRepository<TEntity, TKey> GenerateRepository<TEntity, TKey>()

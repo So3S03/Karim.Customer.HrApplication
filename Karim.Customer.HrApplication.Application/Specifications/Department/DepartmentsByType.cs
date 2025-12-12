@@ -6,13 +6,13 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Department
 {
     public class DepartmentsByType : BaseSpecifications<department, string>
     {
-        public DepartmentsByType(int type): base(
-        type.Equals(DepartmentLockup.All) ? (d => true) :
+        public DepartmentsByType(int? type): base(
+        type.Equals(DepartmentLockup.All) ? (null) :
         type.Equals(DepartmentLockup.isRemoved) ? (d => d.isRemoved == true) :
         type.Equals(DepartmentLockup.isNotRemoved) ? (d => d.isRemoved == false) :
         type.Equals(DepartmentLockup.isActive) ? (d => d.isActive == true) :
         type.Equals(DepartmentLockup.isNotActive) ? (d => d.isActive == false) :
-        (d => true)
+        (null)
     )
         {
             

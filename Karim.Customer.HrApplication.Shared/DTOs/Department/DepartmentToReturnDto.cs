@@ -6,6 +6,7 @@
         public required string DepartmentName { get; set; }
         public string? Description { get; set; }
         public bool isActive { get; set; }
+        public bool isRemoved { get; set; }
         public DateTime ActualCreationDate { get; set; }
         public string? DepartmentPhotoUrl { get; set; }
         public decimal TotalDepartmentBudget { get; set; }

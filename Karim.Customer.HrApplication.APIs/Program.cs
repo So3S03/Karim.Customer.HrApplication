@@ -1,7 +1,9 @@
 
 using Karim.Customer.HrApplication.APIs.Controllers.Assembly;
 using Karim.Customer.HrApplication.APIs.Extentions;
+using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
 using System.Threading.Tasks;
 
 namespace Karim.Customer.HrApplication.APIs
@@ -18,8 +20,17 @@ namespace Karim.Customer.HrApplication.APIs
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(ControllersAssembly).Assembly);
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+
+            //registering Persistence DI
+            builder.Services.AddPersistenceDI(builder.Configuration);
+
+            //registering Application DI 
+            builder.Services.ApplicationDIContainer();
+
+
+            //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
+            builder.Services.AddOpenApi();
             #endregion
 
            var app = builder.Build();
@@ -34,6 +45,7 @@ namespace Karim.Customer.HrApplication.APIs
                 //app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                app.MapOpenApi();
             }
 
             app.UseHttpsRedirection();

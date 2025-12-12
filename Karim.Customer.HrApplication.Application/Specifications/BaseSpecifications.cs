@@ -17,7 +17,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications
             
         }
 
-        protected BaseSpecifications(Expression<Func<TEntity, bool>> criteria)
+        protected BaseSpecifications(Expression<Func<TEntity, bool>>? criteria)
         {
             Criteria = criteria;
         }
