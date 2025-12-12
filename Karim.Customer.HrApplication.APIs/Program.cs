@@ -1,6 +1,9 @@
 
+using Karim.Customer.HrApplication.APIs.Controllers.Assembly;
 using Karim.Customer.HrApplication.APIs.Extentions;
+using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
 using System.Threading.Tasks;
 
 namespace Karim.Customer.HrApplication.APIs
@@ -14,8 +17,19 @@ namespace Karim.Customer.HrApplication.APIs
             #region Dependancy Injection Container
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddApplicationPart(typeof(ControllersAssembly).Assembly);
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+            //registering Persistence DI
+            builder.Services.AddPersistenceDI(builder.Configuration);
+
+            //registering Application DI 
+            builder.Services.ApplicationDIContainer();
+
+
+            //registering Swagger UI DI
+            builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApi();
             #endregion
 
@@ -28,6 +42,9 @@ namespace Karim.Customer.HrApplication.APIs
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                //app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
                 app.MapOpenApi();
             }
 
