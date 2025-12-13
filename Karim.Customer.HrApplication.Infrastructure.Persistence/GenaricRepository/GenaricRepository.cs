@@ -12,7 +12,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
     {
         public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).ToListAsync();
 
-        public async Task<TEntity?> GetById(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).FirstOrDefaultAsync();
+        public async Task<TEntity?> GetByIdAsync(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).FirstOrDefaultAsync();
 
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 

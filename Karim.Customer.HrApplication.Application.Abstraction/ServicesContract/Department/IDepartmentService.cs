@@ -8,5 +8,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ICollection<DepartmentToReturnDto>> GetDepartments(int? status, int? type);
         public ICollection<EnumDto> FillDepartmentsStatus();
         public ICollection<EnumDto> FillDepartmentTypes();
+        public Task<SingleDepartmentToReturnDto> GetDepartmentById(string? Id);
+        public Task<ActionStatusDto<DepartmentToReturnDto>> AddDepartment(DepartmentToAddDto? entity);
     }
 }

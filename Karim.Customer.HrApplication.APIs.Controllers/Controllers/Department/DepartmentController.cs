@@ -26,6 +26,18 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = servicesManager.DepartmentService.FillDepartmentTypes();
             return Ok(result);
         }
+        [HttpGet("GetDepartmentById")]
+        public async Task<ActionResult<DepartmentToReturnDto>> GetDepartmentById(string? Id)
+        {
+            var result = await servicesManager.DepartmentService.GetDepartmentById(Id);
+            return Ok(result);
+        }
+        [HttpPost("AddDepartment")]
+        public async Task<ActionResult<ActionStatusDto<DepartmentToReturnDto>>> AddDepartment(DepartmentToAddDto entity)
+        {
+            var result = await servicesManager.DepartmentService.AddDepartment(entity);
+            return Ok(result);
+        }
 
     }
 }

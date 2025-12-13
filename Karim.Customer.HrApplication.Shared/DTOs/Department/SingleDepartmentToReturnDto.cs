@@ -1,6 +1,6 @@
 ﻿namespace Karim.Customer.HrApplication.Shared.DTOs.Department
 {
-    public class DepartmentToReturnDto
+    public class SingleDepartmentToReturnDto
     {
         public required string Id { get; set; }
         public required string DepartmentCode { get; set; }
@@ -16,5 +16,9 @@
         public decimal? DepartmentBudgetForTrainees { get; set; }
         public decimal? DepartmentBudgetOther { get; set; }
         public required string DepatrmentType { get; set; }
+        public required DateTime CreatedOn { get; set; }
+        public required string CreatedBy { get; set; }
+        public required DateTime ModifiedOn { get; set; }
+        public required string ModifiedBy { get; set; }
     }
 }
