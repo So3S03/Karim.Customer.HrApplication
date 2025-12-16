@@ -26,7 +26,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Department
                 case 3:
                     return d => d.isActive == true;
                 case 4:
-                    return d => d.isActive == true;
+                    return d => d.isActive == false;
                 default:
                     return null;
 

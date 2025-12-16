@@ -16,15 +16,15 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 
-        public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await dbContext.AddRangeAsync(entities); //it will be for upload bulk methods
+        public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await dbContext.Set<TEntity>().AddRangeAsync(entities); //it will be for upload bulk methods
 
         public void Update(TEntity entity) => dbContext.Set<TEntity>().Update(entity);
 
-        public void UpdateRange(IEnumerable<TEntity> entities) => dbContext.UpdateRange(entities); //it will be for upload bulk methods
+        public void UpdateRange(IEnumerable<TEntity> entities) => dbContext.Set<TEntity>().UpdateRange(entities); //it will be for upload bulk methods
 
-        public void Delete(TKey id) => dbContext.Remove(id);
+        public void Delete(TEntity entity) => dbContext.Set<TEntity>().Remove(entity);
 
-        public void DeleteRange(IEnumerable<TEntity> entities) => dbContext.RemoveRange(entities); //it will be for upload bulk methods
+        public void DeleteRange(IEnumerable<TEntity> entities) => dbContext.Set<TEntity>().RemoveRange(entities); //it will be for upload bulk methods
 
 
         //helper method

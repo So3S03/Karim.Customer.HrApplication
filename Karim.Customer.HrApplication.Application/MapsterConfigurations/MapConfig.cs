@@ -17,6 +17,9 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<DepartmentToAddDto, Department>()
                 .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
                 .Map(dest => dest.DepatrmentType, src => (DepartmentType)src.DepatrmentType);
+            config.NewConfig<DepartmentToUpdateDto, Department>()
+                .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
+                .Map(dest => dest.DepatrmentType, src => (DepartmentType)src.DepatrmentType);
         }
     }
 }
