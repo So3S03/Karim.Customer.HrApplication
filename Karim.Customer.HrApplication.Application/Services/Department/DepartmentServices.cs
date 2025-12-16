@@ -12,7 +12,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper) : IDepartmentService
     {
-        public async Task<ICollection<DepartmentToReturnDto>> GetDepartments(int? status, int? type)
+        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? status, int? type)
         {
             if(status == null) status = 0;
             //checking on the modal
@@ -40,24 +40,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return data;
         }
 
-        public async Task<SingleDepartmentToReturnDto> GetDepartmentById(string? Id)
+        public async Task<SingleDepartmentToReturnDto> GetDepartmentByIdAsync(string? Id)
         {
             //Check on the Id
             if (Id is null) throw new Exception("the Id you have provided is not valid please provid a valid Id"); //It Should have An Error Handle
             //Create Repository
-            var Repo = _UnitOfWork.GenerateRepository<department, string>();
-            //Create Specification Object
-            var Specs = new DepartmentById(Id);
-            //Get The Department
-            var Data = await Repo.GetByIdAsync(Specs);
-            //Check On The Department
-            if (Data is null) throw new Exception($"Department With Id {Id} Not Found"); // It Should return NotFound Response
+            var department = await getDepartmentAsDBEntity(Id);
             //Mapped Data
-            var MappedDepartment = _mapper.Map<SingleDepartmentToReturnDto>(Data);
+            var MappedDepartment = _mapper.Map<SingleDepartmentToReturnDto>(department);
             return MappedDepartment;
         }
 
-        public async Task<ActionStatusDto<DepartmentToReturnDto>> AddDepartment(DepartmentToAddDto? entity)
+        public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity)
         {
             //Check on the Modal
             if (entity is null) throw new Exception("Department data you have entered is invalid");// it should be handled with error module
@@ -72,7 +66,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Then Handling the Photo Upload
 
             //Then Get All Departments To (Check For The Department, Return it in the response)
-            var AllDepartments = await this.GetDepartments(null, null);
+            var AllDepartments = await this.GetDepartmentsAsync(null, null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
             if (isExist) throw new Exception("This Department Already Exist");
@@ -86,13 +80,153 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             if (Result == 0) throw new Exception("Something Went Wrong While Adding Your Department"); //It should be handled with Error Module
 
             //Then Make Success Object To Return it
-            var Obj = new ActionStatusDto<DepartmentToReturnDto>()
+            var Obj = new ActionStatusDto()
             {
                 Status = true,
                 Message = "Your Department Was Added Successfuly",
-                Data = AllDepartments
             };
             return Obj;
+        }
+
+        public async Task<ActionStatusDto> DepartmentActiveToggle(string? id, bool? status)
+        {
+            //check on the modal
+            if (id == null) throw new Exception("the id you have provided is invalid");
+            if(!status.HasValue) throw new Exception("you should provide status for the selected department");
+            //get the department
+            var department = await getDepartmentAsDBEntity(id);
+            //check on the department
+            if (department == null) throw new Exception($"there is no department with id: {id}");
+            //check if the department has the same value that exist on database
+            var Message = status.Value ? "Active" : "inActive";
+            if(department.isActive == status.Value) throw new Exception($"this department is already {Message}");
+            //update the department
+            department.isActive = status.Value;
+            department.isRemoved = false;
+            //Update department
+            _UnitOfWork.GenerateRepository<department, string>().Update(department);
+            //Save
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check on the database response
+            if (Result == 0) throw new Exception("Something Went Wrong!");
+            //Create Resonse
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"Department Seted As {Message} Successfully"
+            };
+            return Obj;
+        }
+
+        public async Task<ActionStatusDto> SoftRemoveDepartment(string? id)
+        {
+            var Result = await RemoveDepartmentToggle(id, true);
+            return Result;
+        }
+
+        public async Task<ActionStatusDto> RestoreRemovedDepartment(string? id)
+        {
+            var Result = await RemoveDepartmentToggle(id, false);
+            return Result;
+        }
+
+        public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity)
+        {
+            //Check on Modal
+            if (entity is null) throw new Exception("The Provided Data is Not Valid");
+            if (entity.Id == null) throw new Exception("The Id is Not Valid");
+            //Find Department
+            var Department = await getDepartmentAsDBEntity(entity.Id);
+            //Check On the department
+            if (Department == null) throw new Exception($"Can't Find Department With Id: {entity.Id}");
+            //Mapped Department
+            var mappedDepartment = _mapper.Map(entity, Department);
+            //Handling Photo
+
+            //Create Repo
+            var Repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Update Database
+            Repo.Update(mappedDepartment);
+            //Save Changes
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check On Result
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Department Updated Successfully"
+            };
+            return Obj;
+
+        }
+
+        public async Task<ActionStatusDto> DeleteDepartment(string? id)
+        {
+            //Check On Id
+            if (id == null) throw new Exception("Provided Id Is InValid");
+            //Get Department
+            var department = await getDepartmentAsDBEntity(id);
+            //Check on Department
+            if (department == null) throw new Exception($"No Such Department With Id: {id}");
+            //Create Repo
+            var Repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Delete Department
+            Repo.Delete(department);
+            //Save Changes
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check On Result
+            if (Result == 0) throw new Exception("Something Went Wrong!");
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Department Deleted Successfully"
+            };
+            return Obj;
+        }
+
+
+        //Commom Used Methods
+        private async Task<ActionStatusDto> RemoveDepartmentToggle(string? id, bool status)
+        {
+            //Modal Check
+            if(id is null) throw new Exception("The Provided Id Is Invalid");
+            //Get The Department
+            var department = await getDepartmentAsDBEntity(id);
+            //Check On the department
+            if (department is null) throw new Exception($"There is no department with id: {id}");
+            //check if the department has the same value that exist on database
+            var Message = status ? "Removed" : "Restored";
+            if (department.isRemoved == status) throw new Exception($"this department is already {Message}");
+            //update the department
+            department.isRemoved = status;
+            department.isActive = false;
+            //Update Department 
+            _UnitOfWork.GenerateRepository<department, string>().Update(department);
+            //Save
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check on the database response
+            if (Result == 0) throw new Exception("Something Went Wrong!");
+            //Create Resonse
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"Department is {Message} Successfully"
+            };
+            return Obj;
+        }
+
+        private async Task<department> getDepartmentAsDBEntity(string? id)
+        {
+            //Check on Id
+            if (id is null) throw new Exception("Provided Id in InValid");
+            //Create Repo
+            var Repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Create Specification Object
+            var spec = new DepartmentById(id);
+            //Fetch Department
+            var dept = await Repo.GetByIdAsync(spec);
+            //Check on the department
+            if (dept is null) throw new Exception($"Department With Id: {id} is Not Found");
+            return dept;
         }
     }
 }

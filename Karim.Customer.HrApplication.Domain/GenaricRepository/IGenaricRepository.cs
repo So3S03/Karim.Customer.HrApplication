@@ -13,7 +13,7 @@ namespace Karim.Customer.HrApplication.Domain.GenaricRepository
         Task AddRangeAsync(IEnumerable<TEntity> entities); //it will be for upload bulk methods
         void Update(TEntity entity);
         void UpdateRange(IEnumerable<TEntity> entities); //it will be for upload bulk methods
-        void Delete(TKey id);
+        void Delete(TEntity entity);
         void DeleteRange(IEnumerable<TEntity> entities); //it will be for upload bulk methods
     }
 }
