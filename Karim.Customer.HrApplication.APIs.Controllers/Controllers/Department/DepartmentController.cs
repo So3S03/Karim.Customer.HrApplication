@@ -9,9 +9,9 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
     public class DepartmentController(IServicesManager servicesManager) : ApiBaseController
     {
         [HttpGet("GetAllDepartment")]
-        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments(int? type, int? status = 0)
+        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments(int? type, string? name, int? status = 0)
         {
-            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(status, type);
+            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(type, name, status);
             return Ok(result);
         }
 

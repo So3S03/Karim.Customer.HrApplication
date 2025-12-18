@@ -12,7 +12,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper) : IDepartmentService
     {
-        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? status, int? type)
+        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status)
         {
             if(status == null) status = 0;
             //checking on the modal
@@ -20,7 +20,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //creating repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //creating specifications
-            var specs = new DepartmentsByStatusAndTypes(status, type);
+            var specs = new DepartmentsByStatusAndTypes(type, name, status);
             //calling getAll
             var result = await Repo.GetAllAsync(specs); //returning list
             //mapping the result
@@ -66,7 +66,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Then Handling the Photo Upload
 
             //Then Get All Departments To (Check For The Department, Return it in the response)
-            var AllDepartments = await this.GetDepartmentsAsync(null, null);
+            var AllDepartments = await this.GetDepartmentsAsync(null, null, null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
             if (isExist) throw new Exception("This Department Already Exist");

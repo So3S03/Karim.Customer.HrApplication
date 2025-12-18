@@ -5,7 +5,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
 {
     public interface IDepartmentService
     {
-        public Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? status, int? type);
+        public Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status);
         public ICollection<EnumDto> FillDepartmentsStatus();
         public ICollection<EnumDto> FillDepartmentTypes();
         public Task<SingleDepartmentToReturnDto> GetDepartmentByIdAsync(string? Id);
