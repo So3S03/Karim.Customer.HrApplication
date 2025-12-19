@@ -1,4 +1,5 @@
 ﻿using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
@@ -6,11 +7,13 @@ using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using MapsterMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Application.Services.Department
 {
-    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper) : IDepartmentService
+    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env) : IDepartmentService
     {
         public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status)
         {
@@ -24,6 +27,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //calling getAll
             var result = await Repo.GetAllAsync(specs); //returning list
             //mapping the result
+            //var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
             var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
             return mappedDepartment;
         }
@@ -51,7 +55,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return MappedDepartment;
         }
 
-        public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity)
+        public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity, IFormFile? file)
         {
             //Check on the Modal
             if (entity is null) throw new Exception("Department data you have entered is invalid");// it should be handled with error module
@@ -64,7 +68,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             mappedDepartment.isActive = false;
             mappedDepartment.isRemoved = false;
             //Then Handling the Photo Upload
-
+            string filePath = file is not null ? await filesSaver.SaveFiles(file, env) : "";
+            mappedDepartment.DepartmentPhotoUrl = filePath;
             //Then Get All Departments To (Check For The Department, Return it in the response)
             var AllDepartments = await this.GetDepartmentsAsync(null, null, null);
             //Check If The Department Exist
@@ -130,7 +135,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return Result;
         }
 
-        public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity)
+        public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity, IFormFile? file)
         {
             //Check on Modal
             if (entity is null) throw new Exception("The Provided Data is Not Valid");
@@ -142,7 +147,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Mapped Department
             var mappedDepartment = _mapper.Map(entity, Department);
             //Handling Photo
-
+            if(file is not null) mappedDepartment.DepartmentPhotoUrl = await filesSaver.SaveFiles(file, env);
             //Create Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Update Database

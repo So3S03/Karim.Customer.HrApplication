@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
@@ -58,16 +59,17 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
         }
 
         [HttpPost("AddDepartment")]
-        public async Task<ActionResult<ActionStatusDto>> AddDepartment(DepartmentToAddDto? entity)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ActionStatusDto>> AddDepartment([FromForm]DepartmentToAddDto? entity, IFormFile? file)
         {
-            var result = await servicesManager.DepartmentService.AddDepartmentAsync(entity);
+            var result = await servicesManager.DepartmentService.AddDepartmentAsync(entity, file);
             return Ok(result);
         }
 
         [HttpPut("UpdateDepartment")]
-        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment(DepartmentToUpdateDto? entity)
+        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment([FromForm]DepartmentToUpdateDto? entity, IFormFile? file)
         {
-            var result = await servicesManager.DepartmentService.UpdateDepartment(entity);
+            var result = await servicesManager.DepartmentService.UpdateDepartment(entity, file);
             return Ok(result);
         }
 

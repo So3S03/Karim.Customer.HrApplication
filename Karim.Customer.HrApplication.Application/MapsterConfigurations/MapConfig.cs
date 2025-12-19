@@ -11,9 +11,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
         {
             //Department Section
             config.NewConfig<Department, DepartmentToReturnDto>()
-                .Map(dest => dest.DepatrmentType, src => src.DepatrmentType.ToString());
+                .Map(dest => dest.DepatrmentType, src => src.DepatrmentType.ToString())
+                .Map(dest => dest.DepartmentPhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.DepartmentPhotoUrl!));
             config.NewConfig<Department, SingleDepartmentToReturnDto>()
-                .Map(dest => dest.DepatrmentType, src => src.DepatrmentType.ToString());
+                .Map(dest => dest.DepatrmentType, src => src.DepatrmentType.ToString())
+                .Map(dest => dest.DepartmentPhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.DepartmentPhotoUrl!));
             config.NewConfig<DepartmentToAddDto, Department>()
                 .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
                 .Map(dest => dest.DepatrmentType, src => (DepartmentType)src.DepatrmentType);
