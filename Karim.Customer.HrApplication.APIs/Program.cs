@@ -4,6 +4,8 @@ using Karim.Customer.HrApplication.APIs.Extentions;
 using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Karim.Customer.HrApplication.APIs
@@ -18,6 +20,11 @@ namespace Karim.Customer.HrApplication.APIs
             // Add services to the container.
 
             builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                })
                 .AddApplicationPart(typeof(ControllersAssembly).Assembly);
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
@@ -49,6 +56,8 @@ namespace Karim.Customer.HrApplication.APIs
             }
 
             app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
 
             app.UseAuthorization();
 

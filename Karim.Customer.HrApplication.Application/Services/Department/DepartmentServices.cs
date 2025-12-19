@@ -1,4 +1,5 @@
 ﻿using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
@@ -6,13 +7,15 @@ using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using MapsterMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Application.Services.Department
 {
-    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper) : IDepartmentService
+    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env) : IDepartmentService
     {
-        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? status, int? type)
+        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status)
         {
             if(status == null) status = 0;
             //checking on the modal
@@ -20,10 +23,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //creating repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //creating specifications
-            var specs = new DepartmentsByStatusAndTypes(status, type);
+            var specs = new DepartmentsByStatusAndTypes(type, name, status);
             //calling getAll
             var result = await Repo.GetAllAsync(specs); //returning list
             //mapping the result
+            //var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
             var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
             return mappedDepartment;
         }
@@ -51,7 +55,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return MappedDepartment;
         }
 
-        public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity)
+        public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity, IFormFile? file)
         {
             //Check on the Modal
             if (entity is null) throw new Exception("Department data you have entered is invalid");// it should be handled with error module
@@ -64,9 +68,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             mappedDepartment.isActive = false;
             mappedDepartment.isRemoved = false;
             //Then Handling the Photo Upload
-
+            string filePath = file is not null ? await filesSaver.SaveFiles(file, env) : "";
+            mappedDepartment.DepartmentPhotoUrl = filePath;
             //Then Get All Departments To (Check For The Department, Return it in the response)
-            var AllDepartments = await this.GetDepartmentsAsync(null, null);
+            var AllDepartments = await this.GetDepartmentsAsync(null, null, null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
             if (isExist) throw new Exception("This Department Already Exist");
@@ -130,7 +135,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return Result;
         }
 
-        public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity)
+        public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity, IFormFile? file)
         {
             //Check on Modal
             if (entity is null) throw new Exception("The Provided Data is Not Valid");
@@ -142,7 +147,19 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Mapped Department
             var mappedDepartment = _mapper.Map(entity, Department);
             //Handling Photo
-
+            if(file is not null)
+            {
+                //Check if the Department Has Old Photo
+                if (mappedDepartment.DepartmentPhotoUrl is not null)
+                {
+                    //Delete The Old Photo From The Server
+                    var RemovingResult = filesSaver.DeleteFile(mappedDepartment.DepartmentPhotoUrl!, env);
+                    //Check If Deleted
+                    if (!RemovingResult) throw new Exception("Something Went Wrong While Deleting The Old Photo");
+                }
+                //Add The New Photo
+                mappedDepartment.DepartmentPhotoUrl = await filesSaver.SaveFiles(file, env);
+            }
             //Create Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Update Database
@@ -179,6 +196,37 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             {
                 Status = true,
                 Message = "Department Deleted Successfully"
+            };
+            return Obj;
+        }
+
+        public async Task<ActionStatusDto> DeletePhoto(string? id)
+        {
+            //Check On Id
+            if (id == null) throw new Exception("The Id You Have Provided is InValid");
+            //Get Department
+            var department = await getDepartmentAsDBEntity(id);
+            //Check on Department
+            if (department == null) throw new Exception($"No Such Department With Id: {id}");
+            //Check if the Department Has Photo
+            if (department.DepartmentPhotoUrl is null) throw new Exception("This Department Has No Photo To Delete");
+            //Delete The Photo From The Server
+            //1. Delete it from server
+            var RemovingResult = filesSaver.DeleteFile(department.DepartmentPhotoUrl!, env);
+            //Check If Deleted
+            if(!RemovingResult) throw new Exception("Something Went Wrong While Deleting The Photo");
+            //2. Delete Path From Entity
+            department.DepartmentPhotoUrl = null;
+            //Update The Department
+            _UnitOfWork.GenerateRepository<department, string>().Update(department);
+            //Save Changes
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check On Result
+            if (Result == 0) throw new Exception("Something Went Wrong While Deleting The Photo");
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Photo Deleted Successfully"
             };
             return Obj;
         }

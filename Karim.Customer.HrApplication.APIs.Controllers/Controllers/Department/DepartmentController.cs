@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
@@ -9,9 +10,9 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
     public class DepartmentController(IServicesManager servicesManager) : ApiBaseController
     {
         [HttpGet("GetAllDepartment")]
-        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments(int? type, int? status = 0)
+        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments(int? type, string? name, int? status = 0)
         {
-            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(status, type);
+            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(type, name, status);
             return Ok(result);
         }
 
@@ -58,16 +59,17 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
         }
 
         [HttpPost("AddDepartment")]
-        public async Task<ActionResult<ActionStatusDto>> AddDepartment(DepartmentToAddDto? entity)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ActionStatusDto>> AddDepartment([FromForm] DepartmentToAddDto? entity, IFormFile? file)
         {
-            var result = await servicesManager.DepartmentService.AddDepartmentAsync(entity);
+            var result = await servicesManager.DepartmentService.AddDepartmentAsync(entity, file);
             return Ok(result);
         }
 
         [HttpPut("UpdateDepartment")]
-        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment(DepartmentToUpdateDto? entity)
+        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment([FromForm] DepartmentToUpdateDto? entity, IFormFile? file)
         {
-            var result = await servicesManager.DepartmentService.UpdateDepartment(entity);
+            var result = await servicesManager.DepartmentService.UpdateDepartment(entity, file);
             return Ok(result);
         }
 
@@ -78,5 +80,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             return Ok(result);
         }
 
+        [HttpDelete("DeleteDepartmentPhoto")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteDepartmentPhoto(string? id)
+        {
+            var result = await servicesManager.DepartmentService.DeletePhoto(id);
+            return Ok(result);
+        }
     }
 }
