@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department
 {
@@ -16,6 +17,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> RestoreRemovedDepartment(string? id);
         public Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity, IFormFile? file);
         public Task<ActionStatusDto> DeleteDepartment(string? id);
+        public Task<ActionStatusDto> DeletePhoto(string? id);
     }
     
 }

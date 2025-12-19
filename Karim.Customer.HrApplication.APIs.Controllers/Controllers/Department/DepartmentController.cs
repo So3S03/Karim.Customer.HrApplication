@@ -60,14 +60,14 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
 
         [HttpPost("AddDepartment")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<ActionStatusDto>> AddDepartment([FromForm]DepartmentToAddDto? entity, IFormFile? file)
+        public async Task<ActionResult<ActionStatusDto>> AddDepartment([FromForm] DepartmentToAddDto? entity, IFormFile? file)
         {
             var result = await servicesManager.DepartmentService.AddDepartmentAsync(entity, file);
             return Ok(result);
         }
 
         [HttpPut("UpdateDepartment")]
-        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment([FromForm]DepartmentToUpdateDto? entity, IFormFile? file)
+        public async Task<ActionResult<ActionStatusDto>> UpdateDepartment([FromForm] DepartmentToUpdateDto? entity, IFormFile? file)
         {
             var result = await servicesManager.DepartmentService.UpdateDepartment(entity, file);
             return Ok(result);
@@ -80,5 +80,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             return Ok(result);
         }
 
+        [HttpDelete("DeleteDepartmentPhoto")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteDepartmentPhoto(string? id)
+        {
+            var result = await servicesManager.DepartmentService.DeletePhoto(id);
+            return Ok(result);
+        }
     }
 }

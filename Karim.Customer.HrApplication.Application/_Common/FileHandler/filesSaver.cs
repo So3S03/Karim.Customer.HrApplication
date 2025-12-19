@@ -19,12 +19,31 @@ namespace Karim.Customer.HrApplication.Application._Common.FileHandler
             }
             //Create Full Path To Save My File
             string FullPath = Path.Combine(FolderPath, FileName);
+            //Check File Exist Or Not
+            if (File.Exists(FullPath)) throw new Exception("This File Already Exist");
             //Save The File
             using(var stream = new FileStream(FullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream); //Saving The File It Self On the Created Path
             }
             return $"/Resources/{FileName}";
+        }
+
+        public static bool DeleteFile(string filePath, IWebHostEnvironment env)
+        {
+            bool returnedValue = false;
+            //Create Full Path
+            //1. Environment Path c://program/wwwroot
+            //2. File Path /Resources/filename.jpg
+            string fullPath = $"{env.WebRootPath}{filePath}";
+            //Check if the file exists
+            if (!File.Exists(fullPath)) returnedValue = false;
+            //Delete the file
+            File.Delete(fullPath);
+            //Check if the file still exists
+            if(File.Exists(fullPath)) returnedValue = false;
+            else returnedValue = true;
+            return returnedValue;
         }
     }
 }

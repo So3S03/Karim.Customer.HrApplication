@@ -147,7 +147,19 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Mapped Department
             var mappedDepartment = _mapper.Map(entity, Department);
             //Handling Photo
-            if(file is not null) mappedDepartment.DepartmentPhotoUrl = await filesSaver.SaveFiles(file, env);
+            if(file is not null)
+            {
+                //Check if the Department Has Old Photo
+                if (mappedDepartment.DepartmentPhotoUrl is not null)
+                {
+                    //Delete The Old Photo From The Server
+                    var RemovingResult = filesSaver.DeleteFile(mappedDepartment.DepartmentPhotoUrl!, env);
+                    //Check If Deleted
+                    if (!RemovingResult) throw new Exception("Something Went Wrong While Deleting The Old Photo");
+                }
+                //Add The New Photo
+                mappedDepartment.DepartmentPhotoUrl = await filesSaver.SaveFiles(file, env);
+            }
             //Create Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Update Database
@@ -184,6 +196,37 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             {
                 Status = true,
                 Message = "Department Deleted Successfully"
+            };
+            return Obj;
+        }
+
+        public async Task<ActionStatusDto> DeletePhoto(string? id)
+        {
+            //Check On Id
+            if (id == null) throw new Exception("The Id You Have Provided is InValid");
+            //Get Department
+            var department = await getDepartmentAsDBEntity(id);
+            //Check on Department
+            if (department == null) throw new Exception($"No Such Department With Id: {id}");
+            //Check if the Department Has Photo
+            if (department.DepartmentPhotoUrl is null) throw new Exception("This Department Has No Photo To Delete");
+            //Delete The Photo From The Server
+            //1. Delete it from server
+            var RemovingResult = filesSaver.DeleteFile(department.DepartmentPhotoUrl!, env);
+            //Check If Deleted
+            if(!RemovingResult) throw new Exception("Something Went Wrong While Deleting The Photo");
+            //2. Delete Path From Entity
+            department.DepartmentPhotoUrl = null;
+            //Update The Department
+            _UnitOfWork.GenerateRepository<department, string>().Update(department);
+            //Save Changes
+            var Result = await _UnitOfWork.CompleteAsync();
+            //Check On Result
+            if (Result == 0) throw new Exception("Something Went Wrong While Deleting The Photo");
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Photo Deleted Successfully"
             };
             return Obj;
         }
