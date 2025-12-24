@@ -7,9 +7,10 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
 {
     public interface IDepartmentService
     {
-        public Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status);
+        public Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(DepartmentQueryParameters? parameters);
         public ICollection<EnumDto> FillDepartmentsStatus();
         public ICollection<EnumDto> FillDepartmentTypes();
+        public ICollection<EnumDto> DepartmentSortingLockUp();
         public Task<SingleDepartmentToReturnDto> GetDepartmentByIdAsync(string? Id);
         public Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity, IFormFile? file);
         public Task<ActionStatusDto> DepartmentActiveToggle(string? id, bool? status);

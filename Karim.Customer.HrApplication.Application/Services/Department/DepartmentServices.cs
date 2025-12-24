@@ -15,15 +15,15 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env) : IDepartmentService
     {
-        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(int? type, string? name, int? status)
+        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
         {
-            if(status == null) status = 0;
+            if(parameters.Status == null) parameters.Status = 0;
             //checking on the modal
-            if (status > 4 || status < 0) throw new Exception("Department type isn't valid");//it should be checking by error module (need implementing)
+            if (parameters.Status > 4 || parameters.Status < 0) throw new Exception("Department type isn't valid");//it should be checking by error module (need implementing)
             //creating repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //creating specifications
-            var specs = new DepartmentsByStatusAndTypes(type, name, status);
+            var specs = new DepartmentsListSpecifications(parameters);
             //calling getAll
             var result = await Repo.GetAllAsync(specs); //returning list
             //mapping the result
@@ -43,6 +43,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             var data = EnumsConvertion.CreateEnumLists<DepartmentTypeLockup>();
             return data;
         }
+
+        public ICollection<EnumDto> DepartmentSortingLockUp()
+        {
+            var data = EnumsConvertion.CreateEnumLists<DepartmentSortingLockup>();
+            return data;
+        }
+
 
         public async Task<SingleDepartmentToReturnDto> GetDepartmentByIdAsync(string? Id)
         {
@@ -71,7 +78,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             string filePath = file is not null ? await filesSaver.SaveFiles(file, env) : "";
             mappedDepartment.DepartmentPhotoUrl = filePath;
             //Then Get All Departments To (Check For The Department, Return it in the response)
-            var AllDepartments = await this.GetDepartmentsAsync(null, null, null);
+            var AllDepartments = await this.GetDepartmentsAsync(null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
             if (isExist) throw new Exception("This Department Already Exist");

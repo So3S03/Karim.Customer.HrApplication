@@ -13,5 +13,9 @@ namespace Karim.Customer.HrApplication.Domain.Specifications
 
         //Crateria for where
         public Expression<Func<TEntity, bool>>? Criteria { get; } //will be used for filteration
+
+        //Order By
+        public Expression<Func<TEntity, object>>? OrderBy { get; }
+        public Expression<Func<TEntity, object>>? OrderByDesc { get; }
     }
 }
