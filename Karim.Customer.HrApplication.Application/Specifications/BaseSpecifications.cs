@@ -9,8 +9,9 @@ namespace Karim.Customer.HrApplication.Application.Specifications
         where TKey : IEquatable<TKey>
     {
         public ICollection<Expression<Func<TEntity, object>>> IncludeList { get; } = [];
-
         public Expression<Func<TEntity, bool>>? Criteria { get; } = default!;
+        public Expression<Func<TEntity, object>>? OrderBy { get; private set; } = default!;
+        public Expression<Func<TEntity, object>>? OrderByDesc { get; private set; } = default!;
 
         protected BaseSpecifications()
         {
@@ -25,6 +26,16 @@ namespace Karim.Customer.HrApplication.Application.Specifications
         protected void AddInclude(Expression<Func<TEntity, object>> include)
         {
             IncludeList.Add(include);
+        }
+
+        protected void SetOrderByAsc(Expression<Func<TEntity, object>> orderBy)
+        {
+            OrderBy = orderBy;
+        }
+
+        protected void SetOrderByDesc(Expression<Func<TEntity, object>> orderByDesc)
+        {
+            OrderByDesc = orderByDesc;
         }
     }
 }

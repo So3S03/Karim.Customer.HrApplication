@@ -21,6 +21,14 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Specifications
                 {
                     Query = specifications.IncludeList.Aggregate(Query, (currentQuery, include) => currentQuery.Include(include));
                 }
+                if (specifications.OrderBy is not null)
+                {
+                    Query = Query.OrderBy(specifications.OrderBy);
+                }
+                else if (specifications.OrderByDesc is not null)
+                {
+                    Query = Query.OrderByDescending(specifications.OrderByDesc);
+                }
             }
             return Query;
         }

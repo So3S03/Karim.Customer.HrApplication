@@ -10,9 +10,9 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
     public class DepartmentController(IServicesManager servicesManager) : ApiBaseController
     {
         [HttpGet("GetAllDepartment")]
-        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments(int? type, string? name, int? status = 0)
+        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments([FromQuery] DepartmentQueryParameters parameters)
         {
-            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(type, name, status);
+            var result = await servicesManager.DepartmentService.GetDepartmentsAsync(parameters);
             return Ok(result);
         }
 
@@ -27,6 +27,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
         public ActionResult<ICollection<EnumDto>> FillDepartmentTypesLockUp()
         {
             var result = servicesManager.DepartmentService.FillDepartmentTypes();
+            return Ok(result);
+        }
+        
+        [HttpGet("DepartmentSorrtingLockUp")]
+        public ActionResult<ICollection<EnumDto>> DepartmentSorrtingLockUp()
+        {
+            var result = servicesManager.DepartmentService.DepartmentSortingLockUp();
             return Ok(result);
         }
 
