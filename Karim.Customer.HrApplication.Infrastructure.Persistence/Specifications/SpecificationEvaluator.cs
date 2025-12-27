@@ -29,6 +29,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Specifications
                 {
                     Query = Query.OrderByDescending(specifications.OrderByDesc);
                 }
+                if(specifications.IsPagination)
+                {
+                    Query = Query.Skip(specifications.Skip).Take(specifications.Take);
+                }
             }
             return Query;
         }

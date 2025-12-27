@@ -16,6 +16,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 
+        public Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications) => Evaluator(specifications).CountAsync();
+
         public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await dbContext.Set<TEntity>().AddRangeAsync(entities); //it will be for upload bulk methods
 
         public void Update(TEntity entity) => dbContext.Set<TEntity>().Update(entity);
@@ -30,5 +32,6 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
         //helper method
         private IQueryable<TEntity> Evaluator(ISpecifications<TEntity, TKey> specs)
            => SpecificationEvaluator.CreateQuery<TEntity, TKey>(dbContext.Set<TEntity>(), specs);
+
     }
 }

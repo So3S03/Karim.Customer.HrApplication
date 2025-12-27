@@ -17,5 +17,10 @@ namespace Karim.Customer.HrApplication.Domain.Specifications
         //Order By
         public Expression<Func<TEntity, object>>? OrderBy { get; }
         public Expression<Func<TEntity, object>>? OrderByDesc { get; }
+
+        //pagination
+        public int Skip { get; }
+        public int Take { get; }
+        public bool IsPagination { get; }
     }
 }
