@@ -10,7 +10,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
     public class DepartmentController(IServicesManager servicesManager) : ApiBaseController
     {
         [HttpGet("GetAllDepartment")]
-        public async Task<ActionResult<ICollection<DepartmentToReturnDto>>> GetAllDepartments([FromQuery] DepartmentQueryParameters parameters)
+        public async Task<ActionResult<DataWithPagination<ICollection<DepartmentToReturnDto>>>> GetAllDepartments([FromQuery] DepartmentQueryParameters parameters)
         {
             var result = await servicesManager.DepartmentService.GetDepartmentsAsync(parameters);
             return Ok(result);

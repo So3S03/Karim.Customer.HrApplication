@@ -12,6 +12,10 @@ namespace Karim.Customer.HrApplication.Application.Specifications
         public Expression<Func<TEntity, bool>>? Criteria { get; } = default!;
         public Expression<Func<TEntity, object>>? OrderBy { get; private set; } = default!;
         public Expression<Func<TEntity, object>>? OrderByDesc { get; private set; } = default!;
+        public int Skip { get; private set; }
+        public int Take { get; private set; }
+        public bool IsPagination { get; private set; }
+
 
         protected BaseSpecifications()
         {
@@ -36,6 +40,15 @@ namespace Karim.Customer.HrApplication.Application.Specifications
         protected void SetOrderByDesc(Expression<Func<TEntity, object>> orderByDesc)
         {
             OrderByDesc = orderByDesc;
+        }
+
+        protected void Pagination(int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 9) pageSize = 9;
+            Skip = (page - 1) * pageSize;
+            Take = pageSize;
+            IsPagination = true;
         }
     }
 }

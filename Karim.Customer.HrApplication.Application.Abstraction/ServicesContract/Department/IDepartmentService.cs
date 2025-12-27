@@ -7,7 +7,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
 {
     public interface IDepartmentService
     {
-        public Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(DepartmentQueryParameters? parameters);
+        public Task<DataWithPagination<ICollection<DepartmentToReturnDto>>> GetDepartmentsAsync(DepartmentQueryParameters? parameters);
         public ICollection<EnumDto> FillDepartmentsStatus();
         public ICollection<EnumDto> FillDepartmentTypes();
         public ICollection<EnumDto> DepartmentSortingLockUp();

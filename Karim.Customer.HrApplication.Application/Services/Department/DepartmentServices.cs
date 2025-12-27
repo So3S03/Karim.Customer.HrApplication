@@ -2,7 +2,6 @@
 using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
-using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
@@ -15,21 +14,22 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env) : IDepartmentService
     {
-        public async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
+        public async Task<DataWithPagination<ICollection<DepartmentToReturnDto>>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
         {
-            if(parameters.Status == null) parameters.Status = 0;
-            //checking on the modal
-            if (parameters.Status > 4 || parameters.Status < 0) throw new Exception("Department type isn't valid");//it should be checking by error module (need implementing)
-            //creating repo
-            var Repo = _UnitOfWork.GenerateRepository<department, string>();
-            //creating specifications
-            var specs = new DepartmentsListSpecifications(parameters);
-            //calling getAll
-            var result = await Repo.GetAllAsync(specs); //returning list
-            //mapping the result
-            //var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
-            var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
-            return mappedDepartment;
+            //Get All Departments
+            var Data = await GetDepartmentsWithoutPaginationAsync(parameters);
+            //Create Specifications For Count
+            var DepartmentCountSpecs = new DepartmentsCountSpecification(parameters!);
+            //Get Count
+            var DepartmentsCount = await _UnitOfWork.GenerateRepository<department, string>().GetDataCountAsync(DepartmentCountSpecs);
+            //Make Pagination Object
+            var paginatedData = new DataWithPagination<ICollection<DepartmentToReturnDto>>(
+                pageNum: parameters!.PageNum,
+                nextPage: parameters!.PageNum + 1,
+                pageSize: Data.Count(),
+                totalRecords: DepartmentsCount,
+                data: Data);
+            return paginatedData;
         }
 
         public ICollection<EnumDto> FillDepartmentsStatus()
@@ -78,7 +78,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             string filePath = file is not null ? await filesSaver.SaveFiles(file, env) : "";
             mappedDepartment.DepartmentPhotoUrl = filePath;
             //Then Get All Departments To (Check For The Department, Return it in the response)
-            var AllDepartments = await this.GetDepartmentsAsync(null);
+            var AllDepartments = await this.GetDepartmentsWithoutPaginationAsync(null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
             if (isExist) throw new Exception("This Department Already Exist");
@@ -282,6 +282,23 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Check on the department
             if (dept is null) throw new Exception($"Department With Id: {id} is Not Found");
             return dept;
+        }
+
+        private async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsWithoutPaginationAsync(DepartmentQueryParameters? parameters)
+        {
+            if (parameters.Status == null) parameters.Status = 0;
+            //checking on the modal
+            if (parameters.Status > 4 || parameters.Status < 0) throw new Exception("Department type isn't valid");//it should be checking by error module (need implementing)
+            //creating repo
+            var Repo = _UnitOfWork.GenerateRepository<department, string>();
+            //creating specifications
+            var specs = new DepartmentsListSpecifications(parameters);
+            //calling getAll
+            var result = await Repo.GetAllAsync(specs); //returning list
+            //mapping the result
+            //var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
+            var mappedDepartment = _mapper.Map<ICollection<DepartmentToReturnDto>>(result);
+            return mappedDepartment;
         }
     }
 }
