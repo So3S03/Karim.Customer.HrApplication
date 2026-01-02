@@ -1,9 +1,11 @@
 
 using Karim.Customer.HrApplication.APIs.Controllers.Assembly;
+using Karim.Customer.HrApplication.APIs.ErrorHandeler;
 using Karim.Customer.HrApplication.APIs.Extentions;
 using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -34,6 +36,23 @@ namespace Karim.Customer.HrApplication.APIs
             //registering Application DI 
             builder.Services.ApplicationDIContainer();
 
+            //configure validation Errors
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var Errors = actionContext.ModelState.Where(E => E.Value.Errors.Count > 0)
+                    .ToDictionary(E => E.Key, E => E.Value.Errors.Select(E => E.ErrorMessage));
+                    var Problem = new ProblemDetails()
+                    {
+                        Title = "Validation Error",
+                        Detail = "One Or More Validation Error Has Occurred",
+                        Status = StatusCodes.Status400BadRequest,
+                        Extensions = { { "Errors", Errors }}
+                    };
+                    return new BadRequestObjectResult(Problem);
+                };
+            });
 
             //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
@@ -54,6 +73,7 @@ namespace Karim.Customer.HrApplication.APIs
                 app.UseSwaggerUI();
                 app.MapOpenApi();
             }
+            app.UseMiddleware<ErrorHandlerMiddleware>();
 
             app.UseHttpsRedirection();
 
