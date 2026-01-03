@@ -5,6 +5,7 @@ using Karim.Customer.HrApplication.Application.Specifications.Department;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
+using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -288,7 +289,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         {
             if (parameters.Status == null) parameters.Status = 0;
             //checking on the modal
-            if (parameters.Status > 4 || parameters.Status < 0) throw new Exception("Department type isn't valid");//it should be checking by error module (need implementing)
+            if (parameters.Status > 4 || parameters.Status < 0) throw new BadRequestException("Department Status is Invalid");
             //creating repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //creating specifications

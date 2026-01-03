@@ -6,6 +6,7 @@ using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -54,9 +55,15 @@ namespace Karim.Customer.HrApplication.APIs
                 };
             });
 
+            //add serilog into DI container
+            builder.Services.AddSerilog();
+            //creating serilog configurations to read from appsettings
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+
             //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApi();
+
             #endregion
 
            var app = builder.Build();
@@ -65,6 +72,8 @@ namespace Karim.Customer.HrApplication.APIs
             await app.DbMigrate<HRMSDBContext>();
 
             #region Middilewares
+            app.UseMiddleware<ErrorHandlerMiddleware>();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -73,7 +82,6 @@ namespace Karim.Customer.HrApplication.APIs
                 app.UseSwaggerUI();
                 app.MapOpenApi();
             }
-            app.UseMiddleware<ErrorHandlerMiddleware>();
 
             app.UseHttpsRedirection();
 
