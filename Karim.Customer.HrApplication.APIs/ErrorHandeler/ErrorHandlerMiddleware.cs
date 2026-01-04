@@ -26,6 +26,7 @@ namespace Karim.Customer.HrApplication.APIs.ErrorHandeler
                 {
                     NotFoundException => StatusCodes.Status404NotFound,
                     BadRequestException => StatusCodes.Status400BadRequest,
+                    ConflictException => StatusCodes.Status409Conflict,
                     UnauthorizedException => StatusCodes.Status401Unauthorized,
                     ForbiddenException => StatusCodes.Status403Forbidden,
                     MethodNotAllowedException => StatusCodes.Status405MethodNotAllowed,
@@ -37,7 +38,7 @@ namespace Karim.Customer.HrApplication.APIs.ErrorHandeler
                 context.Response.ContentType = "application/json";
 
                 // Log the error
-                Log.Error(ex, "Error on path {Path}: {Message}", context.Request.Path, ex.Message);
+                Log.Error(ex, $"Error on path {context.Request.Path}: {ex.Message}", context.Request.Path, ex.Message);
 
                 // Create problem details
                 var problem = new ProblemDetails()
@@ -46,6 +47,7 @@ namespace Karim.Customer.HrApplication.APIs.ErrorHandeler
                     {
                         NotFoundException => "Resource You Try To Access is Not Found",
                         BadRequestException => "Bad Request",
+                        ConflictException => "An Conflict Happend",
                         UnauthorizedException => "You Are Not Authorized To Do This Action",
                         ForbiddenException => "Forbidden",
                         MethodNotAllowedException => "This EndPoint Can't be Accessed Using This HTTP Method",

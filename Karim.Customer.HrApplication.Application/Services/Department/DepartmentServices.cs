@@ -55,7 +55,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<SingleDepartmentToReturnDto> GetDepartmentByIdAsync(string? Id)
         {
             //Check on the Id
-            if (Id is null) throw new Exception("the Id you have provided is not valid please provid a valid Id"); //It Should have An Error Handle
+            if (Id is null) throw new BadRequestException("the Id you have provided is not valid please provid a valid Id"); //It Should have An Error Handle
             //Create Repository
             var department = await getDepartmentAsDBEntity(Id);
             //Mapped Data
@@ -66,11 +66,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<ActionStatusDto> AddDepartmentAsync(DepartmentToAddDto? entity, IFormFile? file)
         {
             //Check on the Modal
-            if (entity is null) throw new Exception("Department data you have entered is invalid");// it should be handled with error module
+            if (entity is null) throw new BadRequestException("Department data you have entered is invalid");
             //Check if the Department Code Start With (DEPT)
-            if (!entity.DepartmentCode.StartsWith("DEPT")) throw new Exception("Department Code Should Start With => DEPT <= Then 3 Numbers ex: DEPT001");
+            if (!entity.DepartmentCode.StartsWith("DEPT")) throw new BadRequestException("Department Code Should Start With => DEPT <= Then 3 Numbers ex: DEPT001");
             //Check if department Code Length != 7
-            if (entity.DepartmentCode.Length != 7) throw new Exception("Department Code Should Be At Most 7 Character ex: DEPT001");
+            if (entity.DepartmentCode.Length != 7) throw new BadRequestException("Department Code Should Be At Most 7 Character ex: DEPT001");
             //mapping form departmentToAddDto => Department
             var mappedDepartment = _mapper.Map<department>(entity);
             mappedDepartment.isActive = false;
@@ -82,7 +82,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             var AllDepartments = await this.GetDepartmentsWithoutPaginationAsync(null);
             //Check If The Department Exist
             var isExist = AllDepartments.Any(d => d.DepartmentCode == entity.DepartmentCode);
-            if (isExist) throw new Exception("This Department Already Exist");
+            if (isExist) throw new ConflictException("A Department With This Code Already Exist");
             //Creating Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Add The Department
@@ -104,15 +104,15 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<ActionStatusDto> DepartmentActiveToggle(string? id, bool? status)
         {
             //check on the modal
-            if (id == null) throw new Exception("the id you have provided is invalid");
-            if(!status.HasValue) throw new Exception("you should provide status for the selected department");
+            if (id == null) throw new BadRequestException("the id you have provided is invalid");
+            if(!status.HasValue) throw new BadRequestException("you should provide status for the selected department");
             //get the department
             var department = await getDepartmentAsDBEntity(id);
             //check on the department
-            if (department == null) throw new Exception($"there is no department with id: {id}");
+            if (department == null) throw new NotFoundException(id, "Department");
             //check if the department has the same value that exist on database
             var Message = status.Value ? "Active" : "inActive";
-            if(department.isActive == status.Value) throw new Exception($"this department is already {Message}");
+            if(department.isActive == status.Value) throw new ConflictException($"this department is already {Message}");
             //update the department
             department.isActive = status.Value;
             department.isRemoved = false;
@@ -146,12 +146,12 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity, IFormFile? file)
         {
             //Check on Modal
-            if (entity is null) throw new Exception("The Provided Data is Not Valid");
-            if (entity.Id == null) throw new Exception("The Id is Not Valid");
+            if (entity is null) throw new BadRequestException("The Provided Data is Not Valid");
+            if (entity.Id == null) throw new BadRequestException("The Id is Not Valid");
             //Find Department
             var Department = await getDepartmentAsDBEntity(entity.Id);
             //Check On the department
-            if (Department == null) throw new Exception($"Can't Find Department With Id: {entity.Id}");
+            if (Department == null) throw new NotFoundException(entity.Id, "Department");
             //Mapped Department
             var mappedDepartment = _mapper.Map(entity, Department);
             //Handling Photo
@@ -187,11 +187,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<ActionStatusDto> DeleteDepartment(string? id)
         {
             //Check On Id
-            if (id == null) throw new Exception("Provided Id Is InValid");
+            if (id == null) throw new BadRequestException("Provided Id Is InValid");
             //Get Department
             var department = await getDepartmentAsDBEntity(id);
             //Check on Department
-            if (department == null) throw new Exception($"No Such Department With Id: {id}");
+            if (department == null) throw new NotFoundException(id, "Department");
             //Create Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Delete Department
@@ -211,13 +211,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         public async Task<ActionStatusDto> DeletePhoto(string? id)
         {
             //Check On Id
-            if (id == null) throw new Exception("The Id You Have Provided is InValid");
+            if (id == null) throw new BadRequestException("The Id You Have Provided is InValid");
             //Get Department
             var department = await getDepartmentAsDBEntity(id);
             //Check on Department
-            if (department == null) throw new Exception($"No Such Department With Id: {id}");
+            if (department == null) throw new NotFoundException(id, "Department");
             //Check if the Department Has Photo
-            if (department.DepartmentPhotoUrl is null) throw new Exception("This Department Has No Photo To Delete");
+            if (department.DepartmentPhotoUrl is null) throw new BadRequestException("This Department Has No Photo To Delete");
             //Delete The Photo From The Server
             //1. Delete it from server
             var RemovingResult = filesSaver.DeleteFile(department.DepartmentPhotoUrl!, env);
@@ -244,14 +244,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         private async Task<ActionStatusDto> RemoveDepartmentToggle(string? id, bool status)
         {
             //Modal Check
-            if(id is null) throw new Exception("The Provided Id Is Invalid");
+            if(id is null) throw new BadRequestException("The Provided Id Is Invalid");
             //Get The Department
             var department = await getDepartmentAsDBEntity(id);
             //Check On the department
-            if (department is null) throw new Exception($"There is no department with id: {id}");
+            if (department is null) throw new NotFoundException(id, "Department");
             //check if the department has the same value that exist on database
             var Message = status ? "Removed" : "Restored";
-            if (department.isRemoved == status) throw new Exception($"this department is already {Message}");
+            if (department.isRemoved == status) throw new ConflictException($"this department is already {Message}");
             //update the department
             department.isRemoved = status;
             department.isActive = false;
@@ -273,7 +273,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
         private async Task<department> getDepartmentAsDBEntity(string? id)
         {
             //Check on Id
-            if (id is null) throw new Exception("Provided Id in InValid");
+            if (id is null) throw new BadRequestException("Provided Id in InValid");
             //Create Repo
             var Repo = _UnitOfWork.GenerateRepository<department, string>();
             //Create Specification Object
@@ -281,7 +281,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Fetch Department
             var dept = await Repo.GetByIdAsync(spec);
             //Check on the department
-            if (dept is null) throw new Exception($"Department With Id: {id} is Not Found");
+            if (dept is null) throw new NotFoundException(id, "Department");
             return dept;
         }
 
