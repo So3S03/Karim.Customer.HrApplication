@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Karim.Customer.HrApplication.Shared.Exceptions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace Karim.Customer.HrApplication.Application._Common.FileHandler
@@ -20,7 +21,7 @@ namespace Karim.Customer.HrApplication.Application._Common.FileHandler
             //Create Full Path To Save My File
             string FullPath = Path.Combine(FolderPath, FileName);
             //Check File Exist Or Not
-            if (File.Exists(FullPath)) throw new Exception("This File Already Exist");
+            if (File.Exists(FullPath)) throw new ConflictException("This File Already Exist");
             //Save The File
             using(var stream = new FileStream(FullPath, FileMode.Create))
             {
