@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
+using Karim.Customer.HrApplication.Domain.Conttracts;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
@@ -9,11 +10,12 @@ using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Application.Services.Department
 {
-    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env) : IDepartmentService
+    internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env, IExcelServices excelServices) : IDepartmentService
     {
         public async Task<DataWithPagination<ICollection<DepartmentToReturnDto>>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
         {
@@ -237,6 +239,36 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
                 Message = "Photo Deleted Successfully"
             };
             return Obj;
+        }
+
+        public byte[] GenerateDepartmentTemplateExcelSheetForAddRange()
+        {
+            //create an object from the DepartmentToAddDTO for creating template
+            DepartmentToAddDto departmentObj = new DepartmentToAddDto()
+            {
+                DepartmentCode = "DEPT001",
+                DepartmentName = "Department Name",
+                ActualCreationDate = DateTime.UtcNow,
+                DepartmentBudgetForSalaries = 1000000,
+                DepartmentBudgetForTools = 2000000,
+                DepartmentBudgetForTrainees = 30000000,
+                DepartmentBudgetOther = 4000000,
+                Description = "Department Description",
+                DepatrmentType = 19,
+                TotalDepartmentBudget = 5000000
+            };
+            var fileAsBytes = excelServices.GenerateExcelSheetTemplate<DepartmentToAddDto>(departmentObj, "DepartmentTemplateForAdd");
+            return fileAsBytes;
+        }
+        public async Task<byte[]> GenerateDepartmentsListExcelSheet()
+        {
+            //forming static parameter for Department
+            DepartmentQueryParameters queery = new DepartmentQueryParameters();
+            //get all departments
+            var AllDepartments = await GetDepartmentsWithoutPaginationAsync(queery);
+            //create array of bytes of the Departments
+            var data = excelServices.GenerateExcelSheetForCollection(AllDepartments, "DepartmentsList");
+            return data;
         }
 
 

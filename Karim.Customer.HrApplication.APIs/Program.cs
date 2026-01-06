@@ -3,6 +3,7 @@ using Karim.Customer.HrApplication.APIs.Controllers.Assembly;
 using Karim.Customer.HrApplication.APIs.ErrorHandeler;
 using Karim.Customer.HrApplication.APIs.Extentions;
 using Karim.Customer.HrApplication.Application.ApplicationDI;
+using Karim.Customer.HrApplication.Infrastructure.InfraDIContainer;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,9 @@ namespace Karim.Customer.HrApplication.APIs
 
             //registering Persistence DI
             builder.Services.AddPersistenceDI(builder.Configuration);
+
+            //registering Infrastructure DI
+            builder.Services.AddInfrastructure();
 
             //registering Application DI 
             builder.Services.ApplicationDIContainer();

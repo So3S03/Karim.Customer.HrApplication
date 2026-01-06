@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Application\Karim.Customer.HrApplication.Application.csproj" />
     <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
   </ItemGroup>
 
