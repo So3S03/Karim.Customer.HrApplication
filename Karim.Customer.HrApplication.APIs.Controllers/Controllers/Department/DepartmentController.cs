@@ -93,5 +93,20 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = await servicesManager.DepartmentService.DeletePhoto(id);
             return Ok(result);
         }
+
+        [HttpGet("GetDepartmentExcelSheetForAddBulkTemplate")]
+        public ActionResult GetDepartmentExcelSheetTemplate()
+        {
+            var result = servicesManager.DepartmentService.GenerateDepartmentTemplateExcelSheetForAddRange();
+            var file = File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DepartmentToAddExcelTemplate.xlsx");
+            return file;
+        }
+
+        [HttpGet("GetDepartmentsListExcelSheet")]
+        public async Task<ActionResult> GetDepartmentsListExcelSheet()
+        {
+            var result = await servicesManager.DepartmentService.GenerateDepartmentsListExcelSheet();
+            return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DepartmentsListExcelSheet.xlsx");
+        }
     }
 }
