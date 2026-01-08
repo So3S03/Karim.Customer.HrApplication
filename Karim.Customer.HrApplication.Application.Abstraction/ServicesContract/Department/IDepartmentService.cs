@@ -21,6 +21,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> DeletePhoto(string? id);
         public byte[] GenerateDepartmentTemplateExcelSheetForAddRange();
         public Task<byte[]> GenerateDepartmentsListExcelSheet();
+        public Task<ActionStatusDto> UploadBulkDepartmentsForAdd(IFormFile? file);
+        //public Task<ActionResult> UploadBulkDepartmentsForUpdate(IFormFile? file);
     }
     
 }

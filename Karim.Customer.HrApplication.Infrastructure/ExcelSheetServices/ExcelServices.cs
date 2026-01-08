@@ -1,6 +1,10 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office.CustomUI;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Karim.Customer.HrApplication.Domain.Conttracts;
+using Karim.Customer.HrApplication.Shared.Exceptions;
+using Microsoft.AspNetCore.Http;
+using System.Reflection;
 
 namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
 {
@@ -95,9 +99,97 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             return stream.ToArray(); 
         }
 
-        //public Task<ICollection<T>> ReadExcelSheet<T>(Stream file)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public List<T> ReadExcelSheetForCollections<T>(IFormFile? file) where T : new()
+        {
+            //1. Check if the file exist
+            if (file == null || file.Length == 0) throw new BadRequestException("File Not Found");
+
+            //2. Check file extension
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            var validExtensions = new[] { ".xlsx", ".xls" };
+            if (!validExtensions.Contains(extension))
+                throw new BadRequestException("File Type You Have Provided Is Not Valid Please Provide File Of Type XLSX or XLS");
+
+            //3. Create stream for streaming file
+            using var streamedFile = file.OpenReadStream();
+
+            //4. Create Collection Var For Pushing The Records On It
+            var entityList = new List<T>();
+
+            //5. Open Excel File as WorkBook
+            using var workBook = new XLWorkbook(streamedFile);
+
+            //6. Get First Work Sheet
+            var workSheet = workBook.Worksheet(1);
+
+            //7. Get header row and map to properties
+            var headerRow = workSheet.Row(1);
+
+            //8. Get All Columns Name
+            var colNamesList = headerRow.Cells()
+                .Select(c => c.GetValue<string>().Trim().ToLower())
+                .ToList();
+
+            //9. Check If There is Any Column Names
+            if (!colNamesList.Any())
+                throw new BadRequestException("File Doesn't Contain Any Column Names");
+
+            //10. Get All Properties From T and Store Them Into Dictionary
+            var properties = typeof(T).GetProperties()
+                .ToDictionary(p => p.Name.ToLower(), p => p);
+
+            //11. Loop in Rows
+            foreach (var row in workSheet.RowsUsed().Skip(1))
+            {
+                //12. Create an item to push it into list
+                var item = new T();
+
+                //13. Loop On Cells
+                for (int i = 0; i < colNamesList.Count; i++)
+                {
+                    //14. Holding Current ColumnName
+                    var singleColName = colNamesList[i];
+
+                    //15. Check if The Column Exist
+                    if (!properties.TryGetValue(singleColName, out var property))
+                        //16. Ignoring The Column
+                        continue;
+
+                    //17. Holding The Cell To Get The Value From it
+                    var cell = row.Cell(i + 1);
+
+                    //18. Check If The Cell Has Value Or Not
+                    if (cell.IsEmpty())
+                        //19. Ignore The Cell
+                        continue;
+
+                    //20. Getting Cell Type
+                    var targetType = Nullable.GetUnderlyingType(property.PropertyType)
+                                     ?? property.PropertyType;
+
+                    //21. Get value based on type
+                    object? value = targetType.Name switch
+                    {
+                        nameof(String) => cell.GetValue<string>(),
+                        nameof(Int32) => cell.GetValue<int>(),
+                        nameof(Int64) => cell.GetValue<long>(),
+                        nameof(Decimal) => cell.GetValue<decimal>(),
+                        nameof(Double) => cell.GetValue<double>(),
+                        nameof(DateTime) => cell.GetValue<DateTime>(),
+                        nameof(Boolean) => cell.GetValue<bool>(),
+                        _ => Convert.ChangeType(cell.Value, targetType)
+                    };
+
+                    //22. Setting Value Into Property
+                    property.SetValue(item, value);
+                }
+
+                //23. Adding The Created Entity Into my List To Return It
+                entityList.Add(item);
+            }
+
+            //24. Return The List
+            return entityList;
+        }
     }
 }
