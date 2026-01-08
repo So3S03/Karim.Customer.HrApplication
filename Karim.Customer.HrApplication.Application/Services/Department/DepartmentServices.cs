@@ -10,6 +10,8 @@ using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
@@ -17,6 +19,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env, IExcelServices excelServices) : IDepartmentService
     {
+        private const string codePattern = @"^DEPT\d{3}$";
         public async Task<DataWithPagination<ICollection<DepartmentToReturnDto>>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
         {
             //Get All Departments
@@ -246,7 +249,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //create an object from the DepartmentToAddDTO for creating template
             DepartmentToAddDto departmentObj = new DepartmentToAddDto()
             {
-                DepartmentCode = "DEPT001",
+                DepartmentCode = "ex: DEPT001",
                 DepartmentName = "Department Name",
                 ActualCreationDate = DateTime.UtcNow,
                 DepartmentBudgetForSalaries = 1000000,
@@ -260,6 +263,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             var fileAsBytes = excelServices.GenerateExcelSheetTemplate<DepartmentToAddDto>(departmentObj, "DepartmentTemplateForAdd");
             return fileAsBytes;
         }
+
         public async Task<byte[]> GenerateDepartmentsListExcelSheet()
         {
             //forming static parameter for Department
@@ -271,6 +275,52 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return data;
         }
 
+        public async Task<ActionStatusDto> UploadBulkDepartmentsForAdd(IFormFile? file)
+        {
+            //Checking If File Is Null
+            if (file == null) throw new BadRequestException("File Not Found Try Upload Again!");
+            //Using Method That Read File
+            var departmentsList = excelServices.ReadExcelSheetForCollections<DepartmentToAddBulkDto>(file);
+            //Check On List
+            if (departmentsList is null) throw new BadRequestException("The File Has No Departments");
+            //Try Checking On The Required Properties
+            var IsRequiredPropEmptyAndCodeFormatWrong = departmentsList.Where(d =>
+            string.IsNullOrEmpty(d.DepartmentCode) ||
+            string.IsNullOrEmpty(d.DepartmentName) ||
+            d.TotalDepartmentBudget == null ||
+            d.DepartmentBudgetForSalaries == null ||
+            d.DepatrmentType == null ||
+            d.DepatrmentType > 19 ||
+            d.DepatrmentType <= 0 || !Regex.IsMatch(d.DepartmentCode,codePattern)).Any();
+            if (IsRequiredPropEmptyAndCodeFormatWrong) throw new BadRequestException("There is Required Fields With No Data At This File");
+            //Storing All Departmnet Codes On List
+            List<string> codes = departmentsList.Select(d => d.DepartmentCode).ToList()!;
+            //Forming Specification Object
+            var specs = new DepartmentByCodeCountForCheck(codes);
+            //Create Repo
+            var repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Get All Departmnets That Match The Codes On File
+            var matchedDepartmentCount = await repo.GetDataCountAsync(specs);
+            //Check If The Department Count > 0
+            if (matchedDepartmentCount > 0) throw new ConflictException($"One Or More Department Have Simmiler Codes Please Provide A Valid Codes For Your Departments");
+            //map all departmnets into department
+            var mappedDepartment = _mapper.Map<List<department>>(departmentsList);
+            //make normalized name has value
+            mappedDepartment.ForEach(D => D.NormalizedName = D.DepartmentName.ToUpper());
+            //start add range
+            await repo.AddRangeAsync(mappedDepartment);
+            //save changes
+            var result = await _UnitOfWork.CompleteAsync();
+            //Check On Saving
+            if (result == 0) throw new Exception("Departments Not Saved Something Went Wrong!");
+            //Forming Status Object
+            var obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Departments Saved Successfully!"
+            };
+            return obj;
+        }
 
         //Commom Used Methods
         private async Task<ActionStatusDto> RemoveDepartmentToggle(string? id, bool status)

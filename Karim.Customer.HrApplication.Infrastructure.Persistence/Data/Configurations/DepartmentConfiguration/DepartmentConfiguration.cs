@@ -11,7 +11,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
         public override void Configure(EntityTypeBuilder<Department> builder)
         {
             base.Configure(builder);
-            builder.Property(D => D.DepartmentCode).HasColumnType("nvarchar").HasMaxLength(7); //It Should Be Have Value Like DEPT001
+            builder.HasIndex(d => d.DepartmentCode).IsUnique();
+            builder.Property(D => D.DepartmentCode).HasColumnType("nvarchar").HasMaxLength(7).IsRequired(); //It Should Be Have Value Like DEPT001
             builder.Property(D => D.DepartmentName).HasColumnType("nvarchar").HasMaxLength(100); //It Should Be Have Value Like Front-End / Back-End / Mobile
             builder.Property(D => D.Description).HasColumnType("nvarchar(max)");
             builder.Property(D => D.isActive).IsRequired();

@@ -108,5 +108,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = await servicesManager.DepartmentService.GenerateDepartmentsListExcelSheet();
             return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DepartmentsListExcelSheet.xlsx");
         }
+
+        [HttpPost("UploadBulkDepartmentsForAdd")]
+        public async Task<ActionResult<ActionStatusDto>> UploadBulkDepartmentsForAdd(IFormFile? file)
+        {
+            var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForAdd(file);
+            return Ok(result);
+        }
     }
 }
