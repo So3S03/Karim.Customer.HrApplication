@@ -6,13 +6,14 @@ using Karim.Customer.HrApplication.Domain.Conttracts;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
+using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Application.Services.Department
@@ -244,10 +245,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return Obj;
         }
 
+        public ICollection<EnumDto> GetDepartmentColumns()
+        {
+            //Generate List Of Columns From Enum
+            var ColumnList = EnumsConvertion.CreateEnumLists<DepartmentColumnsLockUp>();
+            //Return The LiST
+            return ColumnList;
+        }
+
         public byte[] GenerateDepartmentTemplateExcelSheetForAddRange()
         {
             //create an object from the DepartmentToAddDTO for creating template
-            DepartmentToAddDto departmentObj = new DepartmentToAddDto()
+            var departmentObj = new DepartmentToAddBulkDto()
             {
                 DepartmentCode = "ex: DEPT001",
                 DepartmentName = "Department Name",
@@ -260,7 +269,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
                 DepatrmentType = 19,
                 TotalDepartmentBudget = 5000000
             };
-            var fileAsBytes = excelServices.GenerateExcelSheetTemplate<DepartmentToAddDto>(departmentObj, "DepartmentTemplateForAdd");
+            var fileAsBytes = excelServices.GenerateExcelSheetTemplate<DepartmentToAddBulkDto>(departmentObj, "DepartmentTemplateForAdd");
             return fileAsBytes;
         }
 
@@ -321,6 +330,42 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             };
             return obj;
         }
+
+        public async Task<byte[]> GenerateDepartmentListExcelSheetForUpdateRange(int? columnToBeUpdated)
+        {
+            // Validation
+            if (columnToBeUpdated is null)
+                throw new BadRequestException("No Column Type Was Provided");
+            if (columnToBeUpdated <= 0 || columnToBeUpdated > 9)
+                throw new BadRequestException("The Column Type Provided is Invalid");
+
+            // Get all departments
+            var query = new DepartmentQueryParameters();
+            var allDepartments = await GetDepartmentsWithoutPaginationAsync(query);
+
+            // Map to appropriate DTO and generate Excel
+            return columnToBeUpdated switch
+            {
+                1 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentNameUploadBulkDto>>(allDepartments), "DepartmentWithName"),
+                2 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentDescriptionUploadBulkDto>>(allDepartments), "DepartmentWithDescription"),
+                3 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentActualCreationDateUploadBulkDto>>(allDepartments), "DepartmentWithActualCreationDate"),
+                4 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentTotalDepartmentBudgetUploadBulkDto>>(allDepartments), "DepartmentWithTotalDepartmentBudget"),
+                5 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForSalariesUploadBulkDto>>(allDepartments), "DepartmentWithBudgetForSalaries"),
+                6 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForToolsUploadBulkDto>>(allDepartments), "DepartmentWithtBudgetForTools"),
+                7 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForTraineesUploadBulkDto>>(allDepartments), "DepartmentWithBudgetForTrainees"),
+                8 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetOtherUploadBulkDto>>(allDepartments), "DepartmentWithBudgetOther"),
+                9 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepatrmentTypeUploadBulkDto>>(allDepartments), "DepartmentWithDepatrmentTyp"),
+                _ => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentToReturnDto>>(allDepartments), "AllDepartments")
+            };
+        }
+
+        //public Task<ActionResult> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
+        //{
+        //    //Check On Files
+        //    if(file is null) throw new BadRequestException("There is No File Provided");
+        //    //Read File
+        //    var departmentsList = excelServices.ReadExcelSheetForCollections<DepartmentToReturnDto>(file);
+        //}
 
         //Commom Used Methods
         private async Task<ActionStatusDto> RemoveDepartmentToggle(string? id, bool status)

@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
 {
@@ -115,5 +116,26 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForAdd(file);
             return Ok(result);
         }
+
+        [HttpGet("FillDepartmentColumnsLockUp")]
+        public ActionResult<ICollection<EnumDto>> FillDepartmentColumnsLockUp()
+        {
+            var result = servicesManager.DepartmentService.GetDepartmentColumns();
+            return Ok(result);
+        }
+
+        [HttpGet("GenerateExcelSheetForUpdate")]
+        public async Task<ActionResult<ActionStatusDto>> GenerateEcelSheetForUpdate(int? columnToBeUpdated)
+        {
+            var result = await servicesManager.DepartmentService.GenerateDepartmentListExcelSheetForUpdateRange(columnToBeUpdated);
+            return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DepartmentToUpdateExcelTemplate.xlsx");
+        }
+
+        //[HttpPut("UploadBulkDepartmentsForUpdate")]
+        //public async Task<ActionResult<ActionStatusDto>> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
+        //{
+        //    var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForUpdate(file, columnToBeUpdated);
+        //    return Ok(result);
+        //}
     }
 }
