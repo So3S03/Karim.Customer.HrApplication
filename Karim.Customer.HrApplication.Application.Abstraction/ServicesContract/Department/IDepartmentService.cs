@@ -19,10 +19,12 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> UpdateDepartment(DepartmentToUpdateDto? entity, IFormFile? file);
         public Task<ActionStatusDto> DeleteDepartment(string? id);
         public Task<ActionStatusDto> DeletePhoto(string? id);
-        public byte[] GenerateDepartmentTemplateExcelSheetForAddRange();
+        public ICollection<EnumDto> GetDepartmentColumns();
         public Task<byte[]> GenerateDepartmentsListExcelSheet();
+        public byte[] GenerateDepartmentTemplateExcelSheetForAddRange();
         public Task<ActionStatusDto> UploadBulkDepartmentsForAdd(IFormFile? file);
-        //public Task<ActionResult> UploadBulkDepartmentsForUpdate(IFormFile? file);
+        public Task<byte[]> GenerateDepartmentListExcelSheetForUpdateRange(int? columnToBeUpdated);
+        //public Task<ActionResult> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated);
     }
     
 }
