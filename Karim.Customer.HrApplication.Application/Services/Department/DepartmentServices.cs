@@ -348,13 +348,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             {
                 1 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentNameUploadBulkDto>>(allDepartments), "DepartmentWithName"),
                 2 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentDescriptionUploadBulkDto>>(allDepartments), "DepartmentWithDescription"),
-                3 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentActualCreationDateUploadBulkDto>>(allDepartments), "DepartmentWithActualCreationDate"),
-                4 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentTotalDepartmentBudgetUploadBulkDto>>(allDepartments), "DepartmentWithTotalDepartmentBudget"),
-                5 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForSalariesUploadBulkDto>>(allDepartments), "DepartmentWithBudgetForSalaries"),
-                6 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForToolsUploadBulkDto>>(allDepartments), "DepartmentWithtBudgetForTools"),
-                7 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForTraineesUploadBulkDto>>(allDepartments), "DepartmentWithBudgetForTrainees"),
+                3 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentActualCreationDateUploadBulkDto>>(allDepartments), "DepartmentActualCreationDate"),
+                4 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentTotalDepartmentBudgetUploadBulkDto>>(allDepartments), "DepartmentWithTotalBudget"),
+                5 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForSalariesUploadBulkDto>>(allDepartments), "DepartmentWithSalariesBudget"),
+                6 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForToolsUploadBulkDto>>(allDepartments), "DepartmentWithtToolsBudget"),
+                7 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForTraineesUploadBulkDto>>(allDepartments), "DepartmentWithTraineesBudget"),
                 8 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetOtherUploadBulkDto>>(allDepartments), "DepartmentWithBudgetOther"),
-                9 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepatrmentTypeUploadBulkDto>>(allDepartments), "DepartmentWithDepatrmentTyp"),
+                9 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepatrmentTypeUploadBulkDto>>(allDepartments), "DepartmentWithDepatrmentType"),
                 _ => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentToReturnDto>>(allDepartments), "AllDepartments")
             };
         }
