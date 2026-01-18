@@ -1,8 +1,7 @@
 ﻿namespace Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos
 {
-    public class DepartmentBudgetForToolsUploadBulkDto
+    public class DepartmentBudgetForToolsUploadBulkDto : BaseDepartmentUploadBulk
     {
-        public string DepartmentCode { get; set; }
         public decimal DepartmentBudgetForTools { get; set; }
     }
 }

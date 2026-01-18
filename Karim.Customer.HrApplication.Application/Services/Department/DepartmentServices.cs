@@ -331,16 +331,17 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return obj;
         }
 
+        //May Need An Enhancment
         public async Task<byte[]> GenerateDepartmentListExcelSheetForUpdateRange(int? columnToBeUpdated)
         {
-            // Validation
+            //Check For Column Number
             if (columnToBeUpdated is null)
                 throw new BadRequestException("No Column Type Was Provided");
             if (columnToBeUpdated <= 0 || columnToBeUpdated > 9)
                 throw new BadRequestException("The Column Type Provided is Invalid");
-
-            // Get all departments
+            //Create Query For Getting All Department
             var query = new DepartmentQueryParameters();
+            // Get all departments
             var allDepartments = await GetDepartmentsWithoutPaginationAsync(query);
 
             // Map to appropriate DTO and generate Excel
@@ -355,17 +356,100 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
                 7 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetForTraineesUploadBulkDto>>(allDepartments), "DepartmentWithTraineesBudget"),
                 8 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentBudgetOtherUploadBulkDto>>(allDepartments), "DepartmentWithBudgetOther"),
                 9 => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepatrmentTypeUploadBulkDto>>(allDepartments), "DepartmentWithDepatrmentType"),
-                _ => excelServices.GenerateExcelSheetForCollection(_mapper.Map<ICollection<DepartmentToReturnDto>>(allDepartments), "AllDepartments")
+                _ => throw new BadRequestException("Something Went Wrong! Couldn't Generate Excel Sheet")
             };
         }
 
-        //public Task<ActionResult> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
-        //{
-        //    //Check On Files
-        //    if(file is null) throw new BadRequestException("There is No File Provided");
-        //    //Read File
-        //    var departmentsList = excelServices.ReadExcelSheetForCollections<DepartmentToReturnDto>(file);
-        //}
+        public async Task<ActionStatusDto> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
+        {
+            //Check On Files
+            if (file is null) throw new BadRequestException("There is No File Provided");
+            // Check On Column Type
+            if (columnToBeUpdated is null) throw new BadRequestException("Column Type Must Be Provided");
+            //Check On Column Type
+            if (columnToBeUpdated.Value <= 0 || columnToBeUpdated.Value > 9) throw new BadRequestException("Invalid Column Type");
+            //Type
+            dynamic departmentList = columnToBeUpdated.Value switch
+            {
+                1 => excelServices.ReadExcelSheetForCollections<DepartmentNameUploadBulkDto>(file),
+                2 => excelServices.ReadExcelSheetForCollections<DepartmentDescriptionUploadBulkDto>(file),
+                3 => excelServices.ReadExcelSheetForCollections<DepartmentActualCreationDateUploadBulkDto>(file),
+                4 => excelServices.ReadExcelSheetForCollections<DepartmentTotalDepartmentBudgetUploadBulkDto>(file),
+                5 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetForSalariesUploadBulkDto>(file),
+                6 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetForToolsUploadBulkDto>(file),
+                7 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetForTraineesUploadBulkDto>(file),
+                8 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetOtherUploadBulkDto>(file),
+                9 => excelServices.ReadExcelSheetForCollections<DepatrmentTypeUploadBulkDto>(file),
+            };
+            //Create Repo
+            var repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Department List
+            HashSet<department> departmentListFormDb = new HashSet<department>();
+            //Search On Database For All Codes
+            foreach (var item in departmentList)
+            {
+                //Store Code In Variable
+                var code = item.DepartmentCode;
+                //check if there is code
+                if (code == null) throw new BadRequestException("You Have A Record With No Department Code");
+                //Check if the code follow the pattern
+                if (!Regex.IsMatch(code, codePattern)) throw new BadRequestException($"The Code {code} You Have Provided Not Match The Pattern DEPT001");
+                //Create Specification
+                var spec = new DepartmentByCode(code);
+                //search for department
+                var department = await repo.GetByIdAsync(spec);
+                //Check if department is null
+                if(department == null) throw new NotFoundException(code, "Department");
+                //Update Record
+                switch (columnToBeUpdated)
+                {
+                    case 1:
+                        department.DepartmentName = item.DepartmentName;
+                        department.NormalizedName = item.DepartmentName.ToUpper();
+                        break;
+                    case 2:
+                        department.Description = item.Description;
+                        break;
+                    case 3:
+                        department.ActualCreationDate = item.ActualCreationDate;
+                        break;
+                    case 4:
+                        department.TotalDepartmentBudget = item.TotalDepartmentBudget;
+                        break;
+                    case 5:
+                        department.DepartmentBudgetForSalaries = item.DepartmentBudgetForSalaries;
+                        break;
+                    case 6:
+                        department.DepartmentBudgetForTools = item.DepartmentBudgetForTools;
+                        break;
+                    case 7:
+                        department.DepartmentBudgetForTrainees = item.DepartmentBudgetForTrainees;
+                        break;
+                    case 8:
+                        department.DepartmentBudgetOther = item.DepartmentBudgetOther;
+                        break;
+                    case 9:
+                        department.DepatrmentType = item.DepatrmentType;
+                        break;
+                    default: throw new BadRequestException("Invalid Column Type");
+                }
+                //Push Department To List
+                departmentListFormDb.Add(department);
+            }
+            //Start Modifying
+            repo.UpdateRange(departmentListFormDb);
+            //Compleate
+            var result = await _UnitOfWork.CompleteAsync();
+            //Check If The Departments Have Updated
+            if (result == 0) throw new Exception("Something Went Wrong, Please Try Again Later");
+            //Create ActionStatus Object
+            var obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Departments Updated Successfully"
+            };
+            return obj;
+        }
 
         //Commom Used Methods
         private async Task<ActionStatusDto> RemoveDepartmentToggle(string? id, bool status)

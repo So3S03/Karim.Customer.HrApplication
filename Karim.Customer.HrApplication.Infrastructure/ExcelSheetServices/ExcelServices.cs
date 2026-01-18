@@ -103,7 +103,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             return stream.ToArray(); 
         }
 
-        public List<T> ReadExcelSheetForCollections<T>(IFormFile? file) where T : new()
+        public HashSet<T> ReadExcelSheetForCollections<T>(IFormFile? file) where T : new()
         {
             //1. Check if the file exist
             if (file == null || file.Length == 0) throw new BadRequestException("File Not Found");
@@ -118,7 +118,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             using var streamedFile = file.OpenReadStream();
 
             //4. Create Collection Var For Pushing The Records On It
-            var entityList = new List<T>();
+            var entityList = new HashSet<T>();
 
             //5. Open Excel File as WorkBook
             using var workBook = new XLWorkbook(streamedFile);

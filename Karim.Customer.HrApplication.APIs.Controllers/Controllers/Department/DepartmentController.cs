@@ -131,11 +131,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DepartmentToUpdateExcelTemplate.xlsx");
         }
 
-        //[HttpPut("UploadBulkDepartmentsForUpdate")]
-        //public async Task<ActionResult<ActionStatusDto>> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
-        //{
-        //    var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForUpdate(file, columnToBeUpdated);
-        //    return Ok(result);
-        //}
+        [HttpPut("UploadBulkDepartmentsForUpdate")]
+        public async Task<ActionResult<ActionStatusDto>> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
+        {
+            var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForUpdate(file, columnToBeUpdated);
+            return Ok(result);
+        }
     }
 }
