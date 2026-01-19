@@ -30,7 +30,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = servicesManager.DepartmentService.FillDepartmentTypes();
             return Ok(result);
         }
-        
+
         [HttpGet("DepartmentSorrtingLockUp")]
         public ActionResult<ICollection<EnumDto>> DepartmentSorrtingLockUp()
         {
@@ -135,6 +135,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
         public async Task<ActionResult<ActionStatusDto>> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated)
         {
             var result = await servicesManager.DepartmentService.UploadBulkDepartmentsForUpdate(file, columnToBeUpdated);
+            return Ok(result);
+        }
+
+        [HttpGet("GenerateMaxDepartmentCode")]
+        public async Task<ActionResult<MaxCodeResult>> GenerateMaxDepartmentCode()
+        {
+            var result = await servicesManager.DepartmentService.GenerateMaxDepartmentCode();
             return Ok(result);
         }
     }

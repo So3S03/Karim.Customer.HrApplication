@@ -25,6 +25,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> UploadBulkDepartmentsForAdd(IFormFile? file);
         public Task<byte[]> GenerateDepartmentListExcelSheetForUpdateRange(int? columnToBeUpdated);
         public Task<ActionStatusDto> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated);
+        public Task<MaxCodeResult> GenerateMaxDepartmentCode();
     }
     
 }

@@ -12,7 +12,9 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel;
+using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
@@ -20,7 +22,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
 {
     internal class DepartmentServices(IUnitOfWork _UnitOfWork, IMapper _mapper, IWebHostEnvironment env, IExcelServices excelServices) : IDepartmentService
     {
-        private const string codePattern = @"^DEPT\d{3}$";
+        private const string codePattern = @"^DEPT\d{3,}$";
         public async Task<DataWithPagination<ICollection<DepartmentToReturnDto>>> GetDepartmentsAsync(DepartmentQueryParameters? parameters)
         {
             //Get All Departments
@@ -74,7 +76,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Check on the Modal
             if (entity is null) throw new BadRequestException("Department data you have entered is invalid");
             //Check if the Department Code Start With (DEPT)
-            if (!entity.DepartmentCode.StartsWith("DEPT")) throw new BadRequestException("Department Code Should Start With => DEPT <= Then 3 Numbers ex: DEPT001");
+            if (!Regex.IsMatch(entity.DepartmentCode, codePattern)) throw new BadRequestException("Department Code Should Start With => DEPT <= Then Atleast 3 Numbers ex: DEPT001");
             //Check if department Code Length != 7
             if (entity.DepartmentCode.Length != 7) throw new BadRequestException("Department Code Should Be At Most 7 Character ex: DEPT001");
             //mapping form departmentToAddDto => Department
@@ -331,7 +333,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return obj;
         }
 
-        //May Need An Enhancment
         public async Task<byte[]> GenerateDepartmentListExcelSheetForUpdateRange(int? columnToBeUpdated)
         {
             //Check For Column Number
@@ -368,8 +369,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             if (columnToBeUpdated is null) throw new BadRequestException("Column Type Must Be Provided");
             //Check On Column Type
             if (columnToBeUpdated.Value <= 0 || columnToBeUpdated.Value > 9) throw new BadRequestException("Invalid Column Type");
-            //Type
-            dynamic departmentList = columnToBeUpdated.Value switch
+            //Get The Excel Data On List According To The Column Type
+            dynamic ExcelDepartmentList = columnToBeUpdated.Value switch
             {
                 1 => excelServices.ReadExcelSheetForCollections<DepartmentNameUploadBulkDto>(file),
                 2 => excelServices.ReadExcelSheetForCollections<DepartmentDescriptionUploadBulkDto>(file),
@@ -380,64 +381,70 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
                 7 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetForTraineesUploadBulkDto>(file),
                 8 => excelServices.ReadExcelSheetForCollections<DepartmentBudgetOtherUploadBulkDto>(file),
                 9 => excelServices.ReadExcelSheetForCollections<DepatrmentTypeUploadBulkDto>(file),
+                _ => throw new BadRequestException("Invalid Column Type")
             };
-            //Create Repo
-            var repo = _UnitOfWork.GenerateRepository<department, string>();
-            //Department List
-            HashSet<department> departmentListFormDb = new HashSet<department>();
-            //Search On Database For All Codes
-            foreach (var item in departmentList)
+            //Check For Dublication
+            var ExtractedCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            //Validation On Codes With Pushing Into List
+            foreach (var item in ExcelDepartmentList)
             {
                 //Store Code In Variable
-                var code = item.DepartmentCode;
+                var code = item.DepartmentCode as string;
                 //check if there is code
-                if (code == null) throw new BadRequestException("You Have A Record With No Department Code");
+                if (string.IsNullOrWhiteSpace(code)) throw new BadRequestException("You Have A Record With No Department Code");
                 //Check if the code follow the pattern
                 if (!Regex.IsMatch(code, codePattern)) throw new BadRequestException($"The Code {code} You Have Provided Not Match The Pattern DEPT001");
-                //Create Specification
-                var spec = new DepartmentByCode(code);
-                //search for department
-                var department = await repo.GetByIdAsync(spec);
-                //Check if department is null
-                if(department == null) throw new NotFoundException(code, "Department");
-                //Update Record
+                //Pushing With Dublication Check
+                if (!ExtractedCodes.Add(code)) throw new BadRequestException($"There is Dublicated Department Code {code} On The File");
+            }
+            //Create Repo
+            var repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Create Specification For Fetching Departments
+            var specs = new DepartmentListByCode(ExtractedCodes.ToList());
+            //Fetching Departments That Matches The Codes On The File
+            var departmentsFromDb = await repo.GetAllAsync(specs);
+            //Check If Departments Exist
+            if(!departmentsFromDb.Any()) throw new NotFoundException("No Departments From The File Exist In The System");
+            if (departmentsFromDb.Count() != ExcelDepartmentList.Count) throw new NotFoundException("One Or More Departments From The File Do Not Exist In The System");
+            //Updating Records
+            foreach (var dept in departmentsFromDb)
+            {
+                var excelDept = ((IEnumerable<dynamic>)ExcelDepartmentList).First(D => string.Equals(dept.DepartmentCode, D.DepartmentCode, StringComparison.OrdinalIgnoreCase));
                 switch (columnToBeUpdated)
                 {
                     case 1:
-                        department.DepartmentName = item.DepartmentName;
-                        department.NormalizedName = item.DepartmentName.ToUpper();
+                        dept.DepartmentName = excelDept.DepartmentName;
+                        dept.NormalizedName = excelDept.DepartmentName.ToUpper();
                         break;
                     case 2:
-                        department.Description = item.Description;
+                        dept.Description = excelDept.Description;
                         break;
                     case 3:
-                        department.ActualCreationDate = item.ActualCreationDate;
+                        dept.ActualCreationDate = excelDept.ActualCreationDate;
                         break;
                     case 4:
-                        department.TotalDepartmentBudget = item.TotalDepartmentBudget;
+                        dept.TotalDepartmentBudget = excelDept.TotalDepartmentBudget;
                         break;
                     case 5:
-                        department.DepartmentBudgetForSalaries = item.DepartmentBudgetForSalaries;
+                        dept.DepartmentBudgetForSalaries = excelDept.DepartmentBudgetForSalaries;
                         break;
                     case 6:
-                        department.DepartmentBudgetForTools = item.DepartmentBudgetForTools;
+                        dept.DepartmentBudgetForTools = excelDept.DepartmentBudgetForTools;
                         break;
                     case 7:
-                        department.DepartmentBudgetForTrainees = item.DepartmentBudgetForTrainees;
+                        dept.DepartmentBudgetForTrainees = excelDept.DepartmentBudgetForTrainees;
                         break;
                     case 8:
-                        department.DepartmentBudgetOther = item.DepartmentBudgetOther;
+                        dept.DepartmentBudgetOther = excelDept.DepartmentBudgetOther;
                         break;
                     case 9:
-                        department.DepatrmentType = item.DepatrmentType;
+                        dept.DepatrmentType = excelDept.DepatrmentType;
                         break;
-                    default: throw new BadRequestException("Invalid Column Type");
+                    default:
+                        throw new BadRequestException("Invalid Column Type");
                 }
-                //Push Department To List
-                departmentListFormDb.Add(department);
             }
-            //Start Modifying
-            repo.UpdateRange(departmentListFormDb);
+            repo.UpdateRange(departmentsFromDb);
             //Compleate
             var result = await _UnitOfWork.CompleteAsync();
             //Check If The Departments Have Updated
@@ -447,6 +454,32 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             {
                 Status = true,
                 Message = "Departments Updated Successfully"
+            };
+            return obj;
+        }
+
+        public async Task<MaxCodeResult> GenerateMaxDepartmentCode()
+        {
+            //Create Repo
+            var Repo = _UnitOfWork.GenerateRepository<department, string>();
+            //Create Specification
+            var specs = new LastDepartmentByCodeSortingDesc();
+            //Get Departments Count
+            var Department = await Repo.GetByIdAsync(specs);
+            //Max Code var
+            string Code = "";
+            //Check if department exist
+            if (Department is null) Code = "DEPT001";
+            //Get Number Part In Code
+            var numericPart = decimal.Parse(Department.DepartmentCode.Substring(4));
+            //Increment The Number Part By 1
+            var newCodeNumberPart = numericPart + 1;
+            //Form The New Code
+            Code = $"DEPT{newCodeNumberPart.ToString().PadLeft(3, '0')}";
+            //Forming The Result Object
+            var obj = new MaxCodeResult()
+            {
+                MaxCode = Code
             };
             return obj;
         }
