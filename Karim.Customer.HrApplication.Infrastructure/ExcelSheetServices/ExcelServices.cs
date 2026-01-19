@@ -35,6 +35,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
                 //append data on cell if the column data is not null
                 if(columnsName[i].GetValue(Example) is not null) SecRowCell.Value = XLCellValue.FromObject(columnsName[i].GetValue(Example));
             }
+            //Text Aligning
+            workSheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             //9. style all columns width to be fit with contetnt
             workSheet.Columns().AdjustToContents();
             //10. create MemoryStream object for download the file
@@ -90,6 +92,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             }
             //14. adjust all cells width
             workSheet.Columns().AdjustToContents();
+            //Text Aligning
+            workSheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             //15. converting to bytes
             //a. forming object of streaming to save the file on it
             using var stream = new MemoryStream();
@@ -99,7 +103,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             return stream.ToArray(); 
         }
 
-        public List<T> ReadExcelSheetForCollections<T>(IFormFile? file) where T : new()
+        public HashSet<T> ReadExcelSheetForCollections<T>(IFormFile? file) where T : new()
         {
             //1. Check if the file exist
             if (file == null || file.Length == 0) throw new BadRequestException("File Not Found");
@@ -114,7 +118,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
             using var streamedFile = file.OpenReadStream();
 
             //4. Create Collection Var For Pushing The Records On It
-            var entityList = new List<T>();
+            var entityList = new HashSet<T>();
 
             //5. Open Excel File as WorkBook
             using var workBook = new XLWorkbook(streamedFile);
