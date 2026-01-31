@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
+using Karim.Customer.HrApplication.Domain.Entities.Employee;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
 {
@@ -20,5 +21,11 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
         public decimal? DepartmentBudgetOther { get; set; }
         public DepartmentType DepatrmentType { get; set; }
 
+        //Many Emps Relation
+        public virtual ICollection<Employee.Employee>? Employees { get; set; }
+
+        //One Manager Relation
+        public virtual Employee.Employee? Manager { get; set; }
+        public string? ManagerId { get; set; }
     }
 }

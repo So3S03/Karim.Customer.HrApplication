@@ -29,6 +29,14 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 (dt) => (DepartmentType)Enum.Parse(typeof(DepartmentType), dt)
                 );
 
+            //Relationships
+            //Department Has Many Employees & Employee Only Has One Department
+            builder.HasMany(D => D.Employees).WithOne(E => E.Department)
+                .HasForeignKey(E => E.DepartmentId).OnDelete(DeleteBehavior.SetNull);
+            //Department Only Has One Manager & Employee Only Has One Department To Be Managed
+            builder.HasOne(D => D.Manager).WithOne(E => E.ManagedDepartment)
+                .HasForeignKey<Department>(D => D.ManagerId).OnDelete(DeleteBehavior.SetNull);
+
         }
     }
 }
