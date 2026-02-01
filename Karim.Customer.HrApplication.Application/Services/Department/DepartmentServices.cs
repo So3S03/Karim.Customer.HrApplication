@@ -470,12 +470,15 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             string Code = "";
             //Check if department exist
             if (Department is null) Code = "DEPT001";
-            //Get Number Part In Code
-            var numericPart = decimal.Parse(Department.DepartmentCode.Substring(4));
-            //Increment The Number Part By 1
-            var newCodeNumberPart = numericPart + 1;
-            //Form The New Code
-            Code = $"DEPT{newCodeNumberPart.ToString().PadLeft(3, '0')}";
+            else
+            {
+                //Get Number Part In Code
+                var numericPart = decimal.Parse(Department.DepartmentCode.Substring(4));
+                //Increment The Number Part By 1
+                var newCodeNumberPart = numericPart + 1;
+                //Form The New Code
+                Code = $"DEPT{newCodeNumberPart.ToString().PadLeft(3, '0')}";
+            }
             //Forming The Result Object
             var obj = new MaxCodeResult()
             {
