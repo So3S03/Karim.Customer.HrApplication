@@ -1,9 +1,11 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.AppAssembly;
 using Karim.Customer.HrApplication.Application.Manager;
 using Karim.Customer.HrApplication.Application.MapsterConfigurations;
 using Karim.Customer.HrApplication.Application.Services.Department;
+using Karim.Customer.HrApplication.Application.Services.Employee;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,11 @@ namespace Karim.Customer.HrApplication.Application.ApplicationDI
                 return () => sp.GetRequiredService<IDepartmentService>();
             });
 
+            services.AddScoped(typeof(IEmployeeService), typeof(EmployeeService));
+            services.AddScoped<Func<IEmployeeService>>(serviceProvider =>
+            {
+                return () => serviceProvider.GetRequiredService<IEmployeeService>();
+            });
 
             services.AddScoped(typeof(IServicesManager), typeof(ServicesManager));
             return services;
