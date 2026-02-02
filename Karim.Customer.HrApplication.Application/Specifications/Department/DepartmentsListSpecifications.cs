@@ -14,6 +14,8 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Department
             if (parameters.Sorting % 2 != 0 || parameters.Sorting > 14) //mean it's ODD value
             {
                 SetOrderByAsc(sortExprission);
+                AddInclude(D => D.Employees!);
+                AddInclude(D => D.Manager!);
             }
             else //mean its even
             {

@@ -13,5 +13,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
             var result = await _serviecManager.EmployeeService.GenerateEmployeeMaxCode();
             return Ok(result);
         }
+
+        [HttpGet("EmployeeSortingLockup")]
+        public ActionResult<ICollection<EnumDto>> EmployeeSortingLockup()
+        {
+            var result = _serviecManager.EmployeeService.EmployeeSortingLockup();
+            return Ok(result);
+        }
     }
 }

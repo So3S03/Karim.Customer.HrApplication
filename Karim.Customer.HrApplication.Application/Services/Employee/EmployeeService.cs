@@ -7,6 +7,9 @@ using MapsterMapper;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using System.Text.RegularExpressions;
 using Karim.Customer.HrApplication.Shared.Exceptions;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees;
+using System.ComponentModel;
+using Karim.Customer.HrApplication.Application._Common.EnumConverter;
 
 namespace Karim.Customer.HrApplication.Application.Services.Employee
 {
@@ -46,7 +49,38 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             //Return Code
             return Obj;
         }
+        public ICollection<EnumDto> EmployeeSortingLockup()
+        {
+            //Create Array Of The Converted Enum
+            var EmployeeSortingLockups = EnumsConvertion.CreateEnumLists<EmployeeSortingLockup>();
+            //Return Collection
+            return EmployeeSortingLockups;
+        }
+        public async Task<DataWithPagination<ICollection<EmployeeToReturnDto>>> GetAllEmployeeWithPagination(EmployeeQueryParameters? parameters)
+        {
+            //Get Employee List
+            IEnumerable<employee> employees = await getAllEmployees(parameters);
+            //Converting List Into EmployeeDto
+            var mappedEmployees = _mapper.Map<ICollection<EmployeeToReturnDto>>(employees);
+            //Forming Paginated Object
+            var obj = new DataWithPagination<ICollection<EmployeeToReturnDto>>(1, 2, 5, 100, mappedEmployees);
+            //return object 
+            return obj;
+        }
 
-
+        //Helper Methods
+        private async Task<IEnumerable<employee>> getAllEmployees(EmployeeQueryParameters? parameters)
+        {
+            //Create Specification Object
+            EmployeeListSpecification? spec = null;
+            //Check On Specifications
+            if (parameters is null) spec = null;
+            //Create Repo
+            var repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Get All Employees
+            var employeeList = await repo.GetAllAsync(spec!);
+            //return the result
+            return employeeList;
+        }
     }
 }

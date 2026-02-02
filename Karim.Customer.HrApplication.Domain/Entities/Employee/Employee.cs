@@ -10,6 +10,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public string? PersonalEmail { get; set; }
         public string? WorkEmail { get; set; } //It Will Be The Email Employee Use For This App 
         public required string Position { get; set; }
+        public string? PhotoUrl { get; set; }
         public required string PhoneNumber { get; set; }
         public string? ExtraPhoneNumber { get; set; }
         public string? Address { get; set; }

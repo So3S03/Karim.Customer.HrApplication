@@ -19,6 +19,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(E => E.PhoneNumber).HasColumnType("nvarchar(max)").IsRequired();
             builder.Property(E => E.ExtraPhoneNumber).HasColumnType("nvarchar(max)");
             builder.Property(E => E.Address).HasColumnType("nvarchar(max)");
+            builder.Property(E => E.PhotoUrl).HasColumnType("nvarchar(max)");
             builder.Property(E => E.WorkType).HasConversion(
                 (wt) => wt.ToString(),
                 (wt) => (WorkType)Enum.Parse(typeof(WorkType), wt)
