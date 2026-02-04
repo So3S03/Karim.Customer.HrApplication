@@ -58,29 +58,28 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
         }
         public async Task<DataWithPagination<ICollection<EmployeeToReturnDto>>> GetAllEmployeeWithPagination(EmployeeQueryParameters? parameters)
         {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Specification For Count
+            var spec = new EmployeeListSpecification(parameters!);
             //Get Employee List
-            IEnumerable<employee> employees = await getAllEmployees(parameters);
+            IEnumerable<employee> employees = await Repo.GetAllAsync(spec);
             //Converting List Into EmployeeDto
             var mappedEmployees = _mapper.Map<ICollection<EmployeeToReturnDto>>(employees);
+            //Create Pagination Data
+            int pageNum = parameters!.PageNum <= 0 ? 1 : parameters.PageNum;
+            int pageSize = parameters.PageSize;
+            //Create Specs For Conunt
+            var countSpec = new EmployeeCountSpecification(parameters);
+            //Get Total Records In Database
+            int totalRecord = await Repo.GetDataCountAsync(countSpec);
+            decimal pages = Math.Ceiling((decimal)(totalRecord / pageSize));
+            decimal nextPage = pageNum > pages ? pages : (pageNum + 1);
             //Forming Paginated Object
-            var obj = new DataWithPagination<ICollection<EmployeeToReturnDto>>(1, 2, 5, 100, mappedEmployees);
+            var obj = new DataWithPagination<ICollection<EmployeeToReturnDto>>(pageNum, nextPage, pageSize, totalRecord, mappedEmployees);
             //return object 
             return obj;
         }
 
-        //Helper Methods
-        private async Task<IEnumerable<employee>> getAllEmployees(EmployeeQueryParameters? parameters)
-        {
-            //Create Specification Object
-            EmployeeListSpecification? spec = null;
-            //Check On Specifications
-            if (parameters is null) spec = null;
-            //Create Repo
-            var repo = _unitOfWork.GenerateRepository<employee, string>();
-            //Get All Employees
-            var employeeList = await repo.GetAllAsync(spec!);
-            //return the result
-            return employeeList;
-        }
     }
 }

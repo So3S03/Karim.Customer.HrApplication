@@ -1,7 +1,9 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
+using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Mapster;
 
 namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
@@ -33,6 +35,16 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<Department, DepartmentBudgetForTraineesUploadBulkDto>();
             config.NewConfig<Department, DepartmentBudgetOtherUploadBulkDto>();
             config.NewConfig<Department, DepartmentTotalDepartmentBudgetUploadBulkDto>();
+
+
+            //Employee Configs
+            config.NewConfig<Employee, EmployeeToReturnDto>()
+                .Map(dest => dest.WorkType, src => src.WorkType.ToString())
+                .Map(dest => dest.EmployeeType, src => src.EmployeeType.ToString())
+                .Map(dest => dest.EmployeeStatus, src => src.EmployeeStatus.ToString())
+                .Map(dest => dest.Department, src => src.Department.DepartmentName)
+                .Map(dest => dest.DepartmentCode, src => src.Department.DepartmentCode)
+                .Map(dest => dest.PhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.PhotoUrl!));
         }
     }
 }

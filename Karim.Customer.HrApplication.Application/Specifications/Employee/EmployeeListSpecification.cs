@@ -6,13 +6,23 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
 {
     internal class EmployeeListSpecification : BaseSpecifications<employee, string>
     {
-        public EmployeeListSpecification(EmployeeQueryParameters parameters)
+        public EmployeeListSpecification(EmployeeQueryParameters parameters) : base(
+            EmployeeFuncCheckerGenerator.FuncCriteriasCompinor(
+                EmployeeFuncCheckerGenerator.generateEmployeeTypeFunc(parameters.EmployeeType)!,
+                EmployeeFuncCheckerGenerator.generateWorkTypeFunc(parameters.WorkType)!,
+                EmployeeFuncCheckerGenerator.generateEmployeeByDepartmentIdFunc(parameters.Department)!,
+                EmployeeFuncCheckerGenerator.generateContractFunc(parameters.ContractChecker)!,
+                EmployeeFuncCheckerGenerator.generateEmployeeStatusFunc(parameters.EmployeeStatus)!,
+                EmployeeFuncCheckerGenerator.generateSearchByNameFunc(parameters.Name)!
+            ))
         {
-            //Sorting 
-            SortingChecker(parameters.Sorting);
             //Relation Loading
             AddInclude(E => E.Department);
             AddInclude(E => E.ManagedDepartment);
+            //Sorting 
+            SortingChecker(parameters.Sorting);
+            //Make Paginatiion
+            Pagination(parameters.PageNum, parameters.PageSize);
         }
 
         private void SortingChecker(int? SortingValue)
