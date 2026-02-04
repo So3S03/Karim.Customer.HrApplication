@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.APIs.Controllers.Controllers.BaseController;
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
@@ -18,6 +19,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         public ActionResult<ICollection<EnumDto>> EmployeeSortingLockup()
         {
             var result = _serviecManager.EmployeeService.EmployeeSortingLockup();
+            return Ok(result);
+        }
+
+        [HttpGet("GetAllEmployees")]
+        public async Task<ActionResult<DataWithPagination<ICollection<EmployeeToReturnDto>>>> GetAllEmployees([FromQuery]EmployeeQueryParameters? parameters)
+        {
+            var result = await _serviecManager.EmployeeService.GetAllEmployeeWithPagination(parameters);
             return Ok(result);
         }
     }
