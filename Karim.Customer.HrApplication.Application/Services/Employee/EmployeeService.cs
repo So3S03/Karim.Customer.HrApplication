@@ -56,6 +56,34 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             //Return Collection
             return EmployeeSortingLockups;
         }
+        public ICollection<EnumDto> GetContractExistLockup()
+        {
+            //Create EnumList
+            var ContractExistList = EnumsConvertion.CreateEnumLists<ContractExistLockup>();
+            //return the List
+            return ContractExistList;
+        }
+        public ICollection<EnumDto> GetEmployeeStatusLockup()
+        {
+            //Create List
+            var EmployeeStatusList = EnumsConvertion.CreateEnumLists<EmployeeStatusLockup>();
+            //Return List
+            return EmployeeStatusList;
+        }
+        public ICollection<EnumDto> GetEmployeeTypeLockup()
+        {
+            //Create Lis
+            var EmployeeTypeList = EnumsConvertion.CreateEnumLists<EmployeeTypeLockup>();
+            //Return List
+            return EmployeeTypeList;
+        }
+        public ICollection<EnumDto> GetEmployeeWorkTypeLockup()
+        {
+            //Create List
+            var WorkTypeList = EnumsConvertion.CreateEnumLists<EmployeeWorkTypeLockup>();
+            //Return List3
+            return WorkTypeList;
+        }
         public async Task<DataWithPagination<ICollection<EmployeeToReturnDto>>> GetAllEmployeeWithPagination(EmployeeQueryParameters? parameters)
         {
             //Create Repo
@@ -80,6 +108,22 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             //return object 
             return obj;
         }
-
+        public async Task<SpecificEmployeeToReturnDto> GetSpecificEmployeeById(string? Id)
+        {
+            //Check On Id
+            if (Id is null) throw new BadRequestException("The Id You Have Provided Is Not Valid");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Specs
+            var Specs = new EmployeeByIdSepecification(Id);
+            //Try Get The Employee
+            var Employee = await Repo.GetByIdAsync(Specs);
+            //Check On Employee
+            if (Employee is null) throw new NotFoundException($"Employee With Id: {Id} Not Found");
+            //Mapping The Employee
+            var MappedEmp = _mapper.Map<SpecificEmployeeToReturnDto>(Employee);
+            //Return Employee
+            return MappedEmp;
+        }
     }
 }

@@ -8,7 +8,8 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Department
     {
         public DepartmentById(string Id): base(d => d.Id == Id)
         {
-            
+            AddInclude(E => E.Employees!);
+            AddInclude(E => E.Manager!);
         }
     }
 }

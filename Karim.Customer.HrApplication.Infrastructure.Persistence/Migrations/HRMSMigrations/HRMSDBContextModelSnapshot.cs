@@ -107,7 +107,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .IsUnique()
                         .HasFilter("[ManagerId] IS NOT NULL");
 
-                    b.ToTable("Department");
+                    b.ToTable("Department", (string)null);
                 });
 
             modelBuilder.Entity("Karim.Customer.HrApplication.Domain.Entities.Employee.Employee", b =>
@@ -204,7 +204,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                     b.HasIndex("EmployeeCode")
                         .IsUnique();
 
-                    b.ToTable("Employee");
+                    b.ToTable("Employee", (string)null);
                 });
 
             modelBuilder.Entity("Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department", b =>

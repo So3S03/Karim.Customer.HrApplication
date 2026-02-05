@@ -43,8 +43,18 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeType, src => src.EmployeeType.ToString())
                 .Map(dest => dest.EmployeeStatus, src => src.EmployeeStatus.ToString())
                 .Map(dest => dest.Department, src => src.Department.DepartmentName)
+                .Map(dest => dest.DepartmentId, src => src.DepartmentId)
                 .Map(dest => dest.DepartmentCode, src => src.Department.DepartmentCode)
                 .Map(dest => dest.PhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.PhotoUrl!));
+
+            config.NewConfig<Employee, SpecificEmployeeToReturnDto>()
+                .Map(dest => dest.PhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.PhotoUrl!))
+                .Map(dest => dest.WorkType, src => src.WorkType.ToString())
+                .Map(dest => dest.EmployeeType, src => src.EmployeeType.ToString())
+                .Map(dest => dest.EmployeeStatus, src => src.EmployeeStatus.ToString())
+                .Map(dest => dest.Department, src => src.Department.DepartmentName)
+                .Map(dest => dest.DepartmentId, src => src.DepartmentId)
+                .Map(dest => dest.DepartmentCode, src => src.Department.DepartmentCode);
         }
     }
 }
