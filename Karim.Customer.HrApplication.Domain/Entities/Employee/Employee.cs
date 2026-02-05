@@ -25,10 +25,10 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public EmployeeStatus EmployeeStatus { get; set; }
 
         //Department Relation
-        public department Department { get; set; }
+        public department? Department { get; set; }
         public string? DepartmentId { get; set; }
 
         //Manage Relation
-        public department ManagedDepartment { get; set; }
+        public department? ManagedDepartment { get; set; }
     }
 }
