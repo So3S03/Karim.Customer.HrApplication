@@ -36,7 +36,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(E => E.EmployeeStatus).HasConversion(
                 (es) => es.ToString(),
                 (es) => (EmployeeStatus)Enum.Parse(typeof(EmployeeStatus), es)
-                );
+                ).IsRequired(false);
+            builder.Property(E => E.Rank).HasConversion(
+                (er) => er.ToString(),
+                (er) => (EmployeeRank)Enum.Parse(typeof(EmployeeRank), er)
+                ).IsRequired();
             //Relationships
             //Employee has One Department & Department Has Many Employees
             builder.HasOne(E => E.Department).WithMany(D => D.Employees)

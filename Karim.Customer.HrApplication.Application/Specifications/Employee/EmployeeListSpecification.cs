@@ -13,12 +13,13 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
                 EmployeeFuncCheckerGenerator.generateEmployeeByDepartmentIdFunc(parameters.Department)!,
                 EmployeeFuncCheckerGenerator.generateContractFunc(parameters.ContractChecker)!,
                 EmployeeFuncCheckerGenerator.generateEmployeeStatusFunc(parameters.EmployeeStatus)!,
-                EmployeeFuncCheckerGenerator.generateSearchByNameFunc(parameters.Name)!
+                EmployeeFuncCheckerGenerator.generateSearchByNameFunc(parameters.Name)!,
+                EmployeeFuncCheckerGenerator.generateRankFunc(parameters.EmployeeRank)!
             ))
         {
             //Relation Loading
-            AddInclude(E => E.Department);
-            AddInclude(E => E.ManagedDepartment);
+            AddInclude(E => E.Department!);
+            AddInclude(E => E.ManagedDepartment!);
             //Sorting 
             SortingChecker(parameters.Sorting);
             //Make Paginatiion
