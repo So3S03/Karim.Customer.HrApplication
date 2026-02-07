@@ -7,7 +7,6 @@ namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
         public required string Id { get; set; }
         public required string EmployeeCode { get; set; } //Must be EMP001
         public required string FullName { get; set; }
-        public required string FullNameNormalized { get; set; }
         public string? PersonalEmail { get; set; }
         public string? WorkEmail { get; set; } //It Will Be The Email Employee Use For This App 
         public required string Position { get; set; }
@@ -25,6 +24,7 @@ namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
         public string? DepartmentId { get; set; }
         public string? DepartmentCode { get; set; }
         public bool IsHasContract { get; set; }
+        public required string Rank { get; set; }
         public DateTime? ContractStartDate { get; set; }
         public DateTime? ContractEndDate { get; set; }
         public required DateTime CreatedOn { get; set; }

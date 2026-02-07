@@ -8,6 +8,7 @@
         public string? WorkEmail { get; set; }
         public required string Position { get; set; }
         public required string PhoneNumber { get; set; }
+        public required string Rank { get; set; }
         public string? PhotoUrl { get; set; }
         public string? ExtraPhoneNumber { get; set; }
         public string? Address { get; set; }

@@ -72,6 +72,24 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
             Expression<Func<employee, bool>> expression = E => E.FullNameNormalized.Contains(Name.ToUpper());
             return expression;
         }
+        public static Expression<Func<employee, bool>>? generateRankFunc(int? Rank)
+        {
+            if (Rank is null) return null;
+            Expression<Func<employee, bool>>? expression = (EmployeeRankLockup)Rank switch
+            {
+                EmployeeRankLockup.Intern => E => E.Rank == EmployeeRank.Intern,
+                EmployeeRankLockup.Fresh => E => E.Rank == EmployeeRank.Fresh,
+                EmployeeRankLockup.Junior => E => E.Rank == EmployeeRank.Junior,
+                EmployeeRankLockup.MidLevel => E => E.Rank == EmployeeRank.MidLevel,
+                EmployeeRankLockup.Senior => E => E.Rank == EmployeeRank.Senior,
+                EmployeeRankLockup.TeamLeader => E => E.Rank == EmployeeRank.TeamLeader,
+                EmployeeRankLockup.ProjectManager => E => E.Rank == EmployeeRank.ProjectManager,
+                EmployeeRankLockup.Manager => E => E.Rank == EmployeeRank.Manager,
+                EmployeeRankLockup.Director => E => E.Rank == EmployeeRank.Director,
+                _ => null
+            };
+            return expression;
+        }
 
         //Compineing Method
         public static Expression<Func<employee, bool>>? FuncCriteriasCompinor(params Expression<Func<employee, bool>>[] expressions)

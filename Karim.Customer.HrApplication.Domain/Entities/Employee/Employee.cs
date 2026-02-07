@@ -22,7 +22,8 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public DateTime? ContractEndDate { get; set; }
         public decimal? Salary { get; set; }
         public DateTime JoinDate { get; set; }
-        public EmployeeStatus EmployeeStatus { get; set; }
+        public required EmployeeRank Rank { get; set; }
+        public EmployeeStatus? EmployeeStatus { get; set; }
 
         //Department Relation
         public department? Department { get; set; }

@@ -34,5 +34,14 @@
         public int? EmployeeStatus { get; set; }
         public string? Department { get; set; }
 
+        private int rank;
+
+        public int? EmployeeRank
+        {
+            get { return rank; }
+            set { rank = value!.Value <= 0 ? 1 : (value.Value > 9 ? 9 : value.Value); }
+        }
+
+
     }
 }

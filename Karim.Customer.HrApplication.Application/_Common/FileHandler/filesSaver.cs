@@ -9,7 +9,7 @@ namespace Karim.Customer.HrApplication.Application._Common.FileHandler
         public static async Task<string> SaveFiles(IFormFile file, IWebHostEnvironment env)
         {
             //Create File Name
-            string FileName = $"{Guid.NewGuid()}_{file.FileName}";
+            string FileName = $"{Guid.NewGuid()}_{file.FileName.Replace(' ', '_')}";
             //Create Name For Folder That Hold My Files
             string FolderPath = Path.Combine(env.WebRootPath, "Resources"); //Just For Create The Folder and File Path
             //Check If Folder Exits If Not Create It

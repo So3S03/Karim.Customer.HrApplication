@@ -16,6 +16,9 @@
         public decimal? DepartmentBudgetForTrainees { get; set; }
         public decimal? DepartmentBudgetOther { get; set; }
         public required string DepatrmentType { get; set; }
+        public required string ManagerName { get; set; }
+        public required string ManagerId { get; set; }
+        public required string ManagerCode { get; set; }
         public required DateTime CreatedOn { get; set; }
         public required string CreatedBy { get; set; }
         public required DateTime ModifiedOn { get; set; }
