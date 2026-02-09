@@ -11,7 +11,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
         public required string NormalizedName { get; set; } //For Searching
         public string? Description { get; set; }
         public bool isActive { get; set; }
-        public bool isRemoved { get; set; } //For Soft Delete
         public DateTime ActualCreationDate { get; set; }
         public string? DepartmentPhotoUrl { get; set; }
         public decimal TotalDepartmentBudget { get; set; }

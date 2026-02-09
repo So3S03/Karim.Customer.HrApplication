@@ -1,8 +1,9 @@
-﻿using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+﻿using Karim.Customer.HrApplication.Application._Common.DateConverter;
+using Karim.Customer.HrApplication.Application._Common.EnumConverter;
 using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
-using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
+using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
@@ -11,6 +12,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
+using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Employee
@@ -140,8 +142,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             if (entity is null) throw new BadRequestException("Data You Have Provided Is Invalid");
             //Check On Employee Code
             if (entity.EmployeeCode is null || !Regex.IsMatch(entity.EmployeeCode, codePattern)) throw new BadRequestException("Emplyee Code is invalid");
+            //Converting Date To An Recognaized System Pattern
+            var convertedDate = DatesConverter.Connverter(entity.JoinDate);
             //Check On The Employee Data
-            if (entity.JoinDate.HasValue && entity.JoinDate.Value > DateTime.UtcNow) throw new BadRequestException("Join Date You Have Provided Is Invalid"); //TODO: May Need Enhancement
+            if (entity.JoinDate.HasValue && convertedDate > DateTime.UtcNow) throw new BadRequestException("Join Date Must Not Be Greater Than Today!");
             //Check On The Rest Of The Entity
             _ = entity switch
             {
@@ -198,6 +202,66 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             var mappedDepartments = _mapper.Map<ICollection<FillEntityDto<string>>>(AllDepartments);
             //Return The Data
             return mappedDepartments;
+        }
+        public async Task<ActionStatusDto> UpdateEmployeeAsync(SingleEmployeeToUpdateDto? entity, IFormFile? Photo) 
+        {
+            //Check on The Entity
+            if (entity == null) throw new BadRequestException("The Provided Data Is Invalid!");
+            //Check If The Code Exist And Match The Regex
+            if (entity.EmployeeCode is null || !Regex.IsMatch(entity.EmployeeCode, codePattern)) throw new BadRequestException("Code You Have Entered Is Not Valid");
+            //Converting Date
+            var convertedDate = DatesConverter.Connverter(entity.JoinDate);
+            //Chek On Join Date
+            if (entity.JoinDate is not null && convertedDate > DateTime.UtcNow) throw new BadRequestException("Join Date Must Not Be Greater Than Today!");
+            //Check On The Rest Of The Validations
+            _ = entity switch
+            {
+                { Id: null or ""} => throw new BadRequestException("Id Must Be Exist"),
+                { FullName: null or ""} => throw new BadRequestException("Full Name Must Be Exist"),
+                { Position: null or ""} => throw new BadRequestException("Position Must Be Exist"),
+                { PhoneNumber: null or ""} => throw new BadRequestException("Phone Must Be Exist"),
+                { WorkLocation: null or ""} => throw new BadRequestException("Work Location Must Be Exist"),
+                _ => entity
+            };
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Specification
+            var GetSpecs = new EmployeeByIdSepecification(entity.Id);
+            //Get Employee If Exist
+            var Employee = await Repo.GetByIdAsyncWithNoTracking(GetSpecs);
+            //Check If The Employee Exist 
+            if (Employee is null) throw new NotFoundException(entity.EmployeeCode, "Employee");
+            //Check On Code if It Is The Same
+            if(Employee.EmployeeCode != entity.EmployeeCode) throw new BadRequestException("The Code You Have Provided Is Not Match The Exist Code");
+            //Mapping Employee
+            var mappedEmployee = _mapper.Map<employee>(entity);
+            //Check On Photo If Exist Update The Photo AND Delete The Old One
+            if(Photo is not null)
+            {
+                bool isDeleted;
+                //Delete Photo From Servwer
+                if(Employee.PhotoUrl is not null)
+                {
+                    isDeleted = filesSaver.DeleteFile(Employee.PhotoUrl, env);
+                    if (!isDeleted) throw new Exception("Something Went Wrong While Delete The Old Photo");
+                }
+                var NewPhotoUrl = await filesSaver.SaveFiles(Photo, env);
+                if (string.IsNullOrEmpty(NewPhotoUrl)) throw new Exception("Something Went Wrong While Uploding The New Photo");
+                mappedEmployee.PhotoUrl = NewPhotoUrl;
+            }
+            //Update The Entity
+            Repo.Update(mappedEmployee);
+            //Compleate Asyns
+            var isSaved = await _unitOfWork.CompleteAsync() > 0;
+            //Check On It 
+            if (!isSaved) throw new Exception("Something Went Wrong While Updating The Employee!");
+            //Create Success Object To Return It
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Was Updated Successfully!"
+            };
+            return Obj;
         }
     }
 }

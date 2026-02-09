@@ -5,7 +5,10 @@
     {
         public required DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public required string CreatedBy { get; set; } = "1";
-        public required DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
-        public required string ModifiedBy { get; set; } = "1";
+        public DateTime? ModifiedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public required bool isRemoved { get; set; } = false;
+        public DateTime? RemovedOn { get; set; }
+        public string? RemovedBy { get; set; }
     }
 }

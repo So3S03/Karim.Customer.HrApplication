@@ -2,6 +2,7 @@
 {
     public class EmployeeToReturnDto
     {
+        public required string Id { get; set; }
         public required string EmployeeCode { get; set; } //Must be EMP001
         public required string FullName { get; set; }
         public string? PersonalEmail { get; set; }

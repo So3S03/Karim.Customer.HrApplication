@@ -12,8 +12,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             base.Configure(builder);
             builder.Property(AE => AE.CreatedBy).IsRequired(); // rest of handling will be in interceptor
             builder.Property(AE => AE.CreatedOn).IsRequired(); // rest of handling will be in interceptor
-            builder.Property(AE => AE.ModifiedBy).IsRequired();// rest of handling will be in interceptor
-            builder.Property(AE => AE.ModifiedOn).IsRequired();// rest of handling will be in interceptor
+            builder.Property(AE => AE.ModifiedBy).IsRequired(false);// rest of handling will be in interceptor
+            builder.Property(AE => AE.ModifiedOn).IsRequired(false);// rest of handling will be in interceptor
+            builder.Property(AE => AE.isRemoved).IsRequired();// rest of handling will be in interceptor
+            builder.Property(AE => AE.RemovedOn).IsRequired(false);// rest of handling will be in interceptor
+            builder.Property(AE => AE.RemovedBy).IsRequired(false);// rest of handling will be in interceptor
         }
     }
 }
