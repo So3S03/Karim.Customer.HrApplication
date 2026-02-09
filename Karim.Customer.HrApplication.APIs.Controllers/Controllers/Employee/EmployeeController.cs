@@ -85,5 +85,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
             var result = await _serviecManager.EmployeeService.FillDepartmentsAsync(Name);
             return Ok(result);
         }
+
+        [HttpPut("UpdateEmployee")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> UpdateEmployee([FromForm]SingleEmployeeToUpdateDto? entity, IFormFile? Photo)
+        {
+            var result = await _serviecManager.EmployeeService.UpdateEmployeeAsync(entity, Photo);
+            return Ok(result);
+        }
     }
 }

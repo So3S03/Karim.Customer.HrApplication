@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRMSMigrations
 {
     [DbContext(typeof(HRMSDBContext))]
-    partial class HRMSDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260208213305_AddNewAuditableEntityForAllEntities")]
+    partial class AddNewAuditableEntityForAllEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,9 +81,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ModifiedBy")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ModifiedOn")
+                    b.Property<DateTime>("ModifiedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("NormalizedName")
@@ -88,9 +92,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RemovedBy")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("RemovedOn")
+                    b.Property<DateTime>("RemovedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("TotalDepartmentBudget")
@@ -166,9 +171,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ModifiedBy")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ModifiedOn")
+                    b.Property<DateTime>("ModifiedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PersonalEmail")
@@ -190,9 +196,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RemovedBy")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("RemovedOn")
+                    b.Property<DateTime>("RemovedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("Salary")

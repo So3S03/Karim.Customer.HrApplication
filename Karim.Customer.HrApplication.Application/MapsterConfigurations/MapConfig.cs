@@ -74,6 +74,12 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.FullNameNormalized, src => src.FullName.ToUpper())
                 .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
                 .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
+
+            config.NewConfig<SingleEmployeeToUpdateDto, Employee>()
+                .Map(dest => dest.WorkType, src => (WorkType)src.WorkType)
+                .Map(dest => dest.FullNameNormalized, src => src.FullName.ToUpper())
+                .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
+                .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
         }
     }
 }

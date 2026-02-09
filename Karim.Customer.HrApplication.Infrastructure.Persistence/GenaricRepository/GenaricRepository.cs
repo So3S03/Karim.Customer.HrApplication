@@ -14,6 +14,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public async Task<TEntity?> GetByIdAsync(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).FirstOrDefaultAsync();
 
+        public async Task<TEntity?> GetByIdAsyncWithNoTracking(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).AsNoTracking().FirstOrDefaultAsync();
+
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 
         public Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications) => Evaluator(specifications).CountAsync();
