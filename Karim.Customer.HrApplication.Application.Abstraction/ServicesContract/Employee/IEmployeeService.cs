@@ -19,5 +19,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> AddNewEmployeeAsync(SingleEmployeeToAddDto? employee, IFormFile? Photo);
         public Task<ICollection<FillEntityDto<string>>> FillDepartmentsAsync(string? Name);
         public Task<ActionStatusDto> UpdateEmployeeAsync(SingleEmployeeToUpdateDto? entity, IFormFile? Photo);
+        public Task<ActionStatusDto> RemoveEmployeeTemporarly(string? Id);
+        public Task<ActionStatusDto> RestoreRemovedEmployee(string? Id);
+        public Task<ActionStatusDto> RemoveEmployeePermenetly(string? Id);
     }
 }

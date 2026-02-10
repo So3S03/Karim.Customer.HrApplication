@@ -90,6 +90,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
         }
         public async Task<DataWithPagination<ICollection<EmployeeToReturnDto>>> GetAllEmployeeWithPaginationAsync(EmployeeQueryParameters? parameters)
         {
+            ////Force Sorting By Code
+            //if (parameters!.Sorting is null) parameters.Sorting = 1;
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
             //Create Specification For Count
@@ -176,6 +178,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             MappedEmployee.IsHasContract = false; //It Will Be True If Contract Module Will Be Ready
             MappedEmployee.EmployeeStatus = Domain.Entities.Employee.EmployeeStatus.InActive; //It Will Be Changed Based On Attendance Module
             if (entity.JoinDate is null) MappedEmployee.JoinDate = DateTime.UtcNow;
+            //Force Employee To Be Not Deleted
+            MappedEmployee.isRemoved = false;
             //Add The Employee
             await Repo.AddAsync(MappedEmployee);
             //Compleate the changes
@@ -225,10 +229,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             };
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
-            //Create Specification
-            var GetSpecs = new EmployeeByIdSepecification(entity.Id);
             //Get Employee If Exist
-            var Employee = await Repo.GetByIdAsyncWithNoTracking(GetSpecs);
+            var Employee = await getEmployeeById(entity.Id);
             //Check If The Employee Exist 
             if (Employee is null) throw new NotFoundException(entity.EmployeeCode, "Employee");
             //Check On Code if It Is The Same
@@ -248,6 +250,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
                 var NewPhotoUrl = await filesSaver.SaveFiles(Photo, env);
                 if (string.IsNullOrEmpty(NewPhotoUrl)) throw new Exception("Something Went Wrong While Uploding The New Photo");
                 mappedEmployee.PhotoUrl = NewPhotoUrl;
+                //Force Employee To Be Not Deleted
+                mappedEmployee.isRemoved = false;
             }
             //Update The Entity
             Repo.Update(mappedEmployee);
@@ -262,6 +266,117 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
                 Message = "Employee Was Updated Successfully!"
             };
             return Obj;
+        }
+        public async Task<ActionStatusDto> RemoveEmployeeTemporarly(string? Id)
+        {
+            //Try Get Employee If Exist
+            var Emp = await getEmployeeById(Id);
+            //Check If There is Employee Exist
+            if (Emp is null) throw new NotFoundException("Employee Was Not Found!");
+            //Check If The Emp is Already Removed
+            if (Emp.isRemoved) throw new ConflictException("Employee is Already Removed");
+            //Update Employee isRemove
+            Emp.isRemoved = true;
+            //Change Status To Terminated
+            Emp.EmployeeStatus = EmployeeStatus.Terminated;
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Update it on Database
+            Repo.Update(Emp);
+            //Compleate
+            int complete = await _unitOfWork.CompleteAsync();
+            //Check If its Saved
+            if(complete == 0) throw new Exception("Something Went Wrong");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Was Removed Successfully"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> RestoreRemovedEmployee(string? Id)
+        {
+            //Check On Id
+            if (Id is null) throw new BadRequestException("Provided Id Is Invalid");
+            //get Employee
+            var Emp = await getEmployeeById(Id);
+            //Check On Employee
+            if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Check On isRemoveed
+            if (!Emp.isRemoved) throw new ConflictException("You Can't Restore An Employee That Not Removed");
+            //Change Employee isRemoved
+            Emp.isRemoved = false;
+            //Force Employee To Be InActive
+            Emp.EmployeeStatus = EmployeeStatus.InActive;
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Update The Entity
+            Repo.Update(Emp);
+            //Copmlete
+            int complete = await _unitOfWork.CompleteAsync();
+            //Check On status
+            if (complete == 0) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Restored Successfully"
+            };
+            //Return it
+            return Obj;
+        }
+        public async Task<ActionStatusDto> RemoveEmployeePermenetly(string? Id)
+        {
+            // Check On Id
+            if (Id is null) throw new BadRequestException("Provided Id Is Invalid");
+            //get Employee
+            var Emp = await getEmployeeById(Id);
+            //Check On Employee
+            if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Delete Employee
+            Repo.Delete(Emp);
+            //Complete
+            int complete = await _unitOfWork.CompleteAsync();
+            //Check On complete
+            if (complete == 0) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Deleted Permenetly Successfully!"
+            };
+            return Obj;
+        }
+
+        //Helper Methods
+        private async Task<employee?> getEmployeeById(string? Id)
+        {
+            //Check On Id
+            if (Id is null) throw new BadRequestException("Provided Id is Invalid");
+            //Create Repo 
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Spec
+            var Spec = new EmployeeByIdSepecification(Id);
+            //get Employee
+            var Employee = await Repo.GetByIdAsyncWithNoTracking(Spec);
+            return Employee;
+
+        }
+        private async Task<employee?> getEmployeeByCode(string? Code)
+        {
+            //Check On Id
+            if (Code is null) throw new BadRequestException("Provided Code is Invalid");
+            //Create Repo 
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Spec
+            var Spec = new EmployeeByCodeSpecification(Code);
+            //get Employee
+            var Employee = await Repo.GetByIdAsyncWithNoTracking(Spec);
+            return Employee;
+
         }
     }
 }
