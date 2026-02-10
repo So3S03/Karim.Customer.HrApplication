@@ -8,5 +8,6 @@
         Resigned = 4,
         OnLeave = 5,
         OnVacation = 6,
+
     }
 }

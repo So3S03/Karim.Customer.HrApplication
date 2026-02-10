@@ -87,9 +87,30 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         }
 
         [HttpPut("UpdateEmployee")]
-        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> UpdateEmployee([FromForm]SingleEmployeeToUpdateDto? entity, IFormFile? Photo)
+        public async Task<ActionResult<ActionStatusDto>> UpdateEmployee([FromForm]SingleEmployeeToUpdateDto? entity, IFormFile? Photo)
         {
             var result = await _serviecManager.EmployeeService.UpdateEmployeeAsync(entity, Photo);
+            return Ok(result);
+        }
+
+        [HttpDelete("RemoveEmployeeTemporarly")]
+        public async Task<ActionResult<ActionStatusDto>> RemoveEmployeeTemporarly(string? Id)
+        {
+            var result = await _serviecManager.EmployeeService.RemoveEmployeeTemporarly(Id);
+            return Ok(result);
+        }
+
+        [HttpDelete("RemoveEmployeePermenetly")]
+        public async Task<ActionResult<ActionStatusDto>> RemoveEmployeePermenetly(string? Id)
+        {
+            var result = await _serviecManager.EmployeeService.RemoveEmployeePermenetly(Id);
+            return Ok(result);
+        }
+
+        [HttpPut("RestoreRemovedEmployee")]
+        public async Task<ActionResult<ActionStatusDto>> RestoreRemovedEmployee(string? Id)
+        {
+            var result = await _serviecManager.EmployeeService.RestoreRemovedEmployee(Id);
             return Ok(result);
         }
     }

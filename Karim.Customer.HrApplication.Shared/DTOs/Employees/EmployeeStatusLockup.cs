@@ -17,6 +17,10 @@ namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
         [Display(Name = "On Vacation")]
         OnVacation = 6,
         [Display(Name = "Not Terminated")]
-        NotTerminated = 7
+        NotTerminated = 7,
+        [Display(Name = "Is Removed")]
+        IsRemoved = 8,
+        [Display(Name = "Is Not Removed")]
+        IsNotRemoved = 9
     }
 }

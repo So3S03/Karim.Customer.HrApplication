@@ -57,6 +57,8 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
                 EmployeeStatusLockup.OnLeave => E => E.EmployeeStatus == EmployeeStatus.OnLeave,
                 EmployeeStatusLockup.OnVacation => E => E.EmployeeStatus == EmployeeStatus.OnVacation,
                 EmployeeStatusLockup.NotTerminated => E => E.EmployeeStatus != EmployeeStatus.Terminated,
+                EmployeeStatusLockup.IsRemoved => E => E.isRemoved,
+                EmployeeStatusLockup.IsNotRemoved => E => E.isRemoved == false,
                 _ => null
             };
             return expression;
