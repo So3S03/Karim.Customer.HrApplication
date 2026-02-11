@@ -108,7 +108,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             //Get Total Records In Database
             int totalRecord = await Repo.GetDataCountAsync(countSpec);
             decimal pages = Math.Ceiling((decimal)(totalRecord / pageSize));
-            decimal nextPage = pageNum > pages ? pages : (pageNum + 1);
+            decimal nextPage = (pageNum + 1) == (pages + 1) ? (pages + 1) : (pageNum + 1);
             //Forming Paginated Object
             var obj = new DataWithPagination<ICollection<EmployeeToReturnDto>>(pageNum, nextPage, pageSize, totalRecord, mappedEmployees);
             //return object 
@@ -334,6 +334,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             var Emp = await getEmployeeById(Id);
             //Check On Employee
             if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Delete Existing Files For Employee
+            if(!string.IsNullOrEmpty(Emp.PhotoUrl))
+            {
+                //Delete File
+                bool isDeleted = filesSaver.DeleteFile(Emp.PhotoUrl, env);
+                //Check If Deleted
+                if (!isDeleted) throw new Exception("Something Went Wrong While Deleting Employee Photo!");
+            }
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
             //Delete Employee
@@ -347,6 +355,140 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             {
                 Status = true,
                 Message = "Employee Deleted Permenetly Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> UploadEmployeePhoto(string? Id, IFormFile? File)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Provided Id Is Invalid");
+            //Check On file
+            if (File is null) throw new BadRequestException("Provided Phtot Is Invalid");
+            //Get Employee
+            var Employee = await getEmployeeById(Id);
+            //Check On Employee
+            if (Employee is null) throw new NotFoundException(Id, "Employee");
+            //Check On Photo If Exist
+            if(Employee.PhotoUrl is not null)
+            {
+                //Delete The Photo And Empty The Photo Url
+                bool isDeleted = filesSaver.DeleteFile(Employee.PhotoUrl, env);
+                if (!isDeleted) throw new Exception("Something Went WronG While Deleting Old Photo");
+                Employee.PhotoUrl = null;
+            }
+            //Upload New Photo
+            var filePath = await filesSaver.SaveFiles(File, env);
+            //Check On generated Path
+            if (string.IsNullOrEmpty(filePath)) throw new Exception("Something Went Wrong While Saving Photo");
+            //Set New Path
+            Employee.PhotoUrl = filePath;
+            //Create Repo 
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Update The Record
+            Repo.Update(Employee);
+            //Compleate
+            bool compleate = await _unitOfWork.CompleteAsync() > 0;
+            //Check If The Record Saved
+            if (!compleate) throw new Exception("Something Went Wrong While Saving Photo");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Photo Uploaded Successfully"
+            };
+            //Return The Result
+            return Obj;
+        }
+        public async Task<ActionStatusDto> DeleteEmployeePhoto(string? Id)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Provided Id Is Invalid");
+            //Get Employee
+            var Emp = await getEmployeeById(Id);
+            //Check On Emp
+            if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Check If The Emp Has Photo To Delete
+            if (string.IsNullOrEmpty(Emp.PhotoUrl)) throw new NotFoundException("Couldn't Find Any Photo For This Employee");
+            //Delete Photo
+            bool isDeleted = filesSaver.DeleteFile(Emp.PhotoUrl, env);
+            //Check If Photo Deleted
+            if (!isDeleted) throw new Exception("Something Went Wrong While Deleting The Photo");
+            //Force Delete Path Ferom Database
+            Emp.PhotoUrl = null;
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Update Entity
+            Repo.Update(Emp);
+            //Compelete
+            bool complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check If Entity Was Updated
+            if (!complete) throw new Exception("Something Went Wrong!");
+            //Forming An Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Photo Was Deleted Successfully!"
+            };
+            //Return Obj
+            return Obj;
+        }
+        public async Task<ActionStatusDto> TerminateEmployee(string? Id, bool RequestDeleteWithTermination)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Provided Id Is Invalid!");
+            //Get Employee
+            var Emp = await getEmployeeById(Id);
+            //Check On Employee
+            if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Check If Already Terminated
+            if (Emp.EmployeeStatus == EmployeeStatus.Terminated) throw new ConflictException("Employee Already Terminated");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Check On If I Want To Delete Him Perminante
+            if(RequestDeleteWithTermination) Repo.Delete(Emp);
+            //Check On If I Want Only Termination
+            if (!RequestDeleteWithTermination)
+            {   //Change Status
+                Emp.EmployeeStatus = EmployeeStatus.Terminated;
+                Repo.Update(Emp);
+            }
+            //Complete
+            bool Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming An Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Terminated Successfully"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> UndoTerminatedEmployee(string? Id)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Provided Id is Invalid");
+            //Get Emp
+            var Emp = await getEmployeeById(Id);
+            //Check If Emp Exist
+            if (Emp is null) throw new NotFoundException(Id, "Employee");
+            //Check If Employee Is Terminated
+            if (Emp.EmployeeStatus != EmployeeStatus.Terminated) throw new ConflictException("Employee Already Is Not Terminated");
+            //Change Status
+            Emp.EmployeeStatus = EmployeeStatus.InActive;
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Update Record
+            Repo.Update(Emp);
+            //Complete
+            bool Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check If Completed
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Restored Successfully"
             };
             return Obj;
         }

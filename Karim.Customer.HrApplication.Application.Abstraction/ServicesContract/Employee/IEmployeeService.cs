@@ -22,5 +22,11 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> RemoveEmployeeTemporarly(string? Id);
         public Task<ActionStatusDto> RestoreRemovedEmployee(string? Id);
         public Task<ActionStatusDto> RemoveEmployeePermenetly(string? Id);
+        public Task<ActionStatusDto> UploadEmployeePhoto(string? Id, IFormFile? File);
+        public Task<ActionStatusDto> DeleteEmployeePhoto(string? Id);
+        public Task<ActionStatusDto> TerminateEmployee(string? Id, bool RequestDeleteWithTermination);
+        public Task<ActionStatusDto> UndoTerminatedEmployee(string? Id);
+        //public Task<ActionStatusDto> TerminateCollectiveEmployees(string? Id);
+        //public Task<DataWithPagination<ICollection<EmployeeToTermenteDto>>> GetAllTerminatedEmployees();
     }
 }
