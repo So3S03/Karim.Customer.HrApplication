@@ -113,5 +113,33 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
             var result = await _serviecManager.EmployeeService.RestoreRemovedEmployee(Id);
             return Ok(result);
         }
+
+        [HttpPut("UploadEmployeePhoto")]
+        public async Task<ActionResult<ActionStatusDto>> UploadEmployeePhoto([FromForm]string? EmpId, IFormFile? File)
+        {
+            var result = await _serviecManager.EmployeeService.UploadEmployeePhoto(EmpId, File);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteEmployeePhoto")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteEmployeePhoto(string? EmpId)
+        {
+            var result = await _serviecManager.EmployeeService.DeleteEmployeePhoto(EmpId);
+            return Ok(result);
+        }
+
+        [HttpDelete("TerminateEmployee")]
+        public async Task<ActionResult<ActionStatusDto>> TerminateEmployee(string? EmpId, bool isRequestDeleteEmp)
+        {
+            var result = await _serviecManager.EmployeeService.TerminateEmployee(EmpId, isRequestDeleteEmp);
+            return Ok(result);
+        }
+
+        [HttpPut("UndoTerminatedEmployee")]
+        public async Task<ActionResult<ActionStatusDto>> UndoTerminatedEmployee(string? EmpId)
+        {
+            var result = await _serviecManager.EmployeeService.UndoTerminatedEmployee(EmpId);
+            return Ok(result);
+        }
     }
 }
