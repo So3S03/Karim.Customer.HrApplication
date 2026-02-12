@@ -144,5 +144,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = await servicesManager.DepartmentService.GenerateMaxDepartmentCode();
             return Ok(result);
         }
+
+        [HttpGet("FillEmployees")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> FillEmployees()
+        {
+            var result = await servicesManager.DepartmentService.FillEmployees();
+            return Ok(result);
+        }
     }
 }
