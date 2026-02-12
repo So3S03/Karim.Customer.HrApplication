@@ -537,6 +537,50 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             return Obj;
 
         }
+        public async Task<ActionStatusDto> RestoreTerminateCollectiveEmployees(List<string>? Ids)
+        {
+            //Check On Ids
+            if (Ids is null) throw new BadRequestException("You Should Provide One Or More Id");
+            //Check On Duplicated Ids
+            var hasDuplicatedIds = Ids.GroupBy(id => id).Any(data => data.Count() > 1);
+            //Check On Duplicated Ids
+            if (hasDuplicatedIds) throw new ConflictException("Duplicated Ids Exist");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Specifications
+            var Specs = new TerminatedEmployeesSpecification();
+            //Get All Employees Whose Terminated
+            var Emps = await Repo.GetAllAsync(Specs);
+            //Check If Count is 0
+            if (!Emps.Any()) throw new ConflictException("You Can't UnTerminate Those Employees, They Already Not Terminated");
+            //HashSet For Saving The UnTerminated Employee With No Duplication
+            var restoredEmps = new HashSet<employee>();
+            //Get All Emps That Match With Comming Ids
+            foreach (var id in Ids)
+            {
+                //Get Employee
+                var Emp = Emps.Where(E => E.Id == id).FirstOrDefault();
+                //Check If Employee Exist 
+                if (Emp is null) throw new NotFoundException(id, "Employee");
+                //UnTerminate The Employee
+                Emp.EmployeeStatus = EmployeeStatus.InActive;
+                //Push EMP To The List
+                restoredEmps.Add(Emp);
+            }
+            //update Range Data
+            Repo.UpdateRange(restoredEmps);
+            //Complete
+            var complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employees Restored Successfully!"
+            };
+            return Obj;
+        }
 
         //Helper Methods
         private async Task<employee?> getEmployeeById(string? Id)
