@@ -9,21 +9,21 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public required string FullName { get; set; }
         public required string FullNameNormalized { get; set; }
         public string? PersonalEmail { get; set; }
-        public string? WorkEmail { get; set; } //It Will Be The Email Employee Use For This App 
+        public string? WorkEmail { get; set; } //It Will Be The Email Employee Use For This App Determined On Auth Module
         public required string Position { get; set; }
         public string? PhotoUrl { get; set; }
         public required string PhoneNumber { get; set; }
         public string? ExtraPhoneNumber { get; set; }
         public string? Address { get; set; }
-        public required WorkType WorkType { get; set; }
-        public required EmployeeType EmployeeType { get; set; }
+        public required WorkType WorkType { get; set; } //Determined On Contract Module
+        public required EmployeeType EmployeeType { get; set; } //Determined On Contract Module
         public required string WorkLocation { get; set; }
-        public bool IsHasContract { get; set; }
-        public DateTime? ContractEndDate { get; set; }
-        public decimal? Salary { get; set; }
+        public bool IsHasContract { get; set; } //Determined On Contract Module
+        public DateTime? ContractEndDate { get; set; } //Determined On Contract Module
+        public decimal? Salary { get; set; } //Determined On Contract Module
         public DateTime JoinDate { get; set; }
         public required EmployeeRank Rank { get; set; }
-        public EmployeeStatus? EmployeeStatus { get; set; }
+        public EmployeeStatus? EmployeeStatus { get; set; } //Determined By Attendance Module
 
         //Department Relation
         public department? Department { get; set; }

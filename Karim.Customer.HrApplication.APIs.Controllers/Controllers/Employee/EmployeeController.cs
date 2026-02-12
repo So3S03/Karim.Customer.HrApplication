@@ -141,5 +141,19 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
             var result = await _serviecManager.EmployeeService.UndoTerminatedEmployee(EmpId);
             return Ok(result);
         }
+
+        [HttpPut("TerminateCollectiveEmployees")]
+        public async Task<ActionResult<ActionStatusDto>> TerminateCollectiveEmployees(List<string>? Ids)
+        {
+            var resullt = await _serviecManager.EmployeeService.TerminateCollectiveEmployees(Ids);
+            return Ok(resullt);
+        }
+
+        [HttpPut("RestoreTerminateCollectiveEmployees")]
+        public async Task<ActionResult<ActionStatusDto>> RestoreTerminateCollectiveEmployees(List<string>? Ids)
+        {
+            var result = await _serviecManager.EmployeeService.RestoreTerminateCollectiveEmployees(Ids);
+            return Ok(result);
+        }
     }
 }

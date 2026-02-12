@@ -12,5 +12,6 @@
         public decimal? DepartmentBudgetForTrainees { get; set; }
         public decimal? DepartmentBudgetOther { get; set; }
         public required int DepatrmentType { get; set; }
+        public string? ManagerId { get; set; }
     }
 }

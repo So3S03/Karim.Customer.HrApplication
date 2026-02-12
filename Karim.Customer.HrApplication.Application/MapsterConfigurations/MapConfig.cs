@@ -28,9 +28,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.DepartmentPhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.DepartmentPhotoUrl!));
             config.NewConfig<DepartmentToAddDto, Department>()
                 .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
+                .Map(dest => dest.ManagerId, src => src.ManagerId)
                 .Map(dest => dest.DepatrmentType, src => (DepartmentType)src.DepatrmentType);
             config.NewConfig<DepartmentToUpdateDto, Department>()
                 .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
+                .Map(dest => dest.ManagerId, src => src.ManagerId)
                 .Map(dest => dest.DepatrmentType, src => (DepartmentType)src.DepatrmentType);
             config.NewConfig<Department, DepartmentNameUploadBulkDto>();
             config.NewConfig<Department, DepartmentDescriptionUploadBulkDto>();
@@ -80,6 +82,10 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.FullNameNormalized, src => src.FullName.ToUpper())
                 .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
                 .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
+            //Fills
+            config.NewConfig<Employee, FillEntityDto<string>>()
+                .Map(dest => dest.Code, src => src.EmployeeCode)
+                .Map(dest => dest.Name, src => src.FullName);
         }
     }
 }

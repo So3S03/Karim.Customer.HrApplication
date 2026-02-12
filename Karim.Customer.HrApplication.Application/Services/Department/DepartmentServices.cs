@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Domain.Conttracts;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
@@ -17,6 +18,7 @@ using System.ComponentModel;
 using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
+using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Department
 {
@@ -485,6 +487,19 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
                 MaxCode = Code
             };
             return obj;
+        }
+
+        public async Task<ICollection<FillEntityDto<string>>> FillEmployees()
+        {
+            //Make Repo
+            var Repo = _UnitOfWork.GenerateRepository<employee, string>();
+            //Create Specification
+            var Specs = new EmployeesNotTerminatedSpecification();
+            //Get Employees
+            var Emps = await Repo.GetAllAsync(Specs);
+            //Mapping Emps
+            var mappedEmployees = _mapper.Map<ICollection<FillEntityDto<string>>>(Emps);
+            return mappedEmployees;
         }
 
         //Commom Used Methods

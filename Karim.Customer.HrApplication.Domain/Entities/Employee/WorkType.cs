@@ -1,6 +1,6 @@
 ﻿namespace Karim.Customer.HrApplication.Domain.Entities.Employee
 {
-    public enum WorkType
+    public enum WorkType //Determend On Contract Module
     {
         FullTime = 1,
         PartTime = 2,
