@@ -541,10 +541,47 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             //Create Specification Object
             var spec = new DepartmentById(id);
             //Fetch Department
-            var dept = await Repo.GetByIdAsync(spec);
+            var dept = await Repo.GetByIdAsyncWithNoTracking(spec);
             //Check on the department
             if (dept is null) throw new NotFoundException(id, "Department");
             return dept;
+        }
+
+        public async Task<ActionStatusDto> MakeEmployeeAsManager(string? DeptId, string? EmpId )
+        {
+            //Check On Id
+            if (DeptId is null || EmpId is null) throw new BadRequestException("Provided Ids is InValid!");
+            //Ceeate Repo
+            var EmpRepo = _UnitOfWork.GenerateRepository<employee, string>();
+            //Create Specs
+            var EmpSpecs = new EmployeeByIdSepecification(EmpId);
+            //Get Employee
+            var Emp = await EmpRepo.GetByIdAsyncWithNoTracking(EmpSpecs);
+            //Check On Emp
+            if (Emp is null) throw new NotFoundException("Employee You Try To Make As Manager Is Not Exist");
+            //Get Department
+            var Department = await getDepartmentAsDBEntity(DeptId);
+            //Check On Department
+            if (Department is null) throw new NotFoundException(DeptId, "Department");
+            //Cheeck If Department Already Has Same Emp As Manager
+            if (Department.ManagerId == Emp.Id) throw new ConflictException("This Employee Already An Manager For This Department!");
+            //Update Department
+            Department.ManagerId = Emp.Id;
+            //Create Department Repo
+            var DeptRepo = _UnitOfWork.GenerateRepository<department, string>();
+            //Update Record
+            DeptRepo.Update(Department);
+            //Complete
+            var Complete = await _UnitOfWork.CompleteAsync();
+            //Check On Complete
+            if (Complete == 0) throw new Exception("Something Went Wrong!");
+            //Form Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"Department Manager Updated Successfully"
+            };
+            return Obj;
         }
 
         private async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsWithoutPaginationAsync(DepartmentQueryParameters? parameters)
