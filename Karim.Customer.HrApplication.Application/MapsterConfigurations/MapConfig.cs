@@ -25,6 +25,7 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.ManagerName, src => src.Manager!.FullName)
                 .Map(dest => dest.ManagerId, src => src.ManagerId)
                 .Map(dest => dest.ManagerCode, src => src.Manager!.EmployeeCode)
+                .Map(dest => dest.Employees, src => src.Employees)
                 .Map(dest => dest.DepartmentPhotoUrl, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.DepartmentPhotoUrl!));
             config.NewConfig<DepartmentToAddDto, Department>()
                 .Map(dest => dest.NormalizedName, src => src.DepartmentName.ToUpper())
@@ -82,6 +83,15 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.FullNameNormalized, src => src.FullName.ToUpper())
                 .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
                 .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
+
+            config.NewConfig<Employee, EmployeeInDepartmentDto>()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.EmpCode, src => src.EmployeeCode)
+                .Map(dest => dest.EmpName, src => src.FullName)
+                .Map(dest => dest.Photo, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.PhotoUrl!))
+                .Map(dest => dest.Rank, src => src.Rank)
+                .Map(dest => dest.Position, src => src.Position);
+
             //Fills
             config.NewConfig<Employee, FillEntityDto<string>>()
                 .Map(dest => dest.Code, src => src.EmployeeCode)
