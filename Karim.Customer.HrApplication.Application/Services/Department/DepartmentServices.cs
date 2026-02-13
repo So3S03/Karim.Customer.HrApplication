@@ -584,6 +584,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Department
             return Obj;
         }
 
+        public async Task<ICollection<FillEntityDto<string>>> FillEmployeesWithNoDepartments()
+        {
+            //Create Repo
+            var Repo = _UnitOfWork.GenerateRepository<employee, string>();
+            //Create Specification
+            var Specs = new EmployeeWithNoDepartmentsSpecification();
+            //Get All Emps
+            var Emps = await Repo.GetAllAsync(Specs);
+            //Mapping Emps 
+            var mappedEmps = _mapper.Map<ICollection<FillEntityDto<string>>>(Emps);
+            //Return Them
+            return mappedEmps;
+        }
+
         private async Task<ICollection<DepartmentToReturnDto>> GetDepartmentsWithoutPaginationAsync(DepartmentQueryParameters? parameters)
         {
             if (parameters.Status == null) parameters.Status = 0;

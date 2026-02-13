@@ -28,6 +28,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<MaxCodeResult> GenerateMaxDepartmentCode();
         public Task<ICollection<FillEntityDto<string>>> FillEmployees();
         public Task<ActionStatusDto> MakeEmployeeAsManager(string? DeptId, string? EmpId);
+        public Task<ICollection<FillEntityDto<string>>> FillEmployeesWithNoDepartments();
     }
     
 }
