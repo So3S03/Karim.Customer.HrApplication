@@ -151,5 +151,19 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Department
             var result = await servicesManager.DepartmentService.FillEmployees();
             return Ok(result);
         }
+
+        [HttpPut("MakeEmployeeAsManager")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> MakeEmployeeAsManager(string? EmpId, string? DeptId)
+        {
+            var result = await servicesManager.DepartmentService.MakeEmployeeAsManager(DeptId, EmpId);
+            return Ok(result);
+        }
+
+        [HttpGet("FillEmployeesWithNoDepartments")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> FillEmployeesWithNoDepartments()
+        {
+            var result = await servicesManager.DepartmentService.FillEmployeesWithNoDepartments();
+            return Ok(result);
+        }
     }
 }

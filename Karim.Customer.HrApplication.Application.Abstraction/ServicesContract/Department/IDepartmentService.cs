@@ -27,6 +27,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> UploadBulkDepartmentsForUpdate(IFormFile? file, int? columnToBeUpdated);
         public Task<MaxCodeResult> GenerateMaxDepartmentCode();
         public Task<ICollection<FillEntityDto<string>>> FillEmployees();
+        public Task<ActionStatusDto> MakeEmployeeAsManager(string? DeptId, string? EmpId);
+        public Task<ICollection<FillEntityDto<string>>> FillEmployeesWithNoDepartments();
     }
     
 }

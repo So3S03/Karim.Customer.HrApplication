@@ -23,5 +23,6 @@
         public required string CreatedBy { get; set; }
         public required DateTime ModifiedOn { get; set; }
         public required string ModifiedBy { get; set; }
+        public ICollection<EmployeeInDepartmentDto>? Employees { get; set; }
     }
 }
