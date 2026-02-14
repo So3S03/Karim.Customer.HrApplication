@@ -28,5 +28,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         public Task<ActionStatusDto> UndoTerminatedEmployee(string? Id);
         public Task<ActionStatusDto> TerminateCollectiveEmployees(List<string>? Ids);
         public Task<ActionStatusDto> RestoreTerminateCollectiveEmployees(List<string>? Ids);
+        public Task<ActionStatusDto> AddBulkEmployees(IFormFile? File);
+        public Task<byte[]> GenerateAddBulkEmployeeExcelTemplate();
     }
 }

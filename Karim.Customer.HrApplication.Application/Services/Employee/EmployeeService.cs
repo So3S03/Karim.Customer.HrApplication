@@ -3,21 +3,24 @@ using Karim.Customer.HrApplication.Application._Common.EnumConverter;
 using Karim.Customer.HrApplication.Application._Common.FileHandler;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
+using Karim.Customer.HrApplication.Domain.Conttracts;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees.BulkUploadDtos;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using System.IO;
 using System.Text.RegularExpressions;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Employee
 {
-    internal class EmployeeService(IUnitOfWork _unitOfWork, IMapper _mapper, IWebHostEnvironment env) : IEmployeeService
+    internal class EmployeeService(IUnitOfWork _unitOfWork, IMapper _mapper, IWebHostEnvironment env, IExcelServices excel) : IEmployeeService
     {
         private const string codePattern = @"^EMP\d{3,}$";
         public async Task<MaxCodeResult> GenerateEmployeeMaxCodeAsync()
@@ -581,7 +584,83 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             };
             return Obj;
         }
-
+        public async Task<ActionStatusDto> AddBulkEmployees(IFormFile? File)
+        {
+            //Check on File
+            if (File is null) throw new BadRequestException("Provided File Is Invalid");
+            //Read File
+            var fileList = excel.ReadExcelSheetForCollections<BulkAddEmployeeDto>(File);
+            //Check On List
+            if (fileList is null) throw new BadRequestException("Excel Sheet Should Have Atleast 1 Row To Add it");
+            //Check On Duplication
+            var hasDuplicatiion = fileList.GroupBy(E => E.EmployeeCode).Any(E => E.Count() > 1);
+            if (hasDuplicatiion) throw new BadRequestException("There is Duplicated Rows Make sure that EmpCode For Each Row is Uniqe!");
+            //Create List For Storing Codes
+            HashSet<string> codes = new HashSet<string>();
+            //Check If The Required Filds Is Null Or Empty
+            foreach(var e in fileList)
+            {
+                _ = e switch
+                {
+                    { EmployeeCode: null or "" } => throw new BadRequestException("Employee Code Must Be Exist!"),
+                    { FullName: null or "" } => throw new BadRequestException("Name Must Be Provided"),
+                    { Position: null or ""} => throw new BadRequestException("Position Must Be Provided"),
+                    { PhoneNumber: null or "" } => throw new BadRequestException("Phone Number Must Be Provided"),
+                    { WorkType: <= 0 or > 6} => throw new BadRequestException("Work Type Must Be Between 1 and 3 [1 = FullTime, 2 = PartTime, 3 = HybridFullTime, 4 = HybridPartTime, 5 = RemoteFullTime, 6 = RemotePartTime]"),
+                    { EmployeeType: <= 0 or > 3} => throw new BadRequestException("Employee Type Must Be Between 1 and 6 [1 = Contract, 2 = Freelance, 3 = LongLife]"),
+                    { WorkLocation: null or ""} => throw new BadRequestException("Work Location Must Be Provided"),
+                    { EmployeeRank: <= 0 or > 9} => throw new BadRequestException("Employee Rank Must Be Between 1 and 9 [1 = Intern, 2 = Fresh, 3 = Junior, 4 = MidLevel, 5 = Senior, 6 = TeamLeader, 7 = ProjectManager, 8 = Manager, 9 = Director]"),
+                    _ => e
+                };
+                var code = e.EmployeeCode;
+                codes.Add(code);
+            }
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<employee, string>();
+            //Get All Employees
+            var emps = await Repo.GetAllAsync(null!);
+            //Check if there is Codes Exist
+            var hasDuplicatedCodes = emps.Where(E => codes.Contains(E.EmployeeCode)).Any();
+            if (hasDuplicatedCodes) throw new ConflictException("There is Provided Codes That Already Exist On Other Employees On System");
+            //Mapping List
+            var mappedList = _mapper.Map<ICollection<employee>>(fileList);
+            //Add Range
+            await Repo.AddRangeAsync(mappedList);
+            //Compleate
+            var Complete = await _unitOfWork.CompleteAsync();
+            //Check On Compleation
+            if (Complete == 0) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee List Has Been Added Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<byte[]> GenerateAddBulkEmployeeExcelTemplate()
+        {
+            //Generate Example
+            var example = new BulkAddEmployeeDto()
+            {
+                EmployeeCode = (await GenerateEmployeeMaxCodeAsync()).MaxCode,
+                FullName = "Mohammed Ahmed",
+                Position = "Back-End",
+                Address = "Cairo",
+                EmployeeRank = 4,
+                EmployeeType = 1,
+                ExtraPhoneNumber = "01122336547",
+                PhoneNumber = "01122445862",
+                JoinDate = DateTime.UtcNow,
+                PersonalEmail = "Mohammed@gmail.com",
+                WorkLocation = "Maadi",
+                WorkType = 2
+            };
+            //Generate File
+            var file = excel.GenerateExcelSheetTemplate<BulkAddEmployeeDto>(example, "BulkAddEmployee");
+            //return File
+            return file;
+        }
         //Helper Methods
         private async Task<employee?> getEmployeeById(string? Id)
         {

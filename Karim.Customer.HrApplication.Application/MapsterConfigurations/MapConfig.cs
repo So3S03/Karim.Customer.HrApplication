@@ -5,6 +5,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees.BulkUploadDtos;
 using Mapster;
 
 namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
@@ -79,8 +80,8 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
 
             config.NewConfig<SingleEmployeeToUpdateDto, Employee>()
-                .Map(dest => dest.WorkType, src => (WorkType)src.WorkType)
                 .Map(dest => dest.FullNameNormalized, src => src.FullName.ToUpper())
+                .Map(dest => dest.WorkType, src => (WorkType)src.WorkType)
                 .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
                 .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
 
@@ -91,6 +92,12 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Photo, src => MapContext.Current.GetService<FilesPathResolver>().Resolve(src.PhotoUrl!))
                 .Map(dest => dest.Rank, src => src.Rank)
                 .Map(dest => dest.Position, src => src.Position);
+
+            config.NewConfig<BulkAddEmployeeDto, Employee>()
+                .Map(dest => dest.FullNameNormalized, src => src.FullName!.ToUpper())
+                .Map(dest => dest.WorkType, src => (WorkType)src.WorkType)
+                .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
+                .Map(dest => dest.Rank, src => (EmployeeRank)src.EmployeeRank);
 
             //Fills
             config.NewConfig<Employee, FillEntityDto<string>>()

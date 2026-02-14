@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
 {
-    public class EmployeeController(IServicesManager _serviecManager): ApiBaseController
+    public class EmployeeController(IServicesManager _serviecManager) : ApiBaseController
     {
         [HttpGet("GetMaxEmployeeCode")]
         public async Task<ActionResult<MaxCodeResult>> GetMaxEmployeeCode()
@@ -52,7 +52,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         }
 
         [HttpGet("GetAllEmployees")]
-        public async Task<ActionResult<DataWithPagination<ICollection<EmployeeToReturnDto>>>> GetAllEmployees([FromQuery]EmployeeQueryParameters? parameters)
+        public async Task<ActionResult<DataWithPagination<ICollection<EmployeeToReturnDto>>>> GetAllEmployees([FromQuery] EmployeeQueryParameters? parameters)
         {
             var result = await _serviecManager.EmployeeService.GetAllEmployeeWithPaginationAsync(parameters);
             return Ok(result);
@@ -73,7 +73,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         }
 
         [HttpPost("AddNewEmployee")]
-        public async Task<ActionResult<ActionStatusDto>> AddNewEmployee([FromForm]SingleEmployeeToAddDto? Emp, IFormFile? Photo)
+        public async Task<ActionResult<ActionStatusDto>> AddNewEmployee([FromForm] SingleEmployeeToAddDto? Emp, IFormFile? Photo)
         {
             var result = await _serviecManager.EmployeeService.AddNewEmployeeAsync(Emp, Photo);
             return Ok(result);
@@ -87,7 +87,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         }
 
         [HttpPut("UpdateEmployee")]
-        public async Task<ActionResult<ActionStatusDto>> UpdateEmployee([FromForm]SingleEmployeeToUpdateDto? entity, IFormFile? Photo)
+        public async Task<ActionResult<ActionStatusDto>> UpdateEmployee([FromForm] SingleEmployeeToUpdateDto? entity, IFormFile? Photo)
         {
             var result = await _serviecManager.EmployeeService.UpdateEmployeeAsync(entity, Photo);
             return Ok(result);
@@ -115,7 +115,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         }
 
         [HttpPut("UploadEmployeePhoto")]
-        public async Task<ActionResult<ActionStatusDto>> UploadEmployeePhoto([FromForm]string? EmpId, IFormFile? File)
+        public async Task<ActionResult<ActionStatusDto>> UploadEmployeePhoto([FromForm] string? EmpId, IFormFile? File)
         {
             var result = await _serviecManager.EmployeeService.UploadEmployeePhoto(EmpId, File);
             return Ok(result);
@@ -154,6 +154,20 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Employee
         {
             var result = await _serviecManager.EmployeeService.RestoreTerminateCollectiveEmployees(Ids);
             return Ok(result);
+        }
+
+        [HttpPost("AddBulkEmployees")]
+        public async Task<ActionResult<ActionStatusDto>> AddBulkEmployees(IFormFile? File)
+        {
+            var result = await _serviecManager.EmployeeService.AddBulkEmployees(File);
+            return Ok(result);
+        }
+
+        [HttpGet("GenerateBulkAddEmpsExcelSheet")]
+        public async Task<ActionResult<byte[]>> GenerateBulkAddEmpsExcelSheet()
+        {
+            var result = await _serviecManager.EmployeeService.GenerateAddBulkEmployeeExcelTemplate();
+            return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "EmployeeBulkAddExcelSheet.xlsx");
         }
     }
 }
