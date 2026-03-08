@@ -6,8 +6,11 @@ using Karim.Customer.HrApplication.Application.ApplicationDI;
 using Karim.Customer.HrApplication.Infrastructure.InfraDIContainer;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -64,6 +67,31 @@ namespace Karim.Customer.HrApplication.APIs
             //creating serilog configurations to read from appsettings
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
+            //Add Authentication
+            builder.Services.AddAuthentication(configOptions =>
+            {
+                configOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                configOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer("Bearer", configOptions =>
+                {
+                    configOptions.SaveToken = true;
+                    var jwtSettings = builder.Configuration.GetSection("JwtConfigs");
+                    var secretKey = jwtSettings["SecretKey"];
+                    var expireTime = jwtSettings["ExpiringTime"];
+                    configOptions.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateAudience = true,
+                        ValidateIssuer = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings["Issure"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
+                        ClockSkew = TimeSpan.FromMinutes(int.Parse(expireTime!))
+                    };
+                });
+            builder.Services.AddAuthorization();
             //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApi();
@@ -91,6 +119,7 @@ namespace Karim.Customer.HrApplication.APIs
 
             app.UseStaticFiles();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

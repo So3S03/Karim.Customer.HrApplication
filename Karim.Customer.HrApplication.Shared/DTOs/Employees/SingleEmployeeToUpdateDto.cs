@@ -6,7 +6,6 @@
         public required string EmployeeCode { get; set; } //Must be EMP001
         public required string FullName { get; set; }
         public string? PersonalEmail { get; set; }
-        public string? WorkEmail { get; set; } //It Will Be The Email Employee Use For This App 
         public required string Position { get; set; }
         public required string PhoneNumber { get; set; }
         public string? ExtraPhoneNumber { get; set; }

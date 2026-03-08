@@ -1,6 +1,8 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
+using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
@@ -103,6 +105,9 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<Employee, FillEntityDto<string>>()
                 .Map(dest => dest.Code, src => src.EmployeeCode)
                 .Map(dest => dest.Name, src => src.FullName);
+
+            //Auth Section
+            config.NewConfig<AppPrivilages, PrivilagesToReturnDto>();
         }
     }
 }
