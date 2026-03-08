@@ -1,4 +1,5 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
+using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Employee
@@ -31,5 +32,9 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
 
         //Manage Relation
         public department? ManagedDepartment { get; set; }
+
+        //Account Relation
+        public string? AccountId { get; set; }
+        public AppUser? Account { get; set; }
     }
 }

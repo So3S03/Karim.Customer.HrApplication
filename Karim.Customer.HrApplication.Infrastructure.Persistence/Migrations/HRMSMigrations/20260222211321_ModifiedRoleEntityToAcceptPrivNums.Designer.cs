@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRMSMigrations
 {
     [DbContext(typeof(HRMSDBContext))]
-    partial class HRMSDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260222211321_ModifiedRoleEntityToAcceptPrivNums")]
+    partial class ModifiedRoleEntityToAcceptPrivNums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -278,10 +281,6 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
 
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)

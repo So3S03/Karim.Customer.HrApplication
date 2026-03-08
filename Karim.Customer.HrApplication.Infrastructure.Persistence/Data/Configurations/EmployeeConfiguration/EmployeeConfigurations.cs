@@ -48,7 +48,9 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             //Department Only Has One Manager & Manager Only Have One Managed Department
             builder.HasOne(E => E.ManagedDepartment).WithOne(D => D.Manager)
                 .HasForeignKey<Department>(D => D.ManagerId).OnDelete(DeleteBehavior.SetNull);
-
+            //Account Relationship
+             builder.HasOne(E => E.Account).WithOne(A => A.Employee)
+                .HasForeignKey<Employee>(E => E.AccountId).OnDelete(DeleteBehavior.SetNull);
 
         }
     }

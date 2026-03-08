@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
 
 namespace Karim.Customer.HrApplication.Application.Abstraction.ManagerContract
 {
@@ -7,5 +8,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ManagerContract
     {
         public IDepartmentService DepartmentService { get; }
         public IEmployeeService EmployeeService { get; }
+        public IAuthServices AuthService { get; }
     }
 }

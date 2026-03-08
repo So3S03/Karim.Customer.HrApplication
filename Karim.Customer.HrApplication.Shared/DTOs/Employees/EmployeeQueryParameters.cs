@@ -8,7 +8,7 @@
         public int PageNum
         {
             get { return pageNum; }
-            set { pageNum = value <= 0 ? 1 : pageNum; }
+            set { pageNum = value <= 0 ? 1 : value; }
         }
         private int pageSize = minPageSize;
 
