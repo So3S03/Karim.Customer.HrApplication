@@ -174,7 +174,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Name, user.DisplayName!),
                 new Claim(JwtRegisteredClaimNames.PhoneNumber, user.PhoneNumber!),
-                new Claim(JwtRegisteredClaimNames.NameId, user.Id!),
+                new Claim("AccountId", user.Id!),
+                new Claim("EmployeeId", user.EmpId!)
             };
             //Get Roles
             var roles = await _userManager.GetRolesAsync(user);

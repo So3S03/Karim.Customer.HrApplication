@@ -23,7 +23,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.HasOne(U => U.Employee)
                    .WithOne(E => E.Account)
                    .HasForeignKey<AppUser>(U => U.EmpId)
-                   .OnDelete(DeleteBehavior.SetNull);
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
