@@ -1,4 +1,5 @@
-﻿using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
+﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configurations.BaseConfigurations;
 using Microsoft.EntityFrameworkCore;
@@ -50,8 +51,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 .HasForeignKey<Department>(D => D.ManagerId).OnDelete(DeleteBehavior.SetNull);
             //Account Relationship
              builder.HasOne(E => E.Account).WithOne(A => A.Employee)
-                .HasForeignKey<Employee>(E => E.AccountId).OnDelete(DeleteBehavior.SetNull);
-
+                .HasForeignKey<Employee>(E => E.AccountId).OnDelete(DeleteBehavior.Cascade);
+            //Fingerprints
+            builder.HasMany(E => E.FingerprintLog).WithOne(FB => FB.Employee)
+                .HasForeignKey(FB => FB.EmpId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

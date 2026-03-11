@@ -1,4 +1,5 @@
-﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
+﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
@@ -36,5 +37,11 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         //Account Relation
         public string? AccountId { get; set; }
         public AppUser? Account { get; set; }
+
+        //Fingerprints
+        public ICollection<Fingerprint>? FingerprintLog { get; set; }
+
+        //Requests
+        public ICollection<Requests>? Requests { get; set; }
     }
 }

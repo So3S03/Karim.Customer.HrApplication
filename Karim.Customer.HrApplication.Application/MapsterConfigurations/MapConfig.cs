@@ -1,7 +1,9 @@
-﻿using Karim.Customer.HrApplication.Domain.Entities.Department;
+﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
@@ -108,6 +110,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
 
             //Auth Section
             config.NewConfig<AppPrivilages, PrivilagesToReturnDto>();
+
+            //Fingerprint
+            config.NewConfig<Fingerprint, SpecificFingerprintToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName);
         }
     }
 }
