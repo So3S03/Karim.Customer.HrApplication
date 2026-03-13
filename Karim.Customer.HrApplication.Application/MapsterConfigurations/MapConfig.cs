@@ -114,7 +114,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             //Fingerprint
             config.NewConfig<Fingerprint, SpecificFingerprintToReturnDto>()
                 .Map(dest => dest.Status, src => src.Status.ToString())
-                .Map(dest => dest.EmployeeName, src => src.Employee.FullName);
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
+                .Map(dest => dest.CheckIn, src => src.CheckIn.ToString("hh:mm tt"))
+                .Map(dest => dest.CheckOut, src => src.CheckOut.HasValue ? src.CheckOut.Value.ToString("hh:mm tt") : null);
+
+            config.NewConfig<FingerprintToBeInsertDto, Fingerprint>();
         }
     }
 }

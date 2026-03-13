@@ -5,7 +5,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
 {
     public interface IAttendanceServices
     {
-        //Task<ActionStatusDto> InsertFingerprint(FingerprintToBeInsertDto? fingerprint);
+        Task<ActionStatusDto> InsertFingerprint(FingerprintToBeInsertDto? fingerprint);
         Task<SpecificFingerprintToReturnDto> GetFingerprintPerEmployeeForCurrentDay(string? EmpId);
     }
 }

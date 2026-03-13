@@ -8,6 +8,9 @@
         Resigned = 4,
         OnLeave = 5,
         OnVacation = 6,
+        Absens = 7,
+        Delay = 8,
+        Late = 9,
 
     }
 }
