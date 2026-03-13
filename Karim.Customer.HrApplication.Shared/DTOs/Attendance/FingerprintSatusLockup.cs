@@ -4,6 +4,8 @@
     {
         Late = 1,
         Absense = 2,
-        OnTime = 3
+        Active = 3,
+        Delay = 4,
+        InActive = 5
     }
 }

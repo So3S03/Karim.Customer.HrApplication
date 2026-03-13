@@ -11,6 +11,7 @@ using MapsterMapper;
 using System.ComponentModel;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
+using Karim.Customer.HrApplication.Application._Common.EnumConverter;
 
 namespace Karim.Customer.HrApplication.Application.Services.Attendance
 {
@@ -88,8 +89,9 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             }
             else
             {
+                var Duration = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute) - existingFingerprint.CheckIn;
                 existingFingerprint.CheckOut = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                existingFingerprint.DurationInHours = DateTime.Now.Hour - existingFingerprint.CheckIn.Hour;
+                existingFingerprint.DurationInHours = (decimal)Duration.TotalHours;
                 existingFingerprint.CheckOutLat = fingerprint.Lat;
                 existingFingerprint.CheckOutLong = fingerprint.Long;
                 existingFingerprint.Status = existingFingerprint.CheckIn.Hour > 9 ? FingerprintStatus.Late : (DateTime.Now.Hour - existingFingerprint.CheckIn.Hour < 8 ? FingerprintStatus.Delay : FingerprintStatus.InActive);
@@ -109,6 +111,30 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             //return
             return Obj;
+        }
+        public ICollection<EnumDto> GetFingerPrintStatusLockup()
+        {
+            //Make List
+            var list = EnumsConvertion.CreateEnumLists<FingerprintSatusLockup>();
+            //return them
+            return list;
+        }
+        public async Task<FingerprintDetailsToReturnDto> GetFingerprintById(string? Id)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Provided Id is Invalid");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Forming Specification
+            var Spec = new FingerprintByIdSpecification(Id);
+            //Get Fingerprint
+            var Fingerprint = await Repo.GetByIdAsync(Spec);
+            //Check On It
+            if (Fingerprint == null) throw new NotFoundException("Fingerprint Not Exist");
+            //Mapping It
+            var MappedFB = mapper.Map<FingerprintDetailsToReturnDto>(Fingerprint);
+            //return it
+            return MappedFB;
         }
 
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
