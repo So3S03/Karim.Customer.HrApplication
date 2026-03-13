@@ -21,5 +21,19 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             var result = await servicesManager.AttendanceService.InsertFingerprint(fingerprint);
             return Ok(result);
         }
+
+        [HttpGet("FingerprintStatusLockUp")]
+        public ActionResult<ICollection<EnumDto>> FingerprintStatusLockUp()
+        {
+            var result = servicesManager.AttendanceService.GetFingerPrintStatusLockup();
+            return Ok(result);
+        }
+
+        [HttpGet("GetFingerprintById")]
+        public async Task<ActionResult<FingerprintDetailsToReturnDto>> GetFingerprintById(string? Id)
+        {
+            var result = await servicesManager.AttendanceService.GetFingerprintById(Id);
+            return Ok(result);
+        }
     }
 }
