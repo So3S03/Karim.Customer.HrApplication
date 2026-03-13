@@ -13,9 +13,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(FP => FP.CheckIn).HasColumnType("time").IsRequired();
             builder.Property(FP => FP.CheckOut).HasColumnType("time").IsRequired(false);
             builder.Property(FP => FP.Date).HasColumnType("date").IsRequired();
-            builder.Property(FP => FP.DurationInHours).IsRequired(false);
-            builder.Property(FP => FP.Long).HasColumnType("decimal(10,7)").IsRequired();
-            builder.Property(FP => FP.Lat).HasColumnType("decimal(10,7)").IsRequired();
+            builder.Property(FP => FP.DurationInHours).HasColumnType("decimal(4,2)").IsRequired(false);
+            builder.Property(FP => FP.CheckInLong).HasColumnType("decimal(10,7)").IsRequired();
+            builder.Property(FP => FP.CheckInLat).HasColumnType("decimal(10,7)").IsRequired();
+            builder.Property(FP => FP.CheckOutLong).HasColumnType("decimal(10,7)").IsRequired(false);
+            builder.Property(FP => FP.CheckOutLat).HasColumnType("decimal(10,7)").IsRequired(false);
             builder.Property(FP => FP.Status).HasConversion(
                 (status) => status.ToString(),
                 (status) => (FingerprintStatus)Enum.Parse(typeof(FingerprintStatus), status)

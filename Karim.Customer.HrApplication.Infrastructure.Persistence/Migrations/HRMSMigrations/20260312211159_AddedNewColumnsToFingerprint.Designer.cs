@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRMSMigrations
 {
     [DbContext(typeof(HRMSDBContext))]
-    partial class HRMSDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260312211159_AddedNewColumnsToFingerprint")]
+    partial class AddedNewColumnsToFingerprint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,8 +59,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<decimal?>("DurationInHours")
-                        .HasColumnType("decimal(4,2)");
+                    b.Property<int?>("DurationInHours")
+                        .HasColumnType("int");
 
                     b.Property<string>("EmpId")
                         .IsRequired()
