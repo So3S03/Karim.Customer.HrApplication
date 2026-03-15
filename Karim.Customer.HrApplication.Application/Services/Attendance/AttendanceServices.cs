@@ -136,6 +136,31 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //return it
             return MappedFB;
         }
+        public async Task<DataWithPagination<ICollection<FingerprintToReturnDto>>> GetAllFingerprintLogs(FingerprintParameters? fingerprintParameters)
+        {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Create Specification
+            var Specification = new FinerprintListSpecifications(fingerprintParameters);
+            //Create Specification For Count
+            var countSpec = new FingerprintCountSpecification(fingerprintParameters);
+            //Get List
+            var AttendanceList = await Repo.GetAllAsync(Specification);
+            //Get Count
+            var Count = await Repo.GetDataCountAsync(countSpec);
+            //Get Pages Count
+            var pagesCount = Math.Ceiling((decimal)Count / fingerprintParameters.PageSize);
+            //Mapping List
+            var mappeedList = mapper.Map<ICollection<FingerprintToReturnDto>>(AttendanceList);
+            //Forming Pagination Object
+            var PaginatedData = new DataWithPagination<ICollection<FingerprintToReturnDto>>(
+                pageNum: fingerprintParameters.PageNum,
+                nextPage: pagesCount < (fingerprintParameters.PageNum + 1) ? pagesCount : (fingerprintParameters.PageNum + 1),
+                pageSize: fingerprintParameters.PageSize,
+                totalRecords: Count,
+                data: mappeedList);
+            return PaginatedData;
+        }
 
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {

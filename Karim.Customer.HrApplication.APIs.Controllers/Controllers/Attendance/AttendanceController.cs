@@ -35,5 +35,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             var result = await servicesManager.AttendanceService.GetFingerprintById(Id);
             return Ok(result);
         }
+
+        [HttpGet("GetCurrentMonthFingerprints")]
+        public async Task<ActionResult<FingerprintToReturnDto>> GetAllFingerprints([FromQuery]FingerprintParameters? parameters)
+        {
+            var result = await servicesManager.AttendanceService.GetAllFingerprintLogs(parameters);
+            return Ok(result);
+        }
     }
 }
