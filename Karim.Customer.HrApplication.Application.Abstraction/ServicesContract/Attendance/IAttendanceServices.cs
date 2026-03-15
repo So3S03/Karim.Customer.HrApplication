@@ -9,5 +9,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<SpecificFingerprintToReturnDto> GetFingerprintPerEmployeeForCurrentDay(string? EmpId);
         ICollection<EnumDto> GetFingerPrintStatusLockup();
         Task<FingerprintDetailsToReturnDto> GetFingerprintById(string? Id);
+        Task<DataWithPagination<ICollection<FingerprintToReturnDto>>> GetAllFingerprintLogs(FingerprintParameters? fingerprintParameters);
+        Task<ActionStatusDto> InsertFingerprintManualyForEmployee(FingerprintToAddDto? fingerprint);
     }
 }

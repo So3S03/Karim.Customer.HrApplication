@@ -73,6 +73,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //Check On Fingerprint
             if(existingFingerprint is null) //Mean That there is no fingerprint for today
             {
+                if (Employee.EmployeeStatus == EmployeeStatus.Terminated) throw new BadRequestException("Can't Insertfingerprint This Employee is Terminated!");
                 mappedFingerprint.CheckIn = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 mappedFingerprint.CheckOut = null;
                 mappedFingerprint.Date = Today;
@@ -89,6 +90,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             }
             else
             {
+                if (existingFingerprint.Employee.EmployeeStatus == EmployeeStatus.Terminated) throw new BadRequestException("Can't Insertfingerprint This Employee is Terminated!");
                 var Duration = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute) - existingFingerprint.CheckIn;
                 existingFingerprint.CheckOut = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 existingFingerprint.DurationInHours = (decimal)Duration.TotalHours;
@@ -136,7 +138,60 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //return it
             return MappedFB;
         }
-
+        public async Task<DataWithPagination<ICollection<FingerprintToReturnDto>>> GetAllFingerprintLogs(FingerprintParameters? fingerprintParameters)
+        {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Create Specification
+            var Specification = new FinerprintListSpecifications(fingerprintParameters);
+            //Create Specification For Count
+            var countSpec = new FingerprintCountSpecification(fingerprintParameters);
+            //Get List
+            var AttendanceList = await Repo.GetAllAsync(Specification);
+            //Get Count
+            var Count = await Repo.GetDataCountAsync(countSpec);
+            //Get Pages Count
+            var pagesCount = Math.Ceiling((decimal)Count / fingerprintParameters.PageSize);
+            //Mapping List
+            var mappeedList = mapper.Map<ICollection<FingerprintToReturnDto>>(AttendanceList);
+            //Forming Pagination Object
+            var PaginatedData = new DataWithPagination<ICollection<FingerprintToReturnDto>>(
+                pageNum: fingerprintParameters.PageNum,
+                nextPage: pagesCount < (fingerprintParameters.PageNum + 1) ? pagesCount : (fingerprintParameters.PageNum + 1),
+                pageSize: fingerprintParameters.PageSize,
+                totalRecords: Count,
+                data: mappeedList);
+            return PaginatedData;
+        }
+        public async Task<ActionStatusDto> InsertFingerprintManualyForEmployee(FingerprintToAddDto? fingerprint)
+        {
+            //Check On Data
+            if (fingerprint is null) throw new BadRequestException("Provided Data is Invalid!");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Check If Employee Has Fingerprint On The Selected Date
+            //Foming Spec
+            var Spec = new TodaysFingerprintByEmpIdSpecification(fingerprint.EmpId, fingerprint.Date);
+            //Get Fingerprint
+            var existedFingerprint = await Repo.GetByIdAsync(Spec);
+            //Check On It
+            if (existedFingerprint is not null) throw new ConflictException("Can't Add Multible Fingerprints For Same Employee In The Same Day");   
+            //Mapping Data
+            var MappedData = mapper.Map<Fingerprint>(fingerprint);
+            //Add Data
+            await Repo.AddAsync(MappedData);
+            //Complete
+            bool complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!complete) throw new Exception("Something Went Wrong!");
+            //Formming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Employee Fingerprint Added Successully"
+            };
+            return Obj;
+        }
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
             //Forming Date

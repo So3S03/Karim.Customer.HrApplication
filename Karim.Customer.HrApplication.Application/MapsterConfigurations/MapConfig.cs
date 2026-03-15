@@ -125,6 +125,21 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
                 .Map(dest => dest.CheckIn, src => src.CheckIn.ToString("hh:mm tt"))
                 .Map(dest => dest.CheckOut, src => src.CheckOut.HasValue ? src.CheckOut.Value.ToString("hh:mm tt") : null);
+
+            config.NewConfig<Fingerprint, FingerprintToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
+                .Map(dest => dest.EmpId, src => src.Employee.Id)
+                .Map(dest => dest.FingerprintId, src => src.Id)
+                .Map(dest => dest.CheckIn, src => src.CheckIn.ToString("hh:mm tt"))
+                .Map(dest => dest.CheckOut, src => src.CheckOut.HasValue ? src.CheckOut.Value.ToString("hh:mm tt") : null);
+
+            config.NewConfig<FingerprintToAddDto, Fingerprint>()
+                .Map(dest => dest.Status, src => (FingerprintStatus)src.Status)
+                .Map(dest => dest.CheckInLong, src => src.Long)
+                .Map(dest => dest.CheckInLat, src => src.Lat)
+                .Map(dest => dest.CheckOutLong, src => src.Long)
+                .Map(dest => dest.CheckOutLat, src => src.Lat);
         }
     }
 }
