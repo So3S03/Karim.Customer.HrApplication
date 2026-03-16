@@ -2,7 +2,11 @@
 
 namespace Karim.Customer.HrApplication.Application.Specifications.Attendance
 {
-    internal class FingerprintByIdSpecification(string Id) : BaseSpecifications<Fingerprint, string>(FB => FB.Id == Id)
+    internal class FingerprintByIdSpecification : BaseSpecifications<Fingerprint, string>
     {
+        public FingerprintByIdSpecification(string Id): base(FB => FB.Id == Id)
+        {
+            AddInclude(FB => FB.Employee);
+        }
     }
 }
