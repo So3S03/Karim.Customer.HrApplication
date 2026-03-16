@@ -11,5 +11,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<FingerprintDetailsToReturnDto> GetFingerprintById(string? Id);
         Task<DataWithPagination<ICollection<FingerprintToReturnDto>>> GetAllFingerprintLogs(FingerprintParameters? fingerprintParameters);
         Task<ActionStatusDto> InsertFingerprintManualyForEmployee(FingerprintToAddDto? fingerprint);
+        Task<ActionStatusDto> EditEmployeeFingerprint(FingerprintToUpdateDto? fingerprint);
     }
 }

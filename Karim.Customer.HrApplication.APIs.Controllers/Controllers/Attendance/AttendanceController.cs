@@ -49,5 +49,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             var result = await servicesManager.AttendanceService.InsertFingerprintManualyForEmployee(fingerprint);
             return Ok(result);
         }
+
+        [HttpPut("EditEmployeeFingerprint")]
+        public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody]FingerprintToUpdateDto? fingerprint)
+        {
+            var result = await servicesManager.AttendanceService.EditEmployeeFingerprint(fingerprint);
+            return Ok(result);
+        }
     }
 }

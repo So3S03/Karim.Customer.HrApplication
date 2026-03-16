@@ -140,6 +140,14 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.CheckInLat, src => src.Lat)
                 .Map(dest => dest.CheckOutLong, src => src.Long)
                 .Map(dest => dest.CheckOutLat, src => src.Lat);
+
+            config.NewConfig<FingerprintToUpdateDto, Fingerprint>()
+                .Map(dest => dest.CheckInLong, src => src.Long)
+                .Map(dest => dest.CheckInLat, src => src.Lat)
+                .Map(dest => dest.CheckOutLong, src => src.Long)
+                .Map(dest => dest.CheckOutLat, src => src.Lat);
+
+
         }
     }
 }

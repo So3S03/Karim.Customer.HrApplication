@@ -178,6 +178,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             if (existedFingerprint is not null) throw new ConflictException("Can't Add Multible Fingerprints For Same Employee In The Same Day");   
             //Mapping Data
             var MappedData = mapper.Map<Fingerprint>(fingerprint);
+            //Calc Duration
+            MappedData.DurationInHours = fingerprint.CheckOut.HasValue ? (decimal)(fingerprint.CheckOut!.Value - fingerprint.CheckIn).TotalHours : 0;
             //Add Data
             await Repo.AddAsync(MappedData);
             //Complete
@@ -192,6 +194,67 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> EditEmployeeFingerprint(FingerprintToUpdateDto? fingerprint)
+        {
+            //Check On Data
+            if (fingerprint is null) throw new BadRequestException("Provided Data is Invalid!");
+            //Check On Properties
+            _ = fingerprint switch
+            {
+                { EmpId : "" or null} => throw new BadRequestException("Emp Id Must Be Provided!"),
+                { Id: "" or null} => throw new BadRequestException("Fingerprint Id Must Be Provided!"),
+                _ => fingerprint
+            };
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Create Specification
+            var Spec = new FingerprintById(fingerprint.Id);
+            //Get Fingerprint
+            var Fingerprint = await Repo.GetByIdAsyncWithNoTracking(Spec);
+            //Check On Fingerprint
+            if (Fingerprint is null) throw new NotFoundException("No Fingerprint Exist With This Id!");
+            //Check On Employee
+            if (Fingerprint.Employee.EmployeeStatus.Value == EmployeeStatus.Terminated) throw new ConflictException("Can't Modify Terminated Employees Fingerprints");
+            //Check If Comming EmpId == Existing EmpId
+            if (Fingerprint.EmpId != fingerprint.EmpId) throw new ConflictException("Provided Employee Not Match The Fingerprint Employee");
+            //Mapping Data
+            var mappedData = mapper.Map(fingerprint, Fingerprint);
+            mappedData.DurationInHours = fingerprint.CheckOut.HasValue ? (decimal)(fingerprint.CheckOut.Value - fingerprint.CheckIn).TotalHours : Fingerprint.DurationInHours;
+            mappedData.Date = Fingerprint.Date;
+            mappedData.Status = fingerprint.CheckIn > new TimeOnly(9, 0) ?
+                FingerprintStatus.Late :
+                (fingerprint.CheckOut.HasValue == false ?
+                FingerprintStatus.Active :
+                (decimal)(fingerprint.CheckOut.Value - fingerprint.CheckIn).TotalHours < 8 ?
+                FingerprintStatus.Delay : FingerprintStatus.InActive);
+            //Update
+            Repo.Update(mappedData);
+            //Change Employee Status If Fingerprint is For Today
+            if (Fingerprint.Date == new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day))
+            {
+                //Update Employee
+                Fingerprint.Employee.EmployeeStatus = fingerprint.CheckIn > new TimeOnly(9, 0) ?
+                    EmployeeStatus.Late :
+                    (fingerprint.CheckOut.HasValue == false ?
+                    EmployeeStatus.Active :
+                    (decimal)(fingerprint.CheckOut.Value - fingerprint.CheckIn).TotalHours < 8 ?
+                    EmployeeStatus.Delay : EmployeeStatus.InActive);
+                var empRepo = _unitOfWork.GenerateRepository<employee, string>();
+                empRepo.Update(Fingerprint.Employee);
+            };
+            //Complete
+            var result = await _unitOfWork.CompleteAsync() > 0;
+            //Check On result
+            if (!result) throw new Exception("Something Went Wrong");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Fingerprint Updated Successfully"
+            };
+            return Obj;
+        }
+
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
             //Forming Date
