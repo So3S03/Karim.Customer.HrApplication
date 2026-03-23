@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
+using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
@@ -148,6 +149,14 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.CheckOutLat, src => src.Lat);
 
 
+
+            config.NewConfig<AddCheckInBulkDto, Fingerprint>()
+                .Map(dest => dest.Date, src => DateOnly.FromDateTime(DateTime.Now.Date))
+                .Map(dest => dest.DurationInHours, src => src.CheckIn.HasValue && src.CheckOut.HasValue ? (src.CheckOut.Value - src.CheckIn.Value).TotalHours : 0)
+                .Map(dest => dest.CheckInLong, src => 0)
+                .Map(dest => dest.CheckInLat, src => 0)
+                .Map(dest => dest.EmpId, src => src.EmpCode)
+                .Map(dest => dest.Status, src => src.CheckIn > (new TimeOnly(9, 0, 0)) ? FingerprintStatus.Late : src.CheckIn.HasValue && src.CheckOut.HasValue && (src.CheckOut.Value - src.CheckIn.Value).TotalHours < 8 ? FingerprintStatus.Delay : FingerprintStatus.InActive);
         }
     }
 }

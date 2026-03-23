@@ -1,21 +1,24 @@
 ﻿using Karim.Customer.HrApplication.Application._Common.DateConverter;
+using Karim.Customer.HrApplication.Application._Common.EnumConverter;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
 using Karim.Customer.HrApplication.Application.Specifications.Attendance;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
+using Karim.Customer.HrApplication.Domain.Conttracts;
 using Karim.Customer.HrApplication.Domain.Entities.Attendance;
-using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
+using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
+using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel;
-using Karim.Customer.HrApplication.Application.Specifications.Employee;
-using Karim.Customer.HrApplication.Domain.Entities.Employee;
-using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Attendance
 {
-    internal class AttendanceServices(IUnitOfWork _unitOfWork, IMapper mapper) : IAttendanceServices
+    internal class AttendanceServices(IUnitOfWork _unitOfWork, IMapper mapper, IExcelServices excelServices) : IAttendanceServices
     {
         public async Task<SpecificFingerprintToReturnDto> GetFingerprintPerEmployeeForCurrentDay(string? EmpId)
         {
@@ -254,7 +257,70 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             return Obj;
         }
-
+        public byte[] GetUploadFingerprintBulk()
+        {
+            //Forming Example
+            var example = new AddCheckInBulkDto()
+            {
+                CheckIn = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second),
+                CheckOut = new TimeOnly(DateTime.Now.Hour + 1, DateTime.Now.Minute, DateTime.Now.Second),
+                EmpCode = "EMP001"
+            };
+            //Forming File
+            var file = excelServices.GenerateExcelSheetTemplate(example, "UploadBulkFingerprint");
+            return file;
+        }
+        public async Task<ActionStatusDto> UploadBulkFingerprintDto(IFormFile? file)
+        {
+            //Check File
+            if (file is null) throw new BadRequestException("Must Provid File!");
+            //Read File
+            var list = excelServices.ReadExcelSheetForCollections<AddCheckInBulkDto>(file);
+            //Check On List
+            if (list.Any(e => e.CheckIn is null || e.CheckOut is null || e.EmpCode is null)) throw new BadRequestException("One Or More Field is Empty!");
+            //Check For Any Dublication
+            if (list.Where(e => e is not null).GroupBy(e => e.EmpCode).Any(e => e.Count() > 1)) throw new ConflictException("There Are Dupliacted Employee Code");
+            //Put Codes On List
+            var CodeList = list.Where(e => e is not null).Select(e => e.EmpCode).ToList();
+            //Create EmpRepo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Forming Spec
+            var EmpSpec = new AllEmployeesByCodesSpec(CodeList!);
+            //Get All Employees
+            var EmployeesList = await EmpRepo.GetAllAsync(EmpSpec);
+            //Check If Emp List is null
+            if (!EmployeesList.Any()) throw new NotFoundException("Some of the selected employees not exist!");
+            //Get All Employees Id Where Emp Code Exist On It
+            var EmpsIdWithCode = EmployeesList.Where(E => CodeList.Contains(E.EmployeeCode)).Select(E => new
+            {
+                Id = E.Id,
+                EmpCode = E.EmployeeCode
+            }).ToList();
+            //Generate New List 
+            var newList = new HashSet<AddCheckInBulkDto>();
+            foreach (var e in list)
+            {
+                e.EmpCode = EmpsIdWithCode.First(s => s.EmpCode == e.EmpCode)!.Id;
+                newList.Add(e);
+            }
+            //Mapping Data
+            var mappedFingeerprints = mapper.Map<ICollection<Fingerprint>>(newList); 
+            //Create Fingerprint Repo
+            var FPRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //AddRange Fingerprints
+            await FPRepo.AddRangeAsync(mappedFingeerprints);
+            //Compleate
+            var complete = await _unitOfWork.CompleteAsync();
+            //Check on Complete
+            if (complete == 0) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Fingerprints Added Successfully!"
+            };
+            return Obj;
+        }
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
             //Forming Date

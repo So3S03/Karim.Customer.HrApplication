@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance
 {
@@ -12,5 +13,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<DataWithPagination<ICollection<FingerprintToReturnDto>>> GetAllFingerprintLogs(FingerprintParameters? fingerprintParameters);
         Task<ActionStatusDto> InsertFingerprintManualyForEmployee(FingerprintToAddDto? fingerprint);
         Task<ActionStatusDto> EditEmployeeFingerprint(FingerprintToUpdateDto? fingerprint);
+        byte[] GetUploadFingerprintBulk();
+        Task<ActionStatusDto> UploadBulkFingerprintDto(IFormFile? file);
     }
 }

@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
@@ -54,6 +55,20 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody]FingerprintToUpdateDto? fingerprint)
         {
             var result = await servicesManager.AttendanceService.EditEmployeeFingerprint(fingerprint);
+            return Ok(result);
+        }
+
+        [HttpGet("DownloadBulkFingerprintTemplate")]
+        public ActionResult<byte[]> DownloadBulkFingerprintTemplate()
+        {
+            var result = servicesManager.AttendanceService.GetUploadFingerprintBulk();
+            return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "BulkFingerprintTemplate.xlsx");
+        }
+
+        [HttpPost("UploadBulkFingerprints")]
+        public async Task<ActionResult<ActionStatusDto>> UploadBulkFingerprints(IFormFile? file)
+        {
+            var result = await servicesManager.AttendanceService.UploadBulkFingerprintDto(file);
             return Ok(result);
         }
     }
