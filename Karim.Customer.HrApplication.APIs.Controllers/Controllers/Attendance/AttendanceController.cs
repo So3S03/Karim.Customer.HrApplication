@@ -38,7 +38,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         }
 
         [HttpGet("GetCurrentMonthFingerprints")]
-        public async Task<ActionResult<FingerprintToReturnDto>> GetAllFingerprints([FromQuery]FingerprintParameters? parameters)
+        public async Task<ActionResult<FingerprintToReturnDto>> GetAllFingerprints([FromQuery] FingerprintParameters? parameters)
         {
             var result = await servicesManager.AttendanceService.GetAllFingerprintLogs(parameters);
             return Ok(result);
@@ -52,7 +52,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         }
 
         [HttpPut("EditEmployeeFingerprint")]
-        public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody]FingerprintToUpdateDto? fingerprint)
+        public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody] FingerprintToUpdateDto? fingerprint)
         {
             var result = await servicesManager.AttendanceService.EditEmployeeFingerprint(fingerprint);
             return Ok(result);
@@ -69,6 +69,20 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         public async Task<ActionResult<ActionStatusDto>> UploadBulkFingerprints(IFormFile? file)
         {
             var result = await servicesManager.AttendanceService.UploadBulkFingerprintDto(file);
+            return Ok(result);
+        }
+
+        [HttpGet("GetAttendanceSummaryPerEmployeeForCurrentMonth")]
+        public async Task<ActionResult<EmployeeAttendanceStatusDto>> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        {
+            var result = await servicesManager.AttendanceService.GetAttendanceSummaryPerEmployeeForCurrentMonth(EmpId);
+            return Ok(result);
+        }
+
+        [HttpPost("CreateRequest")]
+        public async Task<ActionResult<ActionStatusDto>> CreateRequest(RequestToAddDto? request)
+        {
+            var result = await servicesManager.AttendanceService.CreateRequest(request);
             return Ok(result);
         }
     }

@@ -157,6 +157,12 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.CheckInLat, src => 0)
                 .Map(dest => dest.EmpId, src => src.EmpCode)
                 .Map(dest => dest.Status, src => src.CheckIn > (new TimeOnly(9, 0, 0)) ? FingerprintStatus.Late : src.CheckIn.HasValue && src.CheckOut.HasValue && (src.CheckOut.Value - src.CheckIn.Value).TotalHours < 8 ? FingerprintStatus.Delay : FingerprintStatus.InActive);
+
+            //Requests
+            config.NewConfig<RequestToAddDto, Requests>()
+                .Map(dest => dest.Status, src => RequestStatus.Pending)
+                .Map(dest => dest.EndDate, src => src.EndDate.HasValue == false ? src.StartDate : src.EndDate.Value)
+                .Map(dest => dest.Type, src => (RequestType)src.Type);
         }
     }
 }

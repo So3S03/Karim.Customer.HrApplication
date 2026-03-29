@@ -13,6 +13,9 @@ namespace Karim.Customer.HrApplication.Domain.GenaricRepository
         Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications); //Get Count Of Data After Applying Filteration
         Task AddAsync(TEntity entity);
         Task AddRangeAsync(IEnumerable<TEntity> entities); //it will be for upload bulk methods
+        Task<IEnumerable<TResult>> GetProjectedAsync<TGroupKey, TResult>(
+            IProjectionSpecification<TEntity, TKey, TGroupKey, TResult> spec)
+            where TResult : class;
         void Update(TEntity entity);
         void UpdateRange(IEnumerable<TEntity> entities); //it will be for upload bulk methods
         void Delete(TEntity entity);

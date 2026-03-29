@@ -15,7 +15,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(R => R.EndDate).HasColumnType("date").IsRequired();
             builder.Property(R => R.Reason).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.Notes).HasColumnType("nvarchar(max)").IsRequired(false);
-            builder.Property(R => R.Duration).IsRequired(false);
+            //builder.Property(R => R.Duration).IsRequired(false);
             builder.Property(R => R.ApprovedById).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.ApprovedByName).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.RejectedById).HasColumnType("nvarchar(max)").IsRequired(false);
@@ -30,6 +30,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 ).IsRequired();
             //relationship
             builder.HasOne(R => R.Employee).WithMany(E => E.Requests).HasForeignKey(R => R.EmpId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(R => R.Fingerprint).WithOne(F => F.Request).HasForeignKey<Requests>(R => R.FingerprintId).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

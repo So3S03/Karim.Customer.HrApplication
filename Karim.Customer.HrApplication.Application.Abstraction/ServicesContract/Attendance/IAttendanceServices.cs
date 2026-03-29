@@ -15,5 +15,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> EditEmployeeFingerprint(FingerprintToUpdateDto? fingerprint);
         byte[] GetUploadFingerprintBulk();
         Task<ActionStatusDto> UploadBulkFingerprintDto(IFormFile? file);
+        Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId);
+        Task<ActionStatusDto> CreateRequest(RequestToAddDto? request);
     }
 }

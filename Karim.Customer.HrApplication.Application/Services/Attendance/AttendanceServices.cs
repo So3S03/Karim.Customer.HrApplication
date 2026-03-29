@@ -321,6 +321,104 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             return Obj;
         }
+
+        //Need Fixing
+        public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        {
+            //Check On Data
+            if (EmpId is null) throw new BadRequestException("Employee Id Must Be Provided");
+            //Form Employee Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Forming Spec
+            var EmpSpec = new EmployeeByIdSepecification(EmpId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
+            //Check If Employee Exist
+            if (Employee is null) throw new NotFoundException("Employee Not Exist");
+            //Forming FingerprintRepo
+            var FPRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Forming Spec
+            var FPSpec = new FingerprintSummarySpecification(EmpId, new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Now.Day));
+            //Get Status
+            var FPSummary = await FPRepo.GetProjectedAsync<FingerprintStatus, FingerprintSummaryDto>(FPSpec);
+            //Get Requests Summary
+            //...Need To Create Requests First
+
+            //Forming Object
+            var Obj = new EmployeeAttendanceStatusDto()
+            {
+                FingerprintSummary = FPSummary,
+                RequestsSummary = new RequestsSummryDto(),
+                AbsentCount = 0,
+                AttendancePercentage = 0,
+                TotalAttendanceDays = 0
+            };
+            return Obj;
+        }
+
+        public async Task<ActionStatusDto> CreateRequest(RequestToAddDto? request)
+        {
+            //Check On Data
+            if(request is null) throw new BadRequestException("Provided Data is Invalid!");
+            //Check On Internal Data
+            _ = request switch
+            {
+                { EmpId: "" or null } => throw new BadRequestException("Employee Id Must Be Provided!"),
+                { Type: var t } when !Enum.IsDefined(typeof(RequestType), t) => throw new BadRequestException("Request Type Is Invalid!"),
+                _ => request
+            };
+            //Genearete Employee Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Generate Spec
+            var EmpSpec = new EmployeeByIdSepecification(request.EmpId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
+            //Check On Employee If Exist
+            if (Employee is null) throw new NotFoundException("Employee You Try To Add Request For is Not Exist");
+            //Store FPID
+             string FPID = "";
+            //Check On Request Type & Make Start Date = End Date
+            if ((RequestType)request.Type != RequestType.Vacation)
+            {
+                request.EndDate = request.StartDate;
+                //Forming Fingerprint Repo
+                var FPRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+                //Forming Spec
+                var FPSpec = new TodaysFingerprintByEmpIdSpecification(request.EmpId, request.StartDate);
+                //Get Fingerprint
+                var FP = await FPRepo.GetByIdAsync(FPSpec);
+                //Check If There Fingerprint For The Employee On The Same Date
+                if (FP is null) throw new ConflictException("There Is No Fingerprint For The Employee On This Date To Register This Request!");
+                //Add Fingerprint Id To Request
+                FPID = FP.Id;
+            }
+            //Forming Requests Repo
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var ReqSpec = new RequestByDateAndEmpId(request.EmpId, request.StartDate, request.EndDate);
+            //Get Requests
+            var ExistingRequests = await ReqRepo.GetAllAsync(ReqSpec);
+            //Check If There Any Request Exist On The Same Date
+            if (ExistingRequests.Any()) throw new ConflictException("There Is Already A Request On The Same Date");
+            //Mapping Data
+            var MappedData = mapper.Map<Requests>(request);
+            //Add Fingerprint Id To MappedData
+            MappedData.FingerprintId= FPID;
+            //Add Request
+            await ReqRepo.AddAsync(MappedData);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if(!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"{MappedData.Type.ToString()} Added Successfully!"
+            };
+            return Obj;
+        }
+
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
             //Forming Date
