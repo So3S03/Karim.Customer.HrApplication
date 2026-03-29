@@ -14,8 +14,12 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Attendance
         public decimal? CheckOutLong { get; set; }
         public decimal? CheckOutLat { get; set; }
         public required FingerprintStatus Status { get; set; }
+
+        //relationships
         public required string EmpId { get; set; }
         public required Employee.Employee Employee { get; set; }
+        public string? RequestId { get; set; }
+        public Requests? Request { get; set; }
 
     }
 }

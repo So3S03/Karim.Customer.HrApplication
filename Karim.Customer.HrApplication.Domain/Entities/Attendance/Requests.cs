@@ -11,7 +11,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Attendance
         public string? Notes { get; set; }
         public required RequestStatus Status { get; set; }
         public required RequestType Type { get; set; }
-        public int? Duration { get; set; }
+        //public int? Duration { get; set; }
         public string? ApprovedById { get; set; }
         public string? ApprovedByName { get; set; }
         public string? RejectedById { get; set; }
@@ -20,5 +20,8 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Attendance
         //relationships
         public required string EmpId { get; set; }
         public required Employee.Employee Employee { get; set; }
+
+        public string? FingerprintId { get; set; }
+        public Fingerprint? Fingerprint { get; set; }
     }
 }

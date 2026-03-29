@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
@@ -37,7 +38,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         }
 
         [HttpGet("GetCurrentMonthFingerprints")]
-        public async Task<ActionResult<FingerprintToReturnDto>> GetAllFingerprints([FromQuery]FingerprintParameters? parameters)
+        public async Task<ActionResult<FingerprintToReturnDto>> GetAllFingerprints([FromQuery] FingerprintParameters? parameters)
         {
             var result = await servicesManager.AttendanceService.GetAllFingerprintLogs(parameters);
             return Ok(result);
@@ -51,9 +52,37 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
         }
 
         [HttpPut("EditEmployeeFingerprint")]
-        public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody]FingerprintToUpdateDto? fingerprint)
+        public async Task<ActionResult<ActionStatusDto>> EditEmployeeFingerprint([FromBody] FingerprintToUpdateDto? fingerprint)
         {
             var result = await servicesManager.AttendanceService.EditEmployeeFingerprint(fingerprint);
+            return Ok(result);
+        }
+
+        [HttpGet("DownloadBulkFingerprintTemplate")]
+        public ActionResult<byte[]> DownloadBulkFingerprintTemplate()
+        {
+            var result = servicesManager.AttendanceService.GetUploadFingerprintBulk();
+            return File(result, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "BulkFingerprintTemplate.xlsx");
+        }
+
+        [HttpPost("UploadBulkFingerprints")]
+        public async Task<ActionResult<ActionStatusDto>> UploadBulkFingerprints(IFormFile? file)
+        {
+            var result = await servicesManager.AttendanceService.UploadBulkFingerprintDto(file);
+            return Ok(result);
+        }
+
+        [HttpGet("GetAttendanceSummaryPerEmployeeForCurrentMonth")]
+        public async Task<ActionResult<EmployeeAttendanceStatusDto>> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        {
+            var result = await servicesManager.AttendanceService.GetAttendanceSummaryPerEmployeeForCurrentMonth(EmpId);
+            return Ok(result);
+        }
+
+        [HttpPost("CreateRequest")]
+        public async Task<ActionResult<ActionStatusDto>> CreateRequest(RequestToAddDto? request)
+        {
+            var result = await servicesManager.AttendanceService.CreateRequest(request);
             return Ok(result);
         }
     }

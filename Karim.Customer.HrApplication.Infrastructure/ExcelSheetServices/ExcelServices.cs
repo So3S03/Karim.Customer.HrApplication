@@ -180,6 +180,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.ExcelSheetServices
                         nameof(Decimal) => cell.GetValue<decimal>(),
                         nameof(Double) => cell.GetValue<double>(),
                         nameof(DateTime) => cell.GetValue<DateTime>(),
+                        nameof(TimeOnly) => TimeOnly.FromDateTime(DateTime.Parse(cell.GetValue<string>())),
+                        nameof(DateOnly) => DateOnly.FromDateTime(cell.GetValue<DateTime>()),
                         nameof(Boolean) => cell.GetValue<bool>(),
                         _ => Convert.ChangeType(cell.Value, targetType)
                     };
