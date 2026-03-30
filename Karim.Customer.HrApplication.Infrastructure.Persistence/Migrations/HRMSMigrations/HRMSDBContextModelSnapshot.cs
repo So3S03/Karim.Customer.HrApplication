@@ -75,6 +75,9 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                     b.Property<DateTime?>("RemovedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("RequestId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -108,15 +111,15 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("Duration")
-                        .HasColumnType("int");
-
                     b.Property<string>("EmpId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("FingerprintId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
@@ -159,6 +162,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                     b.HasKey("Id");
 
                     b.HasIndex("EmpId");
+
+                    b.HasIndex("FingerprintId")
+                        .IsUnique()
+                        .HasFilter("[FingerprintId] IS NOT NULL");
 
                     b.ToTable("Requests");
                 });
@@ -629,7 +636,14 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Karim.Customer.HrApplication.Domain.Entities.Attendance.Fingerprint", "Fingerprint")
+                        .WithOne("Request")
+                        .HasForeignKey("Karim.Customer.HrApplication.Domain.Entities.Attendance.Requests", "FingerprintId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Employee");
+
+                    b.Navigation("Fingerprint");
                 });
 
             modelBuilder.Entity("Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department", b =>
@@ -708,6 +722,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Migrations.HRM
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Karim.Customer.HrApplication.Domain.Entities.Attendance.Fingerprint", b =>
+                {
+                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department", b =>
