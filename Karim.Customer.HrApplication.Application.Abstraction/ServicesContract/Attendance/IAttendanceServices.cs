@@ -17,5 +17,9 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> UploadBulkFingerprintDto(IFormFile? file);
         Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId);
         Task<ActionStatusDto> CreateRequest(RequestToAddDto? request);
+        Task<ActionStatusDto> EditRequest(RequestToEditDto? request);
+        Task<ActionStatusDto> DeleteRequest(string? ReqId);
+        Task<ActionStatusDto> ApproveRejectRequest(string? ReqId, bool? isApproved, string? LoginEmpId);
+        Task<RequestDetailsToReturnDto> GetRequestDetailsById(string? ReqId);
     }
 }

@@ -85,5 +85,33 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             var result = await servicesManager.AttendanceService.CreateRequest(request);
             return Ok(result);
         }
+
+        [HttpPut("EditRequest")]
+        public async Task<ActionResult<ActionStatusDto>> EditRequest(RequestToEditDto? request)
+        {
+            var result = await servicesManager.AttendanceService.EditRequest(request);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteRequest")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteRequest(string? ReqId)
+        {
+            var result = await servicesManager.AttendanceService.DeleteRequest(ReqId);
+            return Ok(result);
+        }
+
+        [HttpPut("ApproveRejectRequest")]
+        public async Task<ActionResult<ActionStatusDto>> ApproveRjectRequest(string? ReqId, bool? isApproved, string? LoginEmpId)
+        {
+            var result = await servicesManager.AttendanceService.ApproveRejectRequest(ReqId, isApproved, LoginEmpId);
+            return Ok(result);
+        }
+
+        [HttpGet("GetRequestDetailsById")]
+        public async Task<ActionResult<RequestDetailsToReturnDto>> GetRequestDetailsById(string? ReqId)
+        {
+            var result = await servicesManager.AttendanceService.GetRequestDetailsById(ReqId);
+            return Ok(result);
+        }
     }
 }

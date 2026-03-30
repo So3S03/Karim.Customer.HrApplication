@@ -418,6 +418,149 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> EditRequest(RequestToEditDto? request)
+        {
+            //Check On Data
+            if(request is null) throw new BadRequestException("Provided Data is Invalid!");
+            //Check On Internal Data
+            _ = request switch
+            {
+                { Id: "" or null } => throw new BadRequestException("Request Id Must Be Provided!"),
+                { Type: var t } when !Enum.IsDefined(typeof(RequestType), t) => throw new BadRequestException("Request Type Is Invalid!"),
+                _ => request
+            };
+            //Forming Repo
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var ReqByIdSpec = new EmployeeRequestById(request.Id);
+            //Get Request
+            var ExistingRequest = await ReqRepo.GetByIdAsyncWithNoTracking(ReqByIdSpec);
+            //Check On It
+            if(ExistingRequest is null) throw new NotFoundException("Request You Seek To Edit is Not Exist!");
+            //Check If Types Are The Same
+            if(ExistingRequest.Type != (RequestType)request.Type) throw new ConflictException("Provided Request Type is Wrong");
+            //Check If Selected Dates Aren't The Same
+            if(request.StartDate != ExistingRequest.StartDate || request.EndDate != ExistingRequest.EndDate)
+            {
+                //Forming Spec To Get Employee Requests On The Selected Date
+                var ReqByDateSpec = new RequestByDateAndEmpId(request.EmpId, request.StartDate, request.EndDate);
+                //Get Requests
+                var isThereAnyRequests = await ReqRepo.GetAllAsync(ReqByDateSpec);
+                //Check If The Selected Date Has Any Other Requests
+                if (isThereAnyRequests.Any()) throw new ConflictException("There Is Already A Request On The Same Date");
+            }
+            //Mapping Data
+            var MappedData = mapper.Map(request, ExistingRequest);
+            //Update Request
+            ReqRepo.Update(MappedData);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if(!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"{MappedData.Type.ToString()} Updated Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> DeleteRequest(string? ReqId)
+        {
+            //Check On Id
+            if(string.IsNullOrEmpty(ReqId)) throw new BadRequestException("Request Id Must Be Provided!");
+            //Forming Repo
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var RequestSpec = new EmployeeRequestById(ReqId);
+            //Get Request
+            var ExistingRequest = await ReqRepo.GetByIdAsyncWithNoTracking(RequestSpec);
+            //Check On It
+            if(ExistingRequest is null) throw new NotFoundException("Request You Seek To Delete is Not Exist!");
+            //Delete Request
+            ReqRepo.Delete(ExistingRequest);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if(!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"{ExistingRequest.Type.ToString()} Deleted Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> ApproveRejectRequest(string? ReqId, bool? isApproved, string? LoginEmpId)
+        {
+            //Check On Data
+            if(string.IsNullOrEmpty(ReqId) || isApproved is null || LoginEmpId is null) throw new BadRequestException("Provided Data is Invalid!");
+            //Forming Repo
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var RequestSpec = new EmployeeRequestById(ReqId);
+            //Get Request
+            var ExistingRequest = await ReqRepo.GetByIdAsyncWithNoTracking(RequestSpec);
+            //Forming Status
+            var status = isApproved.Value ? "Approve" : "Reject";
+            //Check On It
+            if (ExistingRequest is null) throw new NotFoundException($"Request You Seek to {status} is Not Exist!");
+            //Check If Already Approved Or Rejected
+            if(ExistingRequest.Status == RequestStatus.Approved && isApproved.Value == true) throw new ConflictException("This Request is Already Approved!");
+            else if (ExistingRequest.Status == RequestStatus.Rejected && isApproved.Value == false) throw new ConflictException("This Request is Already Rejected!");
+            //Change Status
+            ExistingRequest.Status = isApproved.Value ? RequestStatus.Approved : RequestStatus.Rejected;
+            //Create Employee Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Forming Spec
+            var EmpSpec = new EmployeeByIdSepecification(LoginEmpId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsyncWithNoTracking(EmpSpec);
+            //Check On Employee
+            if (Employee is null) throw new NotFoundException("Your Id Doesn't Match Any Employees On The System!");
+            //Change Approver Rejecter Id & Approver Name
+            if (isApproved.Value)
+            {
+                ExistingRequest.ApprovedById = LoginEmpId;
+                ExistingRequest.ApprovedByName = Employee.FullName;
+            }
+            else if (!isApproved.Value)
+            {
+                ExistingRequest.RejectedById = LoginEmpId;
+                ExistingRequest.RejectedByName = Employee.FullName;
+            }
+            //Update Request
+            ReqRepo.Update(ExistingRequest);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = $"Request {status}d Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<RequestDetailsToReturnDto> GetRequestDetailsById(string? ReqId)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(ReqId)) throw new BadRequestException("Request Id Must Be Provided!");
+            //Forming Repo
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var RequestSpec = new EmployeeRequestById(ReqId);
+            //Get Request
+            var ExistingRequest = await ReqRepo.GetByIdAsync(RequestSpec);
+            //Check On It
+            if (ExistingRequest is null) throw new NotFoundException("Request You Seek To Get Details For is Not Exist!");
+            //Mapping Data
+            var MappedData = mapper.Map<RequestDetailsToReturnDto>(ExistingRequest);
+            //return it
+            return MappedData;
+        }
+
 
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {

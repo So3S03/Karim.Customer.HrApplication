@@ -163,6 +163,15 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Status, src => RequestStatus.Pending)
                 .Map(dest => dest.EndDate, src => src.EndDate.HasValue == false ? src.StartDate : src.EndDate.Value)
                 .Map(dest => dest.Type, src => (RequestType)src.Type);
+
+            config.NewConfig<RequestToEditDto, Requests>()
+                .Map(dest => dest.EndDate, src => src.EndDate.HasValue == false ? src.StartDate : src.EndDate.Value)
+                .Map(dest => dest.Type, src => (RequestType)src.Type);
+
+            config.NewConfig<Requests, RequestDetailsToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.Type, src => src.Type.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName);
         }
     }
 }
