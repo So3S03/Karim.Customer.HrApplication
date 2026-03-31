@@ -30,7 +30,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 ).IsRequired();
             //relationship
             builder.HasOne(R => R.Employee).WithMany(E => E.Requests).HasForeignKey(R => R.EmpId).OnDelete(DeleteBehavior.Cascade);
-            builder.HasOne(R => R.Fingerprint).WithOne(F => F.Request).HasForeignKey<Requests>(R => R.FingerprintId).OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(R => R.Fingerprint).WithOne(F => F.Request).HasForeignKey<Requests>(R => R.FingerprintId).OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }
