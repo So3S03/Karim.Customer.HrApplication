@@ -113,5 +113,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             var result = await servicesManager.AttendanceService.GetRequestDetailsById(ReqId);
             return Ok(result);
         }
+
+        [HttpGet("GetAllRequestPerEmployee")]
+        public async Task<ActionResult<RequestDetailsToReturnDto>> GetAllRequestPerEmployee([FromQuery]RequestsParameters? parameters)
+        {
+            var result = await servicesManager.AttendanceService.GetAllRequests(parameters);
+            return Ok(result);
+        }
     }
 }

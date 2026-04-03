@@ -21,5 +21,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> DeleteRequest(string? ReqId);
         Task<ActionStatusDto> ApproveRejectRequest(string? ReqId, bool? isApproved, string? LoginEmpId);
         Task<RequestDetailsToReturnDto> GetRequestDetailsById(string? ReqId);
+        Task<DataWithPagination<ICollection<RequestToReturnDto>>> GetAllRequests(RequestsParameters? parameters);
     }
 }

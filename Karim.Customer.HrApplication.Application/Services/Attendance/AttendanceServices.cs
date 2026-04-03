@@ -567,7 +567,30 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //return it
             return MappedData;
         }
-
+        public async Task<DataWithPagination<ICollection<RequestToReturnDto>>> GetAllRequests(RequestsParameters parameters)
+        {
+            //Check For Data
+            if (parameters is null || parameters.EmpId is null) throw new BadRequestException("You Should Provide Employee Id");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var Spec = new AllRequestsSpecification(parameters);
+            //Get Requests
+            var AllRequests = await Repo.GetAllAsync(Spec);
+            //Get Count 
+            var Count = await Repo.GetDataCountAsync(Spec);
+            //Mapping Data
+            var mappedData = mapper.Map<ICollection<RequestToReturnDto>>(AllRequests);
+            //Form Object
+            var Object = new DataWithPagination<ICollection<RequestToReturnDto>>(
+                    pageNum: parameters.PageNum,
+                    pageSize: (decimal)parameters.PageSize,
+                    nextPage: parameters.PageNum > Math.Ceiling((decimal)(Count / parameters.PageSize)) ? parameters.PageNum : (parameters.PageNum + 1 ),
+                    totalRecords: Count,
+                    data: mappedData
+                );
+            return Object;
+        }
 
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
