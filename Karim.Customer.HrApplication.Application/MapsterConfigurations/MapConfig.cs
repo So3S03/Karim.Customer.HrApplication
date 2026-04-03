@@ -156,7 +156,16 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.CheckInLong, src => 0)
                 .Map(dest => dest.CheckInLat, src => 0)
                 .Map(dest => dest.EmpId, src => src.EmpCode)
-                .Map(dest => dest.Status, src => src.CheckIn > (new TimeOnly(9, 0, 0)) ? FingerprintStatus.Late : src.CheckIn.HasValue && src.CheckOut.HasValue && (src.CheckOut.Value - src.CheckIn.Value).TotalHours < 8 ? FingerprintStatus.Delay : FingerprintStatus.InActive);
+                .Map(dest => dest.Status, src =>
+                                                !src.CheckIn.HasValue
+                                                ? FingerprintStatus.InActive
+                                                : src.CheckIn.Value > new TimeOnly(9, 0, 0)
+                                                ? FingerprintStatus.Late
+                                                : src.CheckOut.HasValue && (src.CheckOut.Value - src.CheckIn.Value).TotalHours < 8
+                                                ? FingerprintStatus.Delay
+                                                : src.CheckOut.HasValue && (src.CheckOut.Value - src.CheckIn.Value).TotalHours >= 8
+                                                ? FingerprintStatus.InActive
+                                                : FingerprintStatus.Active);
 
             //Requests
             config.NewConfig<RequestToAddDto, Requests>()
@@ -169,6 +178,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Type, src => (RequestType)src.Type);
 
             config.NewConfig<Requests, RequestDetailsToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.Type, src => src.Type.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName);
+
+            config.NewConfig<Requests, RequestToReturnDto>()
                 .Map(dest => dest.Status, src => src.Status.ToString())
                 .Map(dest => dest.Type, src => src.Type.ToString())
                 .Map(dest => dest.EmployeeName, src => src.Employee.FullName);

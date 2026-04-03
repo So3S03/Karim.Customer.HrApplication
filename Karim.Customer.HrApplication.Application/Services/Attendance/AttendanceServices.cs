@@ -376,7 +376,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //Check On Employee If Exist
             if (Employee is null) throw new NotFoundException("Employee You Try To Add Request For is Not Exist");
             //Store FPID
-             string FPID = "";
+             string? FPID = null;
             //Check On Request Type & Make Start Date = End Date
             if ((RequestType)request.Type != RequestType.Vacation)
             {
@@ -403,7 +403,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //Mapping Data
             var MappedData = mapper.Map<Requests>(request);
             //Add Fingerprint Id To MappedData
-            MappedData.FingerprintId= FPID;
+            MappedData.FingerprintId = FPID;
             //Add Request
             await ReqRepo.AddAsync(MappedData);
             //Complete
@@ -437,8 +437,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             var ExistingRequest = await ReqRepo.GetByIdAsyncWithNoTracking(ReqByIdSpec);
             //Check On It
             if(ExistingRequest is null) throw new NotFoundException("Request You Seek To Edit is Not Exist!");
+            //Check If The Created Employee != Income Employee
+            if(ExistingRequest.EmpId != request.EmpId) throw new NotFoundException("You Can't Edit Someone Else's Request!");
             //Check If Types Are The Same
             if(ExistingRequest.Type != (RequestType)request.Type) throw new ConflictException("Provided Request Type is Wrong");
+            //Check If It's Approved Or Rejected
+            if (ExistingRequest.ApprovedById is not null) throw new BadRequestException("Can't Modify An Accepted Request");
+            if (ExistingRequest.RejectedById is not null) throw new BadRequestException("Can't Modify An Rjected Request");
             //Check If Selected Dates Aren't The Same
             if(request.StartDate != ExistingRequest.StartDate || request.EndDate != ExistingRequest.EndDate)
             {
@@ -506,8 +511,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //Check On It
             if (ExistingRequest is null) throw new NotFoundException($"Request You Seek to {status} is Not Exist!");
             //Check If Already Approved Or Rejected
-            if(ExistingRequest.Status == RequestStatus.Approved && isApproved.Value == true) throw new ConflictException("This Request is Already Approved!");
-            else if (ExistingRequest.Status == RequestStatus.Rejected && isApproved.Value == false) throw new ConflictException("This Request is Already Rejected!");
+            if(ExistingRequest.Status == RequestStatus.Approved && isApproved.Value == true && ExistingRequest.ApprovedById is not null || ExistingRequest.RejectedById is not null) throw new ConflictException("This Request is Already Approved!");
+            else if (ExistingRequest.Status == RequestStatus.Rejected && isApproved.Value == false && ExistingRequest.ApprovedById is not null || ExistingRequest.RejectedById is not null) throw new ConflictException("This Request is Already Rejected!");
+            //Check If The Approved/Rejected Person Is The Same Man Who Created The Request
+            if (LoginEmpId == ExistingRequest.EmpId) throw new ConflictException("You Can't Approve/Reject Your Own Request");
             //Change Status
             ExistingRequest.Status = isApproved.Value ? RequestStatus.Approved : RequestStatus.Rejected;
             //Create Employee Repo
@@ -560,7 +567,30 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //return it
             return MappedData;
         }
-
+        public async Task<DataWithPagination<ICollection<RequestToReturnDto>>> GetAllRequests(RequestsParameters parameters)
+        {
+            //Check For Data
+            if (parameters is null || parameters.EmpId is null) throw new BadRequestException("You Should Provide Employee Id");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Forming Spec
+            var Spec = new AllRequestsSpecification(parameters);
+            //Get Requests
+            var AllRequests = await Repo.GetAllAsync(Spec);
+            //Get Count 
+            var Count = await Repo.GetDataCountAsync(Spec);
+            //Mapping Data
+            var mappedData = mapper.Map<ICollection<RequestToReturnDto>>(AllRequests);
+            //Form Object
+            var Object = new DataWithPagination<ICollection<RequestToReturnDto>>(
+                    pageNum: parameters.PageNum,
+                    pageSize: (decimal)parameters.PageSize,
+                    nextPage: parameters.PageNum > Math.Ceiling((decimal)(Count / parameters.PageSize)) ? parameters.PageNum : (parameters.PageNum + 1 ),
+                    totalRecords: Count,
+                    data: mappedData
+                );
+            return Object;
+        }
 
         private async Task<Fingerprint?> getFingerPrint(string? EmpId)
         {
