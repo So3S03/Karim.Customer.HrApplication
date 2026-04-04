@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
+using Karim.Customer.HrApplication.Domain.Entities.Projects;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
 {
@@ -26,5 +27,8 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
         //One Manager Relation
         public virtual Employee.Employee? Manager { get; set; }
         public string? ManagerId { get; set; }
+
+        //Projects
+        public ICollection<Project> Projects { get; set; }
     }
 }

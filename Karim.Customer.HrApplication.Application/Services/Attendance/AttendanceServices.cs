@@ -322,6 +322,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             return Obj;
         }
 
+
+
         //Need Fixing
         public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
         {
@@ -567,7 +569,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             //return it
             return MappedData;
         }
-        public async Task<DataWithPagination<ICollection<RequestToReturnDto>>> GetAllRequests(RequestsParameters parameters)
+        public async Task<DataWithPagination<ICollection<RequestToReturnDto>>> GetAllRequests(RequestsParameters? parameters)
         {
             //Check For Data
             if (parameters is null || parameters.EmpId is null) throw new BadRequestException("You Should Provide Employee Id");
