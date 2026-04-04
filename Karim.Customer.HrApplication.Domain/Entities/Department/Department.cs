@@ -29,6 +29,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Departmnet
         public string? ManagerId { get; set; }
 
         //Projects
-        public ICollection<Project> Projects { get; set; }
+        public ICollection<Project>? Projects { get; set; }
     }
 }
