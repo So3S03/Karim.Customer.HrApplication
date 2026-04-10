@@ -1,8 +1,10 @@
-﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+﻿using Karim.Customer.HrApplication.Domain.Entities._Common;
+using Karim.Customer.HrApplication.Domain.Entities.Attendance;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Domain.Entities.Projects;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
@@ -11,6 +13,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees.BulkUploadDtos;
+using Karim.Customer.HrApplication.Shared.DTOs.Projects;
 using Mapster;
 
 namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
@@ -186,6 +189,29 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Status, src => src.Status.ToString())
                 .Map(dest => dest.Type, src => src.Type.ToString())
                 .Map(dest => dest.EmployeeName, src => src.Employee.FullName);
+
+            //Projects
+            config.NewConfig<ProjectToAddDto, Project>()
+                .Map(dest => dest.ProjectType, src => (ProjectType)src.ProjectType)
+                .Map(dest => dest.ProjectStatus, src => ProjectStatus.Draft)
+                .Map(dest => dest.CompletionPercentage, src => 0)
+                .Map(dest => dest.CoastCurrency, src => (Currancies)src.CoastCurrency);
+
+            config.NewConfig<ProjectToUpdateDto, Project>()
+                .Map(dest => dest.ProjectType, src => (ProjectType)src.ProjectType)
+                .Map(dest => dest.CoastCurrency, src => (Currancies)src.CoastCurrency);
+
+            config.NewConfig<Project, ProjectDetailsToReturnDto>()
+                .Map(dest => dest.ProjectType, src => src.ProjectType.ToString())
+                .Map(dest => dest.ProjectStatus, src => src.ProjectStatus.ToString())
+                .Map(dest => dest.CoastCurrency, src => src.CoastCurrency.ToString())
+                .Map(dest => dest.Department, src => src.Department!.DepartmentName);
+
+            config.NewConfig<Project, ProjectToReturnDto>()
+                .Map(dest => dest.ProjectType, src => src.ProjectType.ToString())
+                .Map(dest => dest.ProjectStatus, src => src.ProjectStatus.ToString())
+                .Map(dest => dest.CoastCurrency, src => src.CoastCurrency.ToString())
+                .Map(dest => dest.Department, src => src.Department!.DepartmentName);
         }
     }
 }

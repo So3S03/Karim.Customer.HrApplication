@@ -7,6 +7,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Projects;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Karim.Customer.HrApplication.Application.Services.Projects
 {
@@ -151,6 +152,77 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
             {
                 Status = true,
                 Message = "Project Updated Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> ActivateProject(string? Id)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Invalid Project Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new ProjectByIdSpecification(Id);
+            //Get Project
+            var Project = await Repo.GetByIdAsync(Spec);
+            //Check On Project
+            if (Project is null) throw new NotFoundException(Id, "Project");
+            //Check if Project is only Draft
+            if (Project.ProjectStatus != ProjectStatus.Draft) throw new BadRequestException("Project Status Must Be New To Activate It!");
+            //Edit Status
+            Project.ProjectStatus = ProjectStatus.Active;
+            Project.ActivatedAt = DateTime.UtcNow;
+            //Update Project
+            Repo.Update(Project);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Project Activated Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> CancelProject(ProjectToCancelDto? cancelDto)
+        {
+            //Check On Data
+            if (cancelDto is null) throw new BadRequestException("Invalid Data!");
+            //Check on Internal data
+            _ = cancelDto switch
+            {
+                { ProjectId: null or "" } => throw new BadRequestException("Invalid Project Id!"),
+                { CancelationReason: null or "" } => throw new BadRequestException("Must Provide Reason For Project Cancelation!"),
+                _ => cancelDto
+            };
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new ProjectByIdSpecification(cancelDto.ProjectId);
+            //Get Project
+            var Project = await Repo.GetByIdAsync(Spec);
+            //Chcek On Project
+            if (Project is null) throw new NotFoundException(cancelDto.ProjectId, "Project");
+            //Check If Already Canceled Or Completed
+            if (Project.ProjectStatus == ProjectStatus.Cancelled) throw new ConflictException("Can't Cancel An Alread Canceld Project!");
+            if (Project.ProjectStatus == ProjectStatus.Completed) throw new BadRequestException("Can't Cancel An Completed Project!");
+            //Update Columns
+            Project.ProjectStatus = ProjectStatus.Cancelled;
+            Project.CancelationReason = cancelDto.CancelationReason;
+            Project.CanceledAt = DateTime.UtcNow;
+            //Update
+            Repo.Update(Project);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Objecct
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Project Canceled Successfully!"
             };
             return Obj;
         }

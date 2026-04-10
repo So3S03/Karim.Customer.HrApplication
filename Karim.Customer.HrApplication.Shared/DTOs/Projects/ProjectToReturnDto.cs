@@ -15,5 +15,6 @@
         public required decimal ProjectCoast { get; set; }
         public required int CoastCurrency { get; set; }
         public string? DepartmentId { get; set; }
+        public string? Department { get; set; }
     }
 }
