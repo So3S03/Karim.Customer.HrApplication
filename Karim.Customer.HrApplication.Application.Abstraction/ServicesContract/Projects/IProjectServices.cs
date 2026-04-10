@@ -10,6 +10,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> CreateProject(ProjectToAddDto? project);
         Task<ActionStatusDto> UpdateProject(ProjectToUpdateDto? project);
         Task<ActionStatusDto> DeleteProject(string? Id);
-
+        Task<ActionStatusDto> ActivateProject(string? Id);
+        Task<ActionStatusDto> CancelProject(ProjectToCancelDto? cancelDto);
     }
 }

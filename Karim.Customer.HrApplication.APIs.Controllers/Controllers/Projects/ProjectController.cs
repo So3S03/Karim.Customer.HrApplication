@@ -1,0 +1,60 @@
+﻿using Karim.Customer.HrApplication.APIs.Controllers.Controllers.BaseController;
+using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
+using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Karim.Customer.HrApplication.Shared.DTOs.Projects;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Projects
+{
+    public class ProjectController(IServicesManager _servicesManager) : ApiBaseController
+    {
+        [HttpGet("GetAllProjects")]
+        public async Task<ActionResult<DataWithPagination<ICollection<ProjectToReturnDto>>>> getAllProjects([FromQuery]ProjectParameters? parameters)
+        {
+            var result = await _servicesManager.ProjectService.GetAllProjects(parameters);
+            return Ok(result);
+        }
+
+        [HttpGet("GetProjectById")]
+        public async Task<ActionResult<ProjectDetailsToReturnDto>> getProjectBuId(string? ProjectId)
+        {
+            var result = await _servicesManager.ProjectService.GetProjectById(ProjectId);
+            return Ok(result);
+        }
+
+        [HttpPost("CreateProject")]
+        public async Task<ActionResult<ActionStatusDto>> createProject([FromBody]ProjectToAddDto? Project)
+        {
+            var result = await _servicesManager.ProjectService.CreateProject(Project);
+            return Ok(result);
+        }
+
+        [HttpPut("UpdateProject")]
+        public async Task<ActionResult<ActionStatusDto>> updateProject([FromBody]ProjectToUpdateDto? Project)
+        {
+            var result = await _servicesManager.ProjectService.UpdateProject(Project);
+            return Ok(result);
+        }
+
+        [HttpPut("ActivateProject")]
+        public async Task<ActionResult<ActionStatusDto>> activateProject(string? ProjectId)
+        {
+            var result = await _servicesManager.ProjectService.ActivateProject(ProjectId);
+            return Ok(result);
+        }
+
+        [HttpPut("CancelProject")]
+        public async Task<ActionResult<ActionStatusDto>> activateProject([FromBody]ProjectToCancelDto? cancelDto)
+        {
+            var result = await _servicesManager.ProjectService.CancelProject(cancelDto);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteProject")]
+        public async Task<ActionResult<ActionStatusDto>> deleteProject(string? ProjectId)
+        {
+            var result = await _servicesManager.ProjectService.DeleteProject(ProjectId);
+            return Ok(result);
+        }
+    }
+}
