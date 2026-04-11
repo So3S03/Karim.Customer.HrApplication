@@ -50,10 +50,30 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Projects
             return Ok(result);
         }
 
+        [HttpPut("HoldProject")]
+        public async Task<ActionResult<ActionStatusDto>> holdProject(string? ProjectId)
+        {
+            var result = await _servicesManager.ProjectService.HoldProject(ProjectId);
+            return Ok(result);
+        }
+
         [HttpDelete("DeleteProject")]
         public async Task<ActionResult<ActionStatusDto>> deleteProject(string? ProjectId)
         {
             var result = await _servicesManager.ProjectService.DeleteProject(ProjectId);
+            return Ok(result);
+        }
+
+        [HttpGet("GenerateMaxProjectCode")]
+        public async Task<ActionResult<MaxCodeResult>> generateMaxCode()
+        {
+            var result = await _servicesManager.ProjectService.CreateMaxProjectCode();
+            return Ok(result);
+        }
+        [HttpPut("AssignProjectToDepartment")]
+        public async Task<ActionResult<ActionStatusDto>> assignProjectToDepartment(ProjectToAssignDto? data)
+        {
+            var result = await _servicesManager.ProjectService.AssignProjectToDepartment(data);
             return Ok(result);
         }
     }
