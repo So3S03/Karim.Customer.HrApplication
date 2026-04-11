@@ -1,4 +1,5 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
+using Karim.Customer.HrApplication.Application.Specifications.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
 using Karim.Customer.HrApplication.Domain.Entities._Common;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
@@ -8,11 +9,13 @@ using Karim.Customer.HrApplication.Shared.DTOs.Projects;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.RegularExpressions;
 
 namespace Karim.Customer.HrApplication.Application.Services.Projects
 {
     internal class ProjectServices(IUnitOfWork _unitOfWork, IMapper _mapper) : IProjectServices
     {
+        private const string codePattern = @"^PROJ\d{3,}$";
         public async Task<ActionStatusDto> CreateProject(ProjectToAddDto? project)
         {
             //Check On Data
@@ -26,6 +29,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
                 { CoastCurrency: var c} when !Enum.IsDefined(typeof(Currancies), c) => throw new BadRequestException("Invalid Currency Type"),
                 _ => project
             };
+            //Check On Code Pattern
+            if (!Regex.IsMatch(project.ProjectCode, codePattern)) throw new BadRequestException("Code Pattern Is Not Correct!");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Project, string>();
             //Create Spec
@@ -62,6 +67,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
             var ExistingProject = await Repo.GetByIdAsync(Spec);
             //Check If Exist
             if (ExistingProject is null) throw new NotFoundException("Project Not Exist!");
+            //Check If The Project is InProgress
+            if (ExistingProject.ProjectStatus == ProjectStatus.InProgress || ExistingProject.ProjectStatus == ProjectStatus.Active) throw new BadRequestException("You Can not Delete An InProgress Or Active Project!");
+            //Check If Project Has Dependancies Like Department Or Tasks
+            if (ExistingProject.DepartmentId is not null) throw new BadRequestException("Can't Hold Project Already Assigned To An Department!");
             //Delete Project
             Repo.Delete(ExistingProject);
             //Compelete
@@ -131,6 +140,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
                 { CoastCurrency: var c } when !Enum.IsDefined(typeof(Currancies), c) => throw new BadRequestException("Invalid Currency Type"),
                 _ => project
             };
+            //Check If Code is match pattern
+            if (!Regex.IsMatch(project.ProjectCode, codePattern)) throw new BadRequestException("Code Not Mathc The Pattern PROJ001");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Project, string>();
             //Forming Spec
@@ -139,6 +150,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
             var ExistingProject = await Repo.GetByIdAsyncWithNoTracking(Spec);
             //Check On Project
             if (ExistingProject is null) throw new NotFoundException("Project Not Found");
+            //Check If Codes Matches
+            if (ExistingProject.ProjectCode != project.ProjectCode) throw new BadRequestException("Incoming Code Not Match The Targted Project For Update!");
             //Mapping Project
             var mappedProject = _mapper.Map(project, ExistingProject);
             //Update 
@@ -223,6 +236,105 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
             {
                 Status = true,
                 Message = "Project Canceled Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> HoldProject(string? Id)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(Id)) throw new BadRequestException("Invlalid Id");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new ProjectByIdSpecification(Id);
+            //Get Project
+            var ExistingProject = await Repo.GetByIdAsync(Spec);
+            //Check On it
+            if (ExistingProject is null) throw new NotFoundException(Id, "Project");
+            //Check if project already on hold
+            if (ExistingProject.ProjectStatus == ProjectStatus.OnHold) throw new ConflictException("Project Already On Hold!");
+            //Check If Project Has Dependancies Like Department Or Tasks
+            if (ExistingProject.DepartmentId is not null) throw new BadRequestException("Can't Hold Project Already Assigned To An Department!");
+            //if (ExistingProject.Tasks is not null) throw new BadRequestException("Can't Hold Project Already Has On Going Tasks!");
+            //Update Project
+            ExistingProject.ProjectStatus = ProjectStatus.OnHold;
+            //Update
+            Repo.Update(ExistingProject);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Create Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Project Holded Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<MaxCodeResult> CreateMaxProjectCode()
+        {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new LastProjectCodeSpecification();
+            //Get Projects Count
+            var Proj = await Repo.GetByIdAsync(Spec);
+            //Create Base Code
+            string Code = "PROJ";
+            //Create Object
+            var MaxCode = new MaxCodeResult();
+            //Checck If It's the first project
+            if (Proj is null)
+            {
+                Code = $"{Code}001";
+                MaxCode.MaxCode = Code;
+                return MaxCode;
+            }
+            //Extract Code
+            var ExtractedCode = Proj!.ProjectCode;
+            //Extract Numaric Part
+            int.TryParse(ExtractedCode.Split("J")[1], out var NumericPart);
+            //Compine BaseCode With Code Number
+            Code = $"{Code}{(NumericPart + 1).ToString().PadLeft(3, '0')}";
+            MaxCode.MaxCode = Code;
+            return MaxCode;
+        }
+        public async Task<ActionStatusDto> AssignProjectToDepartment(ProjectToAssignDto? data)
+        {
+            //Check On Id
+            if (data is null) throw new BadRequestException("Invalid data!");
+            //Chcek On Internal Data
+            _ = data switch
+            {
+                { DepartmentId: null or "" } => throw new BadRequestException("Must Assign Department For The Project!"),
+                { Id: null or "" } => throw new BadRequestException("Invalid Project Id!"),
+                _ => data
+            };
+            //Create Repo 
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new ProjectByIdSpecification(data.Id);
+            //Get Project
+            var Project = await Repo.GetByIdAsync(Spec);
+            //Check On Proj
+            if (Project is null) throw new NotFoundException(data.Id, "Project");
+            //Check If Not Active
+            if (Project.ProjectStatus != ProjectStatus.Active) throw new BadRequestException("Project Must Be Activated Before Any Assigning!");
+            //Update Columns
+            Project.DepartmentId = data.DepartmentId;
+            Project.ProjectStatus = ProjectStatus.InProgress;
+            //Update
+            Repo.Update(Project);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Project Assigned Successfully!"
             };
             return Obj;
         }

@@ -12,5 +12,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> DeleteProject(string? Id);
         Task<ActionStatusDto> ActivateProject(string? Id);
         Task<ActionStatusDto> CancelProject(ProjectToCancelDto? cancelDto);
+        Task<ActionStatusDto> HoldProject(string? Id);
+        Task<MaxCodeResult> CreateMaxProjectCode();
+        Task<ActionStatusDto> AssignProjectToDepartment(ProjectToAssignDto? data);
     }
 }
