@@ -15,5 +15,9 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> HoldProject(string? Id);
         Task<MaxCodeResult> CreateMaxProjectCode();
         Task<ActionStatusDto> AssignProjectToDepartment(ProjectToAssignDto? data);
+        ICollection<EnumDto> GetAllCurrencies();
+        ICollection<EnumDto> GetAllProjectsTypes();
+        ICollection<EnumDto> GetAllProjectsStatus();
+        Task<ICollection<FillEntityDto<string>>> FillProjects();
     }
 }

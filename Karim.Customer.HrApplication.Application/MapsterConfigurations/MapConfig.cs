@@ -212,6 +212,11 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.ProjectStatus, src => src.ProjectStatus.ToString())
                 .Map(dest => dest.CoastCurrency, src => src.CoastCurrency.ToString())
                 .Map(dest => dest.Department, src => src.Department!.DepartmentName);
+
+            config.NewConfig<Project, FillEntityDto<string>>()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.Name, src => src.ProjectName)
+                .Map(dest => dest.Code, src => src.ProjectCode);
         }
     }
 }
