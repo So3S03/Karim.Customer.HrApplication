@@ -1,4 +1,5 @@
-﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
+﻿using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Specifications.Department;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
 using Karim.Customer.HrApplication.Domain.Entities._Common;
@@ -337,6 +338,41 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
                 Message = "Project Assigned Successfully!"
             };
             return Obj;
+        }
+
+        public ICollection<EnumDto> GetAllCurrencies()
+        {
+            //create list
+            var list = EnumsConvertion.CreateEnumLists<CurrencyLockUp>().OrderBy(x => x.DisplayedName).ToList();
+            return list;
+        }
+
+        public ICollection<EnumDto> GetAllProjectsTypes()
+        {
+            //create list
+            var list = EnumsConvertion.CreateEnumLists<ProjectTypesLockUp>();
+            return list;
+        }
+
+        public ICollection<EnumDto> GetAllProjectsStatus()
+        {
+            //create list
+            var list = EnumsConvertion.CreateEnumLists<ProjectStatusLockUp>();
+            return list;
+        }
+
+        public async Task<ICollection<FillEntityDto<string>>> FillProjects()
+        {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Project, string>();
+            //Create Spec
+            var Spec = new AllActivatedAndInProgressProjectsList();
+            //Get All Projects
+            var List = await Repo.GetAllAsync(Spec);
+            //Mapping Data
+            var MappedData = _mapper.Map<ICollection<FillEntityDto<string>>>(List);
+            //return data
+            return MappedData;
         }
     }
 }

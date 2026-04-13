@@ -70,10 +70,39 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Projects
             var result = await _servicesManager.ProjectService.CreateMaxProjectCode();
             return Ok(result);
         }
+
         [HttpPut("AssignProjectToDepartment")]
         public async Task<ActionResult<ActionStatusDto>> assignProjectToDepartment(ProjectToAssignDto? data)
         {
             var result = await _servicesManager.ProjectService.AssignProjectToDepartment(data);
+            return Ok(result);
+        }
+
+        [HttpGet("GetAllCurrencies")]
+        public ICollection<EnumDto> GetAllCurrencies()
+        {
+            var result = _servicesManager.ProjectService.GetAllCurrencies();
+            return result;
+        }
+
+        [HttpGet("GetAllProjectTypes")]
+        public ICollection<EnumDto> GetAllProjectTypes()
+        {
+            var result = _servicesManager.ProjectService.GetAllProjectsTypes();
+            return result;
+        }
+
+        [HttpGet("GetAllProjectStatus")]
+        public ICollection<EnumDto> GetAllProjectStatus()
+        {
+            var result = _servicesManager.ProjectService.GetAllProjectsStatus();
+            return result;
+        }
+
+        [HttpGet("FillProjects")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> FillProjects()
+        {
+            var result = await _servicesManager.ProjectService.FillProjects();
             return Ok(result);
         }
     }
