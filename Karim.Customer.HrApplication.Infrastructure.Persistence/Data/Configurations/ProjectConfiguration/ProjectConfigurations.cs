@@ -35,6 +35,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
 
             //relations
             builder.HasOne(P => P.Department).WithMany(D => D.Projects).HasForeignKey(P => P.DepartmentId).OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(P => P.Contract).WithOne(C => C.Project)
+                .HasForeignKey<Project>(C => C.ContractId).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

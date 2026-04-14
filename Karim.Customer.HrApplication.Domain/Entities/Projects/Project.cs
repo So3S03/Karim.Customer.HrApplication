@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities._Common;
 using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
+using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
@@ -19,7 +20,11 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Projects
         public required decimal CompletionPercentage { get; set; }
         public required decimal ProjectCoast { get; set; }
         public required Currancies CoastCurrency { get; set; }
+
+        //relations
         public string? DepartmentId { get; set; }
         public department? Department { get; set; }
+        public string? ContractId { get; set; }
+        public Contract? Contract { get; set; }
     }
 }
