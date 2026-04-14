@@ -43,5 +43,10 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
 
         //Requests
         public ICollection<Requests>? Requests { get; set; }
+
+        //Contract
+        public Contracts.Contract? Contract { get; set; }
+        public string? ContractId { get; set; }
+
     }
 }

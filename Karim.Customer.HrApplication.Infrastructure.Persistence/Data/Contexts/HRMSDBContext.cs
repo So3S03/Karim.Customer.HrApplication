@@ -1,7 +1,9 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Domain.Entities.Projects;
 using Karim.Customer.HrApplication.Infrastructure.Persistence._Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -21,5 +23,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts
         public DbSet<Department> Department { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<Fingerprint> Fingerprint { get; set; }
+        public DbSet<Requests> Requests { get; set; }
+        public DbSet<Project> Project { get; set; }
+        public DbSet<Contract> Contract { get; set; }
     }
 }
