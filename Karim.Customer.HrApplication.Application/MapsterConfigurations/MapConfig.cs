@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities._Common;
 using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Department;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
@@ -9,6 +10,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Karim.Customer.HrApplication.Shared.DTOs.Contracts;
 using Karim.Customer.HrApplication.Shared.DTOs.Department;
 using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
@@ -217,6 +219,13 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.Name, src => src.ProjectName)
                 .Map(dest => dest.Code, src => src.ProjectCode);
+
+            //contracts
+            config.NewConfig<EmployeeContractToAddDto, Contract>()
+                .Map(dest => dest.EmployeeWorkType, src => (WorkType)src.EmployeeWorkType)
+                .Map(dest => dest.CurrencyType, src => (Currancies)src.CurrencyType)
+                .Map(dest => dest.ContractStatus, src => ContractStatus.Draft)
+                .Map(dest => dest.ContractType, src => ContractType.Employee);
         }
     }
 }

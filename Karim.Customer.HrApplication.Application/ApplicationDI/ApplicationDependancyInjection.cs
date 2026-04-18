@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
@@ -8,6 +9,7 @@ using Karim.Customer.HrApplication.Application.AppAssembly;
 using Karim.Customer.HrApplication.Application.Manager;
 using Karim.Customer.HrApplication.Application.MapsterConfigurations;
 using Karim.Customer.HrApplication.Application.Services.Attendance;
+using Karim.Customer.HrApplication.Application.Services.Contracts;
 using Karim.Customer.HrApplication.Application.Services.Department;
 using Karim.Customer.HrApplication.Application.Services.Employee;
 using Karim.Customer.HrApplication.Application.Services.Identity;
@@ -61,6 +63,12 @@ namespace Karim.Customer.HrApplication.Application.ApplicationDI
             services.AddScoped<Func<IProjectServices>>((serviceProvider) =>
             {
                 return () => serviceProvider.GetRequiredService<IProjectServices>();
+            });
+
+            services.AddScoped(typeof(IContractService), typeof(ContractService));
+            services.AddScoped<Func<IContractService>>(serviceProvider =>
+            {
+                return () => serviceProvider.GetRequiredService<IContractService>();
             });
 
             services.AddScoped(typeof(IServicesManager), typeof(ServicesManager));
