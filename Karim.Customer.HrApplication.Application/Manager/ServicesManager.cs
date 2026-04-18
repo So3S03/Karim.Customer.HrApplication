@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
@@ -15,12 +16,14 @@ namespace Karim.Customer.HrApplication.Application.Manager
         private readonly Lazy<IAuthServices> _authService;
         private readonly Lazy<IAttendanceServices> _attendanceService;
         private readonly Lazy<IProjectServices> _projectServices;
+        private readonly Lazy<IContractService> _contractService;
         public ServicesManager(
             Func<IDepartmentService> departmentServicesFactory,
             Func<IEmployeeService> employeeServiceFactory,
             Func<IAuthServices> authServiceFactory,
             Func<IAttendanceServices> attendanceFactory,
-            Func<IProjectServices> projectFactory
+            Func<IProjectServices> projectFactory,
+            Func<IContractService> contractFactory
             )
         {
             _departmentService = new Lazy<IDepartmentService>(departmentServicesFactory, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -28,6 +31,7 @@ namespace Karim.Customer.HrApplication.Application.Manager
             _authService = new Lazy<IAuthServices>(authServiceFactory, LazyThreadSafetyMode.ExecutionAndPublication);
             _attendanceService = new Lazy<IAttendanceServices>(attendanceFactory, LazyThreadSafetyMode.ExecutionAndPublication);
             _projectServices = new Lazy<IProjectServices>(projectFactory, LazyThreadSafetyMode.ExecutionAndPublication);
+            _contractService = new Lazy<IContractService>(contractFactory, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public IDepartmentService DepartmentService => _departmentService.Value;
@@ -35,5 +39,6 @@ namespace Karim.Customer.HrApplication.Application.Manager
         public IAuthServices AuthService => _authService.Value;
         public IAttendanceServices AttendanceService => _attendanceService.Value;
         public IProjectServices ProjectService => _projectServices.Value;
+        public IContractService ContractService => _contractService.Value;
     }
 }
