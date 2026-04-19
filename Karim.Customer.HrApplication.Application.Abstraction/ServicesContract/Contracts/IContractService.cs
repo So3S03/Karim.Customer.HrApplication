@@ -7,5 +7,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
     {
         Task<MaxCodeResult> GetContractCode();
         Task<ActionStatusDto> AddEmployeeContract(EmployeeContractToAddDto? employeeContractToAddDto);
+        Task<ActionStatusDto> AddProjectContract(ProjectContractToAddDto? projectContractToAddDto);
     }
 }
