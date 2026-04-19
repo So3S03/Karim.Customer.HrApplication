@@ -130,12 +130,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var mappedData = _mapper.Map<ProjectContractToAddDto, Contract>(projectContractToAddDto);
             //Add Contract
             await Repo.AddAsync(mappedData);
-            //Activate Project
-            Project.ProjectStatus = ProjectStatus.Active;
-            //Create Repo For Project
-            var ProjectRepo = _unitOfWork.GenerateRepository<Project, string>();
-            //Update Project
-            ProjectRepo.Update(Project);
             //Save Changes
             var Complete = await _unitOfWork.CompleteAsync() > 0;
             //Check On Complete
