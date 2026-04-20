@@ -232,6 +232,14 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.PaymentTerm, src => (PaymentTerm)src.PaymentTerm)
                 .Map(dest => dest.ContractStatus, src => ContractStatus.Draft)
                 .Map(dest => dest.ContractType, src => ContractType.Project);
+
+            config.NewConfig<ProjectContractToUpdateDto, Contract>()
+                .Map(dest => dest.CurrencyType, src => (Currancies)src.CurrencyType)
+                .Map(dest => dest.PaymentTerm, src => (PaymentTerm)src.PaymentTerm);
+
+            config.NewConfig<EmployeeContractToUpdateDto, Contract>()
+                .Map(dest => dest.EmployeeWorkType, src => (WorkType)src.EmployeeWorkType)
+                .Map(dest => dest.CurrencyType, src => (Currancies)src.CurrencyType);
         }
     }
 }
