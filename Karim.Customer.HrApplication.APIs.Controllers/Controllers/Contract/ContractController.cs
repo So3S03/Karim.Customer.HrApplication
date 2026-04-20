@@ -21,5 +21,26 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
             var result = await _servicesManager.ContractService.AddEmployeeContract(data);
             return Ok(result);
         }
+
+        [HttpPut("UpdateEmployeeContract")]
+        public async Task<ActionResult<ActionStatusDto>> UpdateEmployeeContract([FromBody] EmployeeContractToUpdateDto? data)
+        {
+            var result = await _servicesManager.ContractService.UpdateEmployeeContract(data);
+            return Ok(result);
+        }
+
+        [HttpPost("AddProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> AddProjectContract([FromBody] ProjectContractToAddDto? data)
+        {
+            var result = await _servicesManager.ContractService.AddProjectContract(data);
+            return Ok(result);
+        }
+
+        [HttpPut("UpdateProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> UpdateProjectContract([FromBody] ProjectContractToUpdateDto? data)
+        {
+            var result = await _servicesManager.ContractService.UpdateProjectContract(data);
+            return Ok(result);
+        }
     }
 }
