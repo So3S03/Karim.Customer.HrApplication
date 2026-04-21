@@ -169,6 +169,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
                 { EmpId: null or "" } => throw new BadRequestException("Employee ID Is Required"),
                 _ => employeeContractToUpdateDto
             };
+            //Get Employee
+            var Employee = await getEmployee(employeeContractToUpdateDto.EmpId);
+            //Check If Employee Exist
+            if (Employee is null) throw new NotFoundException("Employee You Try To Update Its Contract Is Not Found!");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec For Getting Contract
@@ -183,8 +187,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var mappedData = _mapper.Map(employeeContractToUpdateDto, ExistedContract);
             //Update Contract
             Repo.Update(mappedData);
-            //Get Employee
-            var Employee = await getEmployee(employeeContractToUpdateDto.EmpId);
             //Check If Employee Work Type Still The Same Or Not
             if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType)
             {
@@ -252,6 +254,90 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
                 Message = "Contract Updated Successfully"
             };
             //Return Object
+            return Obj;
+        }
+        public async Task<ProjectContractDetailsToReturnDto> GetProjectContract(string? ContractId)
+        {
+            //Check On Id
+            if (string.IsNullOrEmpty(ContractId)) throw new BadRequestException("Provided Id is Invalid");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Specification
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract 
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Check On Contract
+            if (Contract is null) throw new NotFoundException("Contract Not Exist!");
+            //Mapping Data
+            var MappedData = _mapper.Map<ProjectContractDetailsToReturnDto>(Contract);
+            //Return Contract
+            return MappedData;
+        }
+        public async Task<EmployeeContractDetailsToReturnDto> GetEmployeeContract(string? ContractId)
+        {
+            //Check On Data
+            if (string.IsNullOrEmpty(ContractId)) throw new BadRequestException("Invalid Id!");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Spec
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Check On Contract
+            if (Contract is null) throw new NotFoundException("Contract Is Not Exist!");
+            //mapping data
+            var MappedData = _mapper.Map<EmployeeContractDetailsToReturnDto>(Contract);
+            //return data
+            return MappedData;
+        }
+        public async Task<ActionStatusDto> DeleteContract(string? ContractId)
+        {
+            //Check On Contract Id
+            if (string.IsNullOrEmpty(ContractId)) throw new BadRequestException("Invalid Id!");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Spec
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Chcek If THere is Contract
+            if (Contract is null) throw new NotFoundException("Contract You Want To Delete Not Exist!");
+            //Delete Contract
+            Repo.Delete(Contract);
+            //Complete
+            var Copmplete = await _unitOfWork.CompleteAsync() > 0;
+            //Check ON Complete
+            if (!Copmplete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Deleted Successfully!"
+            };
+            //Return Obj
+            return Obj;
+        }
+        public async Task<DataWithPagination<ICollection<ContractToReturnDto>>> GetAllContracts(ContractParameters parameters)
+        {
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Spec
+            var Spec = new ContractListSpecification(parameters);
+            //Get List
+            var contractList = await Repo.GetAllAsync(Spec);
+            //mappingList
+            var mappedList = _mapper.Map<ICollection<ContractToReturnDto>>(contractList);
+            //Get Count
+            var Count = await Repo.GetDataCountAsync(Spec);
+            //Create Object
+            var Obj = new DataWithPagination<ICollection<ContractToReturnDto>>(
+                pageNum: parameters.PageNum,
+                nextPage: parameters.PageNum + 1,
+                pageSize: parameters.PageSize,
+                totalRecords: Count,
+                data: mappedList
+                );
+            //Return Data
             return Obj;
         }
 
