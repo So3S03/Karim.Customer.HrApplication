@@ -240,6 +240,42 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<EmployeeContractToUpdateDto, Contract>()
                 .Map(dest => dest.EmployeeWorkType, src => (WorkType)src.EmployeeWorkType)
                 .Map(dest => dest.CurrencyType, src => (Currancies)src.CurrencyType);
+
+            config.NewConfig<Contract, ProjectContractDetailsToReturnDto>()
+                .Map(dest => dest.ContractDate, src => src.ContractDate.ToString())
+                .Map(dest => dest.StartDate, src => src.StartDate.ToString())
+                .Map(dest => dest.EndDate, src => src.EndDate.ToString())
+                .Map(dest => dest.PaymentTerm, src => src.PaymentTerm.ToString())
+                .Map(dest => dest.CurrencyType, src => src.CurrencyType.ToString())
+                .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
+                .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode)
+                .Map(dest => dest.ContractType, src => src.ContractType.ToString())
+                .Map(dest => dest.ContractStatus, src => src.ContractStatus.ToString());
+
+            config.NewConfig<Contract, EmployeeContractDetailsToReturnDto>()
+                .Map(dest => dest.ContractDate, src => src.ContractDate.ToString())
+                .Map(dest => dest.StartDate, src => src.StartDate.ToString())
+                .Map(dest => dest.EndDate, src => src.EndDate.ToString())
+                .Map(dest => dest.CurrencyType, src => src.CurrencyType.ToString())
+                .Map(dest => dest.EmployeeWorkType, src => src.EmployeeWorkType.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee!.FullName)
+                .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
+                .Map(dest => dest.ContractType, src => src.ContractType.ToString())
+                .Map(dest => dest.ContractStatus, src => src.ContractStatus.ToString());
+
+            config.NewConfig<Contract, ContractToReturnDto>()
+                .Map(dest => dest.ContractType, src => src.ContractType.ToString())
+                .Map(dest => dest.ContractStatus, src => src.ContractStatus.ToString())
+                .Map(dest => dest.ContractDate, src => src.ContractDate.ToString())
+                .Map(dest => dest.StartDate, src => src.StartDate.ToString())
+                .Map(dest => dest.EndDate, src => src.EndDate.ToString())
+                .Map(dest => dest.PaymentTerm, src => src.PaymentTerm.ToString())
+                .Map(dest => dest.CurrencyType, src => src.CurrencyType.ToString())
+                .Map(dest => dest.EmployeeWorkType, src => src.EmployeeWorkType.ToString())
+                .Map(dest => dest.EmployeeName, src => src.Employee!.FullName)
+                .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
+                .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
+                .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode);
         }
     }
 }

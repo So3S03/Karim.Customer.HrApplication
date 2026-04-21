@@ -10,5 +10,9 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> UpdateEmployeeContract(EmployeeContractToUpdateDto? employeeContractToUpdateDto);
         Task<ActionStatusDto> AddProjectContract(ProjectContractToAddDto? projectContractToAddDto);
         Task<ActionStatusDto> UpdateProjectContract(ProjectContractToUpdateDto? projectContractToUpdateDto);
+        Task<ProjectContractDetailsToReturnDto> GetProjectContract(string? ContractId);
+        Task<EmployeeContractDetailsToReturnDto> GetEmployeeContract(string? ContractId);
+        Task<ActionStatusDto> DeleteContract(string? ContractId);
+        Task<DataWithPagination<ICollection<ContractToReturnDto>>> GetAllContracts(ContractParameters parameters);
     }
 }

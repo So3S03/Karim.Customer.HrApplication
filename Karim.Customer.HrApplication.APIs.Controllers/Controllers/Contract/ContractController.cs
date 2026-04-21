@@ -15,6 +15,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
             return Ok(result);
         }
 
+        [HttpGet("GetAllContracts")]
+        public async Task<ActionResult<MaxCodeResult>> GetAllContract([FromQuery]ContractParameters parameters)
+        {
+            var result = await _servicesManager.ContractService.GetAllContracts(parameters);
+            return Ok(result);
+        }
+
         [HttpPost("AddEmployeeContract")]
         public async Task<ActionResult<ActionStatusDto>> AddEmployeeContract([FromBody] EmployeeContractToAddDto? data)
         {
@@ -40,6 +47,27 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
         public async Task<ActionResult<ActionStatusDto>> UpdateProjectContract([FromBody] ProjectContractToUpdateDto? data)
         {
             var result = await _servicesManager.ContractService.UpdateProjectContract(data);
+            return Ok(result);
+        }
+
+        [HttpGet("GetSpecificProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> GetSpecificProjectContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.GetProjectContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpGet("GetSpecificEmployeeContract")]
+        public async Task<ActionResult<ActionStatusDto>> GetSpecificEmployeeContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.GetEmployeeContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteContract")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.DeleteContract(ContractId);
             return Ok(result);
         }
     }
