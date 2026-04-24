@@ -14,8 +14,7 @@
 			get { return status; }
 			set { status = value <= 0 ? 1 : (value > 5 ? 5 : value); }
 		}
-        public string? Name { get; set; }
-
+		
 		private const int maxPageSize = 10;
 		private const int minPageSize = 5;
 		private int pageSize;

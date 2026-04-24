@@ -5,9 +5,15 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Contracts
 {
     internal class ContractListSpecification : BaseSpecifications<Contract, string>
     {
-        public ContractListSpecification(ContractParameters contractParameters) : base()
+        public ContractListSpecification(ContractParameters contractParameters) : base(
+            ContractCritiriaCompinor.CriteriaCompinor(
+                    ContractCritiriaCompinor.TypeFunc(contractParameters.Type)!,
+                    ContractCritiriaCompinor.StatusFunc(contractParameters.Status)!
+                )
+            )
         {
-            
+            AddInclude(C => C.Employee!);
+            AddInclude(C => C.Project!);   
         }
     }
 }
