@@ -183,6 +183,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Projects
             if (Project is null) throw new NotFoundException(Id, "Project");
             //Check if Project is only Draft
             if (Project.ProjectStatus != ProjectStatus.Draft) throw new BadRequestException("Project Status Must Be New To Activate It!");
+            //Check If Has Contract
+            if (Project.ContractId is null) throw new BadRequestException("Can't Activate Project That Has No Contract");
             //Edit Status
             Project.ProjectStatus = ProjectStatus.Active;
             Project.ActivatedAt = DateTime.UtcNow;

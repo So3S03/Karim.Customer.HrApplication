@@ -70,5 +70,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
             var result = await _servicesManager.ContractService.DeleteContract(ContractId);
             return Ok(result);
         }
+
+        [HttpPut("ActivateContract")]
+        public async Task<ActionResult<ActionStatusDto>> ActivateContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.ActivateContract(ContractId);
+            return Ok(result);
+        }
     }
 }

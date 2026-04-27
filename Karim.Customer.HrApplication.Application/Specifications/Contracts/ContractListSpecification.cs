@@ -13,7 +13,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Contracts
             )
         {
             AddInclude(C => C.Employee!);
-            AddInclude(C => C.Project!);   
+            AddInclude(C => C.Project!);  
         }
     }
 }
