@@ -16,5 +16,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> DeleteContract(string? ContractId);
         Task<DataWithPagination<ICollection<ContractToReturnDto>>> GetAllContracts(ContractParameters parameters);
         Task<ActionStatusDto> ActivateContract(string? ContractId);
+        Task<ActionStatusDto> TerminateContract(string? ContractId);
+        Task<ActionStatusDto> RenewContractWithOldConditions(string? ContractId, int? AmountOfYears);
     }
 }
