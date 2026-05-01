@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Contracts;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts
 {
@@ -14,5 +15,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<EmployeeContractDetailsToReturnDto> GetEmployeeContract(string? ContractId);
         Task<ActionStatusDto> DeleteContract(string? ContractId);
         Task<DataWithPagination<ICollection<ContractToReturnDto>>> GetAllContracts(ContractParameters parameters);
+        Task<ActionStatusDto> ActivateContract(string? ContractId);
+        Task<ActionStatusDto> TerminateContract(string? ContractId);
+        Task<ActionStatusDto> RenewContractWithOldConditions(string? ContractId, int? AmountOfYears);
     }
 }

@@ -14,10 +14,11 @@ using MapsterMapper;
 using System.Text.RegularExpressions;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 
 namespace Karim.Customer.HrApplication.Application.Services.Contracts
 {
-    internal class ContractService(IUnitOfWork _unitOfWork, IMapper _mapper) : IContractService
+    internal class ContractService(IUnitOfWork _unitOfWork, IMapper _mapper, IProjectServices _projectServices) : IContractService
     {
         private const string codePattern = @"^CTR\d{3,}$";
         public async Task<MaxCodeResult> GetContractCode()
@@ -340,7 +341,105 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Return Data
             return Obj;
         }
-
+        public async Task<ActionStatusDto> ActivateContract(string? ContractId)
+        {
+            //Check On Contract Id
+            if (ContractId == null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Spec
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Check If Contract Exist
+            if (Contract is null) throw new NotFoundException("Contract Not Exist!");
+            //Check if Has Project
+            if(Contract.ProjectId is not null && Contract.EmpId is null)
+            {
+                //Activate Project
+                var isActivated = await _projectServices.ActivateProject(Contract.ProjectId) is not null;
+                if (!isActivated) throw new Exception("Something Went Wrong");
+            }
+            //Activate Contract
+            Contract.ContractStatus = ContractStatus.Active;
+            //Update
+            Repo.Update(Contract);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Contract Activated Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> TerminateContract(string? ContractId)
+        {
+            //Check On Contract Id
+            if (ContractId is null) throw new BadRequestException("Invlid Id!");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Forming Spec
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Check On Contract
+            if(Contract is null) throw new NotFoundException("Contract You Want To Terminate Doesn't Exist!");
+            //Check if Has Project
+            if(Contract.Project is not null)
+            {
+                //Check On Project Status
+                if (Contract.Project.ProjectStatus == ProjectStatus.Active) throw new ConflictException("Can't Terminate This Contract Because It Has An Active Project Ongoing!");
+            }
+            //Change Status
+            Contract.ContractStatus = ContractStatus.Active;
+            //Update
+            Repo.Update(Contract);
+            //Complete 
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Create Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Terminated Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> RenewContractWithOldConditions(string? ContractId, int? AmountOfYears)
+        {
+            //Check On Data
+            if (string.IsNullOrEmpty(ContractId) || AmountOfYears is null || AmountOfYears <= 0) throw new BadRequestException("Invalid Data!");
+            //Forming Repo
+            var Repo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Forming Spec
+            var Spec = new ContractByIdSpecification(ContractId);
+            //Get Contract
+            var Contract = await Repo.GetByIdAsync(Spec);
+            //Check On Contract
+            if (Contract is null) throw new NotFoundException("Contract You Seek Not Found!");
+            //Creating EndDate
+            var EndDate = new DateOnly(DateTime.Now.AddYears(AmountOfYears.Value).Year, DateTime.Now.Month, DateTime.Now.Day);
+            //Updating Contract
+            Contract.EndDate = EndDate;
+            //Update
+            Repo.Update(Contract);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Compelete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Contract Renewed Successfully!"
+            };
+            return Obj;
+        }
         private async Task<employee?> getEmployee(string employeeId)
         {
             //Create Repo

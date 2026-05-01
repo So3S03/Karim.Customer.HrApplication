@@ -70,5 +70,26 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
             var result = await _servicesManager.ContractService.DeleteContract(ContractId);
             return Ok(result);
         }
+
+        [HttpPut("ActivateContract")]
+        public async Task<ActionResult<ActionStatusDto>> ActivateContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.ActivateContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpPut("TerminateContract")]
+        public async Task<ActionResult<ActionStatusDto>> TerminateContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.TerminateContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpPut("RenewContractWithOldConditions")]
+        public async Task<ActionResult<ActionStatusDto>> RenewContractWithOldConditions(string? ContractId, int? AmmountOfYears)
+        {
+            var result = await _servicesManager.ContractService.RenewContractWithOldConditions(ContractId, AmmountOfYears);
+            return Ok(result);
+        }
     }
 }
