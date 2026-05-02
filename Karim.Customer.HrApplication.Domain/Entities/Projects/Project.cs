@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
+using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Projects
@@ -26,5 +27,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Projects
         public department? Department { get; set; }
         public string? ContractId { get; set; }
         public Contract? Contract { get; set; }
+        public ICollection<Ticket>? Tickets { get; set; }
     }
 }

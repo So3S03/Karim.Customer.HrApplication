@@ -6,6 +6,7 @@ using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
+using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
@@ -16,6 +17,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulk
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees.BulkUploadDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Projects;
+using Karim.Customer.HrApplication.Shared.DTOs.Tickets;
 using Mapster;
 
 namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
@@ -276,6 +278,27 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
                 .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
                 .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode);
+
+            //Tickets
+            config.NewConfig<TicketToAddDto, Ticket>()
+                .Map(dest => dest.NormalizedName, src => src.Name.ToUpper())
+                .Map(dest => dest.Status, src => TicketStatus.Opened)
+                .Map(dest => dest.IsArchive, src => false);
+
+            config.NewConfig<TicketToUpdateDto, Ticket>()
+                .Map(dest => dest.NormalizedName, src => src.Name.ToUpper());
+
+            config.NewConfig<Ticket, TicketDetailsToReturnDto>()
+                .Map(dest => dest.StatusId, src => src.Status)
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.ProjectCode, src => src.Project.ProjectCode)
+                .Map(dest => dest.ProjectName, src => src.Project.ProjectName);
+
+            config.NewConfig<Ticket, TicketToReturnDto>()
+                .Map(dest => dest.StatusId, src => src.Status)
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.ProjectCode, src => src.Project.ProjectCode)
+                .Map(dest => dest.ProjectName, src => src.Project.ProjectName);
         }
     }
 }

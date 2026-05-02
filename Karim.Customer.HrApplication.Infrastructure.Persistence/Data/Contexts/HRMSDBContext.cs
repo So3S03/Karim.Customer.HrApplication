@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
+using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using Karim.Customer.HrApplication.Infrastructure.Persistence._Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -26,5 +27,6 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts
         public DbSet<Requests> Requests { get; set; }
         public DbSet<Project> Project { get; set; }
         public DbSet<Contract> Contract { get; set; }
+        public DbSet<Ticket> Ticket { get; set; }
     }
 }
