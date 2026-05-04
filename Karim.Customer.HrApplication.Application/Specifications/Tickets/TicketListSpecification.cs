@@ -5,9 +5,14 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Tickets
 {
     internal class TicketListSpecification : BaseSpecifications<Ticket, string>
     {
-        public TicketListSpecification(TicketsParameter parameter): base()
+        public TicketListSpecification(TicketsParameter parameter): base(
+                TicketFuncGenerator.funcCompinor(
+                        TicketFuncGenerator.getNameFunc(parameter.Name)!,
+                        TicketFuncGenerator.getStatus(parameter.Status)!
+                    )
+            )
         {
-            
+            AddInclude(T => T.Project);
         }
     }
 }
