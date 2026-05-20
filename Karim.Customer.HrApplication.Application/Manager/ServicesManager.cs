@@ -5,6 +5,7 @@ using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Depa
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Task;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Tickets;
 using Karim.Customer.HrApplication.Application.Services.Department;
 
@@ -19,6 +20,7 @@ namespace Karim.Customer.HrApplication.Application.Manager
         private readonly Lazy<IProjectServices> _projectServices;
         private readonly Lazy<IContractService> _contractService;
         private readonly Lazy<ITicketServices> _ticketServices;
+        private readonly Lazy<ITaskService> _taskService;
         public ServicesManager(
             Func<IDepartmentService> departmentServicesFactory,
             Func<IEmployeeService> employeeServiceFactory,
@@ -26,7 +28,8 @@ namespace Karim.Customer.HrApplication.Application.Manager
             Func<IAttendanceServices> attendanceFactory,
             Func<IProjectServices> projectFactory,
             Func<IContractService> contractFactory,
-            Func<ITicketServices> ticketFactory
+            Func<ITicketServices> ticketFactory,
+            Func<ITaskService> taskService
             )
         {
             _departmentService = new Lazy<IDepartmentService>(departmentServicesFactory, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -36,6 +39,7 @@ namespace Karim.Customer.HrApplication.Application.Manager
             _projectServices = new Lazy<IProjectServices>(projectFactory, LazyThreadSafetyMode.ExecutionAndPublication);
             _contractService = new Lazy<IContractService>(contractFactory, LazyThreadSafetyMode.ExecutionAndPublication);
             _ticketServices = new Lazy<ITicketServices>(ticketFactory, LazyThreadSafetyMode.ExecutionAndPublication);
+            _taskService = new Lazy<ITaskService>(taskService, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public IDepartmentService DepartmentService => _departmentService.Value;
@@ -45,5 +49,6 @@ namespace Karim.Customer.HrApplication.Application.Manager
         public IProjectServices ProjectService => _projectServices.Value;
         public IContractService ContractService => _contractService.Value;
         public ITicketServices TicketServices => _ticketServices.Value;
+        public ITaskService TaskService { get; }
     }
 }
