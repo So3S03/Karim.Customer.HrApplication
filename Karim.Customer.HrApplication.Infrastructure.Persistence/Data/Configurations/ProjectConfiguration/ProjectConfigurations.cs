@@ -26,8 +26,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(P => P.CompletedAt).HasColumnType("datetime2").IsRequired(false);
             builder.Property(P => P.CanceledAt).HasColumnType("datetime2").IsRequired(false);
             builder.Property(P => P.CancelationReason).HasColumnType("nvarchar(max)").IsRequired(false);
-            builder.Property(P => P.CompletionPercentage).HasColumnType("decimal(6,3)").IsRequired(true);
             builder.Property(P => P.ProjectCoast).HasColumnType("decimal(15,3)").IsRequired(true);
+            builder.Property(P => P.HoursAmount).HasColumnType("decimal(7,2)").IsRequired(true);
             builder.Property(P => P.CoastCurrency).HasConversion(
                     (crncy) => crncy.ToString(),
                     (crncy) => (Currancies)Enum.Parse(typeof(Currancies), crncy)
@@ -37,6 +37,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.HasOne(P => P.Department).WithMany(D => D.Projects).HasForeignKey(P => P.DepartmentId).OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(P => P.Contract).WithOne(C => C.Project)
                 .HasForeignKey<Project>(C => C.ContractId).OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(P => P.Tasks).WithOne(T => T.Project).HasForeignKey(T => T.ProjectId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

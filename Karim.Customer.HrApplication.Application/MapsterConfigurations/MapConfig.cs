@@ -6,6 +6,8 @@ using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
+using Karim.Customer.HrApplication.Domain.Entities.Tasks;
+using status = Karim.Customer.HrApplication.Domain.Entities.Tasks.TaskStatus;
 using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance;
 using Karim.Customer.HrApplication.Shared.DTOs.Attendance.BulkDtos;
@@ -17,6 +19,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.Department.DepartmentToUploadBulk
 using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Karim.Customer.HrApplication.Shared.DTOs.Employees.BulkUploadDtos;
 using Karim.Customer.HrApplication.Shared.DTOs.Projects;
+using Karim.Customer.HrApplication.Shared.DTOs.Tasks;
 using Karim.Customer.HrApplication.Shared.DTOs.Tickets;
 using Mapster;
 
@@ -198,7 +201,6 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<ProjectToAddDto, Project>()
                 .Map(dest => dest.ProjectType, src => (ProjectType)src.ProjectType)
                 .Map(dest => dest.ProjectStatus, src => ProjectStatus.Draft)
-                .Map(dest => dest.CompletionPercentage, src => 0)
                 .Map(dest => dest.CoastCurrency, src => (Currancies)src.CoastCurrency);
 
             config.NewConfig<ProjectToUpdateDto, Project>()
@@ -299,6 +301,40 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Status, src => src.Status.ToString())
                 .Map(dest => dest.ProjectCode, src => src.Project.ProjectCode)
                 .Map(dest => dest.ProjectName, src => src.Project.ProjectName);
+
+            //Tasks
+            config.NewConfig<TaskToAddDto, Tasks>()
+                .Map(dest => dest.TaskHours, src => src.AssignedHours)
+                .Map(dest => dest.RemainingHours, src => src.AssignedHours)
+                .Map(dest => dest.Status, src => status.New)
+                .Map(dest => dest.Type, src => (TaskType)src.Type);
+
+            config.NewConfig<TaskToUpdateDto, Tasks>()
+                .Map(dest => dest.TaskHours, src => src.AssignedHours);
+
+            config.NewConfig<Tasks, TaskDetailsToReturnDto>()
+                 .Map(dest => dest.Status, src => src.Status.ToString())
+                 .Map(dest => dest.StatusId, src => (status)src.Status)
+                .Map(dest => dest.Type, src => src.Type.ToString())
+                .Map(dest => dest.TypeId, src => (TaskType)src.Type)
+                .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode)
+                .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
+                .Map(dest => dest.TicketCode, src => src.Ticket!.TicketCode)
+                .Map(dest => dest.TicketName, src => src.Ticket!.Name)
+                .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
+                .Map(dest => dest.EmployeeName, src => src.Employee!.FullName);
+
+            config.NewConfig<Tasks, TaskToReturnDto>()
+                 .Map(dest => dest.Status, src => src.Status.ToString())
+                 .Map(dest => dest.StatusId, src => (status)src.Status)
+                .Map(dest => dest.Type, src => src.Type.ToString())
+                .Map(dest => dest.TypeId, src => (TaskType)src.Type)
+                .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode)
+                .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
+                .Map(dest => dest.TicketCode, src => src.Ticket!.TicketCode)
+                .Map(dest => dest.TicketName, src => src.Ticket!.Name)
+                .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
+                .Map(dest => dest.EmployeeName, src => src.Employee!.FullName);
         }
     }
 }
