@@ -14,7 +14,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(T => T.Name).HasColumnType("nvarchar(max)").IsRequired(true);
             builder.Property(T => T.NormalizedName).HasColumnType("nvarchar(max)").IsRequired(true);
             builder.Property(T => T.Description).HasColumnType("nvarchar(max)").IsRequired(false);
-            builder.Property(T => T.HoursNumber).IsRequired(true);
+            builder.Property(T => T.HoursNumber).HasColumnType("decimal(7,2)").IsRequired(true);
             builder.Property(T => T.StartDate).IsRequired(true);
             builder.Property(T => T.EndDate).IsRequired(true);
             builder.Property(T => T.IsArchive).IsRequired(true);
@@ -24,6 +24,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 ).IsRequired(true);
             builder.HasOne(T => T.Project).WithMany(P => P.Tickets)
                 .HasForeignKey(p => p.ProjectId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(T => T.Tasks).WithOne(T => T.Ticket).HasForeignKey(T => T.TicketId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

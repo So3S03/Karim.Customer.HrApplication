@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.Attendance;
 using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Employee
@@ -48,5 +49,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public Contracts.Contract? Contract { get; set; }
         public string? ContractId { get; set; }
 
+        //Tasks
+        public ICollection<Tasks.Tasks>? Tasks { get; set; }
     }
 }

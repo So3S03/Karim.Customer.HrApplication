@@ -2,6 +2,7 @@
 using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
+using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
 
@@ -18,9 +19,9 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Projects
         public DateTime? CompletedAt { get; set; }
         public DateTime? CanceledAt { get; set; }
         public string? CancelationReason { get; set; }
-        public required decimal CompletionPercentage { get; set; }
         public required decimal ProjectCoast { get; set; }
         public required Currancies CoastCurrency { get; set; }
+        public required decimal HoursAmount { get; set; }
 
         //relations
         public string? DepartmentId { get; set; }
@@ -28,5 +29,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Projects
         public string? ContractId { get; set; }
         public Contract? Contract { get; set; }
         public ICollection<Ticket>? Tickets { get; set; }
+        public ICollection<Tasks.Tasks>? Tasks { get; set; }
     }
 }
