@@ -86,6 +86,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             await Repo.AddAsync(mappedData);
             //Update Employee Work Type
             Employee.WorkType = (WorkType)employeeContractToAddDto.EmployeeWorkType;
+            //Update Employee Salary
+            Employee.Salary = employeeContractToAddDto.EmpSalary;
             //Create Emp Repo
             var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
             //Update Employee
@@ -189,12 +191,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Update Contract
             Repo.Update(mappedData);
             //Check If Employee Work Type Still The Same Or Not
-            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType)
+            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType || Employee.Salary != employeeContractToUpdateDto.EmpSalary)
             {
                 //Create Repo
                 var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
                 //Update Employee Work Type
                 Employee.WorkType = (WorkType)employeeContractToUpdateDto.EmployeeWorkType;
+                //Update Employee Salary
+                Employee.Salary = employeeContractToUpdateDto.EmpSalary;
                 //Update Employee
                 EmpRepo.Update(Employee);
             }
