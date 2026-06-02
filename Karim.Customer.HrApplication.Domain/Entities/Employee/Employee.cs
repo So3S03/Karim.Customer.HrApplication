@@ -51,5 +51,8 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
 
         //Tasks
         public ICollection<Tasks.Tasks>? Tasks { get; set; }
+
+        //Payslips
+        public ICollection<Payroll.Payslip>? Payslips { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Departmnet;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Domain.Entities.Payroll;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
 using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Domain.Entities.Tickets;
@@ -30,5 +31,9 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts
         public DbSet<Contract> Contract { get; set; }
         public DbSet<Ticket> Ticket { get; set; }
         public DbSet<Tasks> Task { get; set; }
+        public DbSet<Payslip> Payslip { get; set; }
+        public DbSet<PayrollBonus> PayrollBonus { get; set; }
+        public DbSet<PayrollAllowance> PayrollAllowance { get; set; }
+        public DbSet<PayrollPenalty> PayrollPenalty { get; set; }
     }
 }

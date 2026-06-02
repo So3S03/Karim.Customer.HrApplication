@@ -59,7 +59,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.HasOne(E => E.Contract).WithOne(C => C.Employee)
                 .HasForeignKey<Employee>(E => E.ContractId).OnDelete(DeleteBehavior.SetNull);
             //Tasks
-            builder.HasMany(E => E.Tasks).WithOne(T => T.Employee).HasForeignKey(T => T.EmployeeId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(E => E.Tasks).WithOne(T => T.Employee)
+                .HasForeignKey(T => T.EmployeeId).OnDelete(DeleteBehavior.Cascade);
+            //Payslips
+            builder.HasMany(E => E.Payslips).WithOne(T => T.Employee)
+                .HasForeignKey(T => T.EmployeeId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
