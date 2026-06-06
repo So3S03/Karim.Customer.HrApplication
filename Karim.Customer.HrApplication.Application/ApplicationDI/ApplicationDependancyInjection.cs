@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Cont
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Payrolls;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Task;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Tickets;
@@ -15,6 +16,7 @@ using Karim.Customer.HrApplication.Application.Services.Contracts;
 using Karim.Customer.HrApplication.Application.Services.Department;
 using Karim.Customer.HrApplication.Application.Services.Employee;
 using Karim.Customer.HrApplication.Application.Services.Identity;
+using Karim.Customer.HrApplication.Application.Services.Payrolls;
 using Karim.Customer.HrApplication.Application.Services.Projects;
 using Karim.Customer.HrApplication.Application.Services.Task;
 using Karim.Customer.HrApplication.Application.Services.Ticket;
@@ -85,6 +87,12 @@ namespace Karim.Customer.HrApplication.Application.ApplicationDI
             services.AddScoped<Func<ITaskService>>(serviceProvider =>
             {
                 return () => serviceProvider.GetRequiredService<ITaskService>();
+            });
+
+            services.AddScoped(typeof(IPayrollService), typeof(PayrollService));
+            services.AddScoped<Func<IPayrollService>>(serviceProvider =>
+            {
+                return () => serviceProvider.GetRequiredService<IPayrollService>();
             });
 
             services.AddScoped(typeof(IServicesManager), typeof(ServicesManager));

@@ -22,6 +22,8 @@ using Karim.Customer.HrApplication.Shared.DTOs.Projects;
 using Karim.Customer.HrApplication.Shared.DTOs.Tasks;
 using Karim.Customer.HrApplication.Shared.DTOs.Tickets;
 using Mapster;
+using Karim.Customer.HrApplication.Domain.Entities.Payroll;
+using Karim.Customer.HrApplication.Shared.DTOs.Payroll;
 
 namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
 {
@@ -325,8 +327,8 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeName, src => src.Employee!.FullName);
 
             config.NewConfig<Tasks, TaskToReturnDto>()
-                 .Map(dest => dest.Status, src => src.Status.ToString())
-                 .Map(dest => dest.StatusId, src => (status)src.Status)
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.StatusId, src => (status)src.Status)
                 .Map(dest => dest.Type, src => src.Type.ToString())
                 .Map(dest => dest.TypeId, src => (TaskType)src.Type)
                 .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode)
@@ -335,6 +337,20 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.TicketName, src => src.Ticket!.Name)
                 .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
                 .Map(dest => dest.EmployeeName, src => src.Employee!.FullName);
+
+            //Payrolls
+            config.NewConfig<PayrollBonus, PayrollBonusToReturnDto>();
+            config.NewConfig<PayrollAllowance, PayrollAllowanceToReturnDto>();
+            config.NewConfig<PayrollPenalty, PayrollPenaltyToReturnDto>();
+
+            config.NewConfig<Payslip, PayslipToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.StatusId, src => (status)src.Status)
+                .Map(dest => dest.PaymentWay, src => src.PaymentWay.HasValue ? src.PaymentWay.Value.ToString() : null)
+                .Map(dest => dest.PaymentWayId, src => src.PaymentWay.HasValue ? (PayrollPaymentWay)src.PaymentWay.Value : 0)
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
+                .Map(dest => dest.EmployeeCode, src => src.Employee.EmployeeCode);
+
         }
     }
 }
