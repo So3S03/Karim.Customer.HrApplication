@@ -7,6 +7,9 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
     {
         Task<DataWithPagination<ICollection<PayslipToReturnDto>>> GetAllEmployeesPayslipsPerMonth(PayrollParameter parameter);
         Task<DataWithPagination<ICollection<PayslipToReturnDto>>> GetEmployeeAllPayslips(EmployeePayslipsParameter parameter);
-        //Task<PayslipToReturnDto> GetEmployeePayslipPerMonth(string? EmpId);
+        Task<ActionStatusDto> ApproveSalary(string? PayslipId);
+        Task<ActionStatusDto> PaySalary(PayrollToPayDto? payrollToPayDto);
+        Task<PayslipDetailsToReturnDto> GetPayslipDetails(string? PayslipId);
+        Task<ActionStatusDto> AddPenalty(PenaltyToAddDto? penaltyToAddDto);
     }
 }

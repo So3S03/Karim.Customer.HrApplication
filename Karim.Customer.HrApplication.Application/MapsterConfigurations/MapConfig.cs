@@ -351,6 +351,15 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
                 .Map(dest => dest.EmployeeCode, src => src.Employee.EmployeeCode);
 
+            config.NewConfig<Payslip, PayslipDetailsToReturnDto>()
+                .Map(dest => dest.Status, src => src.Status.ToString())
+                .Map(dest => dest.StatusId, src => (status)src.Status)
+                .Map(dest => dest.PaymentWay, src => src.PaymentWay.HasValue ? src.PaymentWay.Value.ToString() : null)
+                .Map(dest => dest.PaymentWayId, src => src.PaymentWay.HasValue ? (PayrollPaymentWay)src.PaymentWay.Value : 0)
+                .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
+                .Map(dest => dest.EmployeeCode, src => src.Employee.EmployeeCode);
+
+            config.NewConfig<PenaltyToAddDto, PayrollPenalty>();
         }
     }
 }
