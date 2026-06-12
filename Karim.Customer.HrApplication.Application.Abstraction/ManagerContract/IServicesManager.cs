@@ -3,6 +3,7 @@ using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Cont
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Payrolls;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Task;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Tickets;
@@ -19,5 +20,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ManagerContract
         public IContractService ContractService { get; }
         public ITicketServices TicketServices { get; }
         public ITaskService TaskService { get; }
+        public IPayrollService PayrollService { get; }
     }
 }
