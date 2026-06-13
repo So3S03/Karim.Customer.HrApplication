@@ -228,5 +228,45 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> DeletePenalty(string? penaltyId)
+        {
+            //Check On Id
+            if (penaltyId is null) throw new BadRequestException("Invalid Id");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollPenalty, string>();
+            //Create Spec
+            var Spec = new PenaltyById(penaltyId);
+            //Get Penalty
+            var Penalty = await Repo.GetByIdAsync(Spec);
+            //Check On Penalty
+            if (Penalty is null) throw new NotFoundException("Penalty Don't Exist!");
+            //Check If Payroll Paid Or Approved
+            if (Penalty.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Get CurrentNet
+            var currentNetValue = Penalty.Payslip.NetSalary;
+            //Get Current Deduction
+            var currentDeduction = Penalty.Value;
+            //Restore The NetSalary
+            var restoredNetSalary = currentNetValue + currentDeduction;
+            //Set On Payslip
+            Penalty.Payslip.NetSalary = restoredNetSalary;
+            //Create Repo For Payslip
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Penalty.Payslip);
+            //Delete Penalty
+            Repo.Delete(Penalty);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Penalty Deleted Successfully!"
+            };
+            return Obj;
+        }
     }
 }
