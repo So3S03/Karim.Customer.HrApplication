@@ -360,6 +360,13 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeCode, src => src.Employee.EmployeeCode);
 
             config.NewConfig<PenaltyToAddDto, PayrollPenalty>();
+
+            config.NewConfig<PenaltyToEditDto, PayrollPenalty>();
+
+            config.NewConfig<BonusToAddDto, PayrollBonus>();
+
+            config.NewConfig<BonusToEditDto, PayrollBonus>();
+            
         }
     }
 }

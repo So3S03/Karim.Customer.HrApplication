@@ -11,5 +11,9 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> PaySalary(PayrollToPayDto? payrollToPayDto);
         Task<PayslipDetailsToReturnDto> GetPayslipDetails(string? PayslipId);
         Task<ActionStatusDto> AddPenalty(PenaltyToAddDto? penaltyToAddDto);
+        Task<ActionStatusDto> EditPenalty(PenaltyToEditDto? penaltyToEditDto);
+        Task<ActionStatusDto> DeletePenalty(string? penaltyId);
+        Task<ActionStatusDto> AddBonus(BonusToAddDto? bonusToAddDto);
+        Task<ActionStatusDto> EditBonus(BonusToEditDto? bonusToEditDto);
     }
 }
