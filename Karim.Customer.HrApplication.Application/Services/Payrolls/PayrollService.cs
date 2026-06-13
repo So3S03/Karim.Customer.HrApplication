@@ -314,5 +314,53 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> EditBonus(BonusToEditDto? bonusToEditDto)
+        {
+            //Check On Data
+            if (bonusToEditDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = bonusToEditDto switch
+            {
+                { Id: null or "" } => throw new BadRequestException("Invalid Penalty Id!"),
+                { Title: null or "" } => throw new BadRequestException("Invalid Penalty Title!"),
+                { Value: <= 0 } => throw new BadRequestException("Invalid Value!"),
+                _ => bonusToEditDto
+            };
+            //Generate Bonus Repo
+            var BonusRepo = _unitOfWork.GenerateRepository<PayrollBonus, string>();
+            //generate Bonus Spec
+            var BonusSpec = new BonusById(bonusToEditDto.Id);
+            //get Bonus
+            var Bonus = await BonusRepo.GetByIdAsync(BonusSpec);
+            //check On Bonus
+            if (Bonus is null) throw new NotFoundException("Bonus Not Exist!");
+            //check If Payslip is pending
+            if (Bonus.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Get Net Salary
+            var restoredNetSalary = Bonus.Payslip.NetSalary - Bonus.Value;
+            //New Net Salary
+            var newNetSalary = restoredNetSalary + bonusToEditDto.Value;
+            //Set New Net Salary
+            Bonus.Payslip.NetSalary = newNetSalary;
+            //Generate Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Bonus.Payslip);
+            //Mapping DATA
+            var mappedData = _mapper.Map(bonusToEditDto, Bonus);
+            //Update Bonus
+            BonusRepo.Update(mappedData);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Bonus Updated Successfully"
+            };
+            return Obj;
+        }
     }
 }

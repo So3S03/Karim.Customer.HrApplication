@@ -14,5 +14,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> EditPenalty(PenaltyToEditDto? penaltyToEditDto);
         Task<ActionStatusDto> DeletePenalty(string? penaltyId);
         Task<ActionStatusDto> AddBonus(BonusToAddDto? bonusToAddDto);
+        Task<ActionStatusDto> EditBonus(BonusToEditDto? bonusToEditDto);
     }
 }

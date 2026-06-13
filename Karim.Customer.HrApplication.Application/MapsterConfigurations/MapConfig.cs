@@ -363,6 +363,9 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
 
             config.NewConfig<PenaltyToEditDto, PayrollPenalty>();
 
+            config.NewConfig<BonusToAddDto, PayrollBonus>();
+
+            config.NewConfig<BonusToEditDto, PayrollBonus>();
             
         }
     }
