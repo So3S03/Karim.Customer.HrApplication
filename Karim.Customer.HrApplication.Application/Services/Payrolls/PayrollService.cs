@@ -268,5 +268,51 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> AddBonus(BonusToAddDto? bonusToAddDto)
+        {
+            //Check On Data
+            if (bonusToAddDto == null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = bonusToAddDto switch
+            {
+                { PayslipId: "" or null} => throw new BadRequestException("Invalid Payslip Id!"),
+                { Title: null or ""} => throw new BadRequestException("Invalid Bonus Title!"),
+                { Value: <= 0} => throw new BadRequestException("Invalid Bonus Value!"),
+                _ => bonusToAddDto
+            };
+            //Create PayslipRepo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Payslip Spec
+            var PayslipSpec = new PayslipById(bonusToAddDto.PayslipId);
+            //Get Payslip
+            var Payslip = await PayslipRepo.GetByIdAsync(PayslipSpec);
+            //Check On Payslip
+            if (Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Payslip Not Pending
+            if (Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Generate New Net Salary
+            var newNetSalary = Payslip.NetSalary + bonusToAddDto.Value;
+            //Set It Into Payslip
+            Payslip.NetSalary = newNetSalary;
+            //Update Payslip
+            PayslipRepo.Update(Payslip);
+            //Create BonusRepo
+            var BonusRepo = _unitOfWork.GenerateRepository<PayrollBonus, string>();
+            //Mapping Bonus
+            var MappedBonus = _mapper.Map<PayrollBonus>(bonusToAddDto);
+            //AddBonus
+            await BonusRepo.AddAsync(MappedBonus);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Bonus Added Successfully"
+            };
+            return Obj;
+        }
     }
 }
