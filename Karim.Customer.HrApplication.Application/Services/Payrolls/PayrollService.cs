@@ -6,6 +6,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Payroll;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Karim.Customer.HrApplication.Application.Services.Payrolls
 {
@@ -172,6 +173,58 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             {
                 Status = true,
                 Message = "Penalty Added Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> EditPenalty(PenaltyToEditDto? penaltyToEditDto)
+        {
+            //Check On Data
+            if (penaltyToEditDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = penaltyToEditDto switch
+            {
+                { Id: null or ""} => throw new BadRequestException("Invalid Penalty Id!"),
+                { Title: null or ""} => throw new BadRequestException("Invalid Penalty Title!"),
+                { Value: <= 0} => throw new BadRequestException("Invalid Value!"),
+                _ => penaltyToEditDto
+            };
+            //Create Repo
+            var PenaltyRepo = _unitOfWork.GenerateRepository<PayrollPenalty, string>();
+            //Create Spec
+            var PenaltySpec = new PenaltyById(penaltyToEditDto.Id);
+            //Get Penalty
+            var Penalty = await PenaltyRepo.GetByIdAsync(PenaltySpec);
+            //Check On It
+            if (Penalty is null) throw new NotFoundException("Penalty Don't Exist!");
+            //Check If Not Pending
+            if (Penalty.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Store Prev NetSalary
+            var PrevNetySalary = Penalty.Payslip.NetSalary;
+            //Store Prev Deduction
+            var PrevDeduction = Penalty.Value;
+            //Restore The NetSalary
+            var RestoredNetSalary = PrevNetySalary + PrevDeduction;
+            //Check If Current Value - Net Salary = 0 or less
+            if (RestoredNetSalary - penaltyToEditDto.Value < 0) throw new ConflictException("New Penalty Value Exceeded The Salary!");
+            //Set The New Deduction 
+            Penalty.Payslip.NetSalary = RestoredNetSalary - penaltyToEditDto.Value;
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Penalty.Payslip);
+            //Mapping New Penalty
+            var mappedPenalty = _mapper.Map(penaltyToEditDto, Penalty);
+            //Update New Penalty
+            PenaltyRepo.Update(mappedPenalty);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Penalty Updated Successfully!"
             };
             return Obj;
         }
