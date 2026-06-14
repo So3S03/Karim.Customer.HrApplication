@@ -362,5 +362,73 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> DeleteBonus(string? bonusId)
+        {
+            //Check On Id
+            if (bonusId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var BonusRepo = _unitOfWork.GenerateRepository<PayrollBonus, string>();
+            //Create Spec
+            var BonusSpec = new BonusById(bonusId);
+            //Get Bonus
+            var Bonus = await BonusRepo.GetByIdAsync(BonusSpec);
+            //Check On Bonus
+            if (Bonus is null) throw new NotFoundException("Bonus Not Exist!");
+            //Check if Salary Pending
+            if (Bonus.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Restore Net Salary
+            var RestoredNetSalary = Bonus.Payslip.NetSalary - Bonus.Value;
+            //Set New Net Salary
+            Bonus.Payslip.NetSalary = RestoredNetSalary;
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Bonus.Payslip);
+            //Delete Bonus
+            BonusRepo.Delete(Bonus);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Compelete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Bonus Deleted Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> RePendingApprovedSalary(string? payslipId)
+        {
+            //Check On Data
+            if (payslipId == null) throw new BadRequestException("Innvalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var Spec = new PayslipById(payslipId);
+            //Get Payslip
+            var Payslip = await Repo.GetByIdAsync(Spec);
+            //Check On Payslip
+            if (Payslip == null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Paid
+            if (Payslip.Status == PayrollStatus.Paid) throw new ConflictException("Can't Restore Paid Salary!");
+            //Check If Pending
+            if (Payslip.Status == PayrollStatus.Pending) throw new ConflictException("Payslip Already On Pending Status!");
+            //Set New Status
+            Payslip.Status = PayrollStatus.Pending;
+            //Update
+            Repo.Update(Payslip);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Compelete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Payslip Restored To Pending Successfully!"
+            };
+            return Obj;
+        }
     }
 }
