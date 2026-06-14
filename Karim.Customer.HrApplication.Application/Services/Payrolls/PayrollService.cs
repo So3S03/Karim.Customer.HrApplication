@@ -398,5 +398,37 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> RePendingApprovedSalary(string? payslipId)
+        {
+            //Check On Data
+            if (payslipId == null) throw new BadRequestException("Innvalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var Spec = new PayslipById(payslipId);
+            //Get Payslip
+            var Payslip = await Repo.GetByIdAsync(Spec);
+            //Check On Payslip
+            if (Payslip == null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Paid
+            if (Payslip.Status == PayrollStatus.Paid) throw new ConflictException("Can't Restore Paid Salary!");
+            //Check If Pending
+            if (Payslip.Status == PayrollStatus.Pending) throw new ConflictException("Payslip Already On Pending Status!");
+            //Set New Status
+            Payslip.Status = PayrollStatus.Pending;
+            //Update
+            Repo.Update(Payslip);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Compelete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Obj
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Payslip Restored To Pending Successfully!"
+            };
+            return Obj;
+        }
     }
 }

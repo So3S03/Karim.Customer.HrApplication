@@ -16,5 +16,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> AddBonus(BonusToAddDto? bonusToAddDto);
         Task<ActionStatusDto> EditBonus(BonusToEditDto? bonusToEditDto);
         Task<ActionStatusDto> DeleteBonus(string? bonusId);
+        Task<ActionStatusDto> RePendingApprovedSalary(string? payslipId);
     }
 }
