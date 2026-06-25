@@ -430,5 +430,33 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> DeleteSalary(string? payslipId)
+        {
+            //Check On Id
+            if (payslipId == null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var Spec = new PayslipById(payslipId);
+            //Get Payslip
+            var Payslip = await Repo.GetByIdAsync(Spec);
+            //Check On Payslip
+            if (Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Salary Is Pending
+            if (Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Delete An Approved Or Paid Salary!");
+            //Remove
+            Repo.Delete(Payslip);
+            //Compleate
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Salary Deleted Successfully!"
+            };
+            return Obj;
+        }
     }
 }
