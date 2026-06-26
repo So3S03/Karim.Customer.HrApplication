@@ -430,5 +430,87 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+        public async Task<ActionStatusDto> DeleteSalary(string? payslipId)
+        {
+            //Check On Id
+            if (payslipId == null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var Spec = new PayslipById(payslipId);
+            //Get Payslip
+            var Payslip = await Repo.GetByIdAsync(Spec);
+            //Check On Payslip
+            if (Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Salary Is Pending
+            if (Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Delete An Approved Or Paid Salary!");
+            //Remove
+            Repo.Delete(Payslip);
+            //Compleate
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Salary Deleted Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<DataWithPagination<ICollection<PayrollBonusToReturnDto>>> PayslipBonusesGrid(PayrollRelationsParameter parameter)
+        {
+            //Check On Id
+            if (parameter.PayslipId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollBonus, string>();
+            //Create Spec
+            var Spec = new BonusesByPayslipId(parameter);
+            //Get All Bonuses
+            var List = await Repo.GetAllAsync(Spec);
+            //Mapping
+            var MappedList = _mapper.Map<ICollection<PayrollBonusToReturnDto>>(List);
+            //Get Count
+            var ListCont = await Repo.GetDataCountAsync(Spec);
+            //Forming Object
+            var Obj = new DataWithPagination<ICollection<PayrollBonusToReturnDto>>(parameter.PageNum, parameter.PageNum + 1, parameter.PageSize, ListCont, MappedList);
+            return Obj;
+        }
+        public async Task<DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>> PayslipPenaltiesGrid(PayrollRelationsParameter parameter)
+        {
+            //Check On Id
+            if (parameter.PayslipId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollPenalty, string>();
+            //Create Spec
+            var Spec = new PenaltiesByPayslipId(parameter);
+            //Get All Bonuses
+            var List = await Repo.GetAllAsync(Spec);
+            //Mapping
+            var MappedList = _mapper.Map<ICollection<PayrollPenaltyToReturnDto>>(List);
+            //Get Count
+            var ListCont = await Repo.GetDataCountAsync(Spec);
+            //Forming Object
+            var Obj = new DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>(parameter.PageNum, parameter.PageNum + 1, parameter.PageSize, ListCont, MappedList);
+            return Obj;
+        }
+        public async Task<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>> PayslipAllowancesGrid(PayrollRelationsParameter parameter)
+        {
+            //Check On Id
+            if (parameter.PayslipId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //Create Spec
+            var Spec = new AllowancesByPayslipId(parameter);
+            //Get All Bonuses
+            var List = await Repo.GetAllAsync(Spec);
+            //Mapping
+            var MappedList = _mapper.Map<ICollection<PayrollAllowanceToReturnDto>>(List);
+            //Get Count
+            var ListCont = await Repo.GetDataCountAsync(Spec);
+            //Forming Object
+            var Obj = new DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>(parameter.PageNum, parameter.PageNum + 1, parameter.PageSize, ListCont, MappedList);
+            return Obj;
+        }
     }
 }
