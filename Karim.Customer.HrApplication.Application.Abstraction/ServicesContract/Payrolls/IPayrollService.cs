@@ -18,5 +18,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> DeleteBonus(string? bonusId);
         Task<ActionStatusDto> RePendingApprovedSalary(string? payslipId);
         Task<ActionStatusDto> DeleteSalary(string? payslipId);
+        Task<DataWithPagination<ICollection<PayrollBonusToReturnDto>>> PayslipBonusesGrid(PayrollRelationsParameter parameter);
+        Task<DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>> PayslipPenaltiesGrid(PayrollRelationsParameter parameter);
+        Task<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>> PayslipAllowancesGrid(PayrollRelationsParameter parameter);
     }
 }
