@@ -394,6 +394,12 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
                 //Add Fingerprint Id To Request
                 FPID = FP.Id;
             }
+            //Check On Overtime
+            if((RequestType)request.Type == RequestType.Overtime)
+            {
+                //Check If The Overtime Hours Added
+                if (request.OverTimeHours is null) throw new BadRequestException("Must Provide Overtime Hours!");
+            }
             //Forming Requests Repo
             var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
             //Forming Spec
