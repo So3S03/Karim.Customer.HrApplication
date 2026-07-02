@@ -15,7 +15,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(R => R.EndDate).HasColumnType("date").IsRequired();
             builder.Property(R => R.Reason).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.Notes).HasColumnType("nvarchar(max)").IsRequired(false);
-            builder.Property(R => R.OverTimeHours).IsRequired(false);
+            builder.Property(R => R.Duration).HasColumnType("decimal(18,2)").IsRequired(false);
             builder.Property(R => R.ApprovedById).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.ApprovedByName).HasColumnType("nvarchar(max)").IsRequired(false);
             builder.Property(R => R.RejectedById).HasColumnType("nvarchar(max)").IsRequired(false);

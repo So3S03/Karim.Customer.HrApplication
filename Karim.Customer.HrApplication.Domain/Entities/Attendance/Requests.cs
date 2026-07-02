@@ -15,7 +15,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Attendance
         public string? ApprovedByName { get; set; }
         public string? RejectedById { get; set; }
         public string? RejectedByName { get; set; }
-        public decimal? OverTimeHours { get; set; }
+        public decimal? Duration { get; set; }
 
         //relationships
         public required string EmpId { get; set; }

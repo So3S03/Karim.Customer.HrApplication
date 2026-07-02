@@ -398,7 +398,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             if((RequestType)request.Type == RequestType.Overtime)
             {
                 //Check If The Overtime Hours Added
-                if (request.OverTimeHours is null) throw new BadRequestException("Must Provide Overtime Hours!");
+                if (request.Duration is null) throw new BadRequestException("Must Provide Overtime Hours!");
             }
             //Forming Requests Repo
             var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
