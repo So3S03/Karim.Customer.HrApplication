@@ -549,7 +549,9 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 //Get Salary Per Hour
                 var EmpSalaryPerHour = EmpSalaryPerDay / 8;
                 //Get Count Of Fingerprints This Month
-                var FingerprintCounts = emp.FingerprintLog.Count;
+                var FingerprintCounts = emp.FingerprintLog.Where(FP =>
+                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
+                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount)).Count();
                 //Get Differences Between ActualWorkingDays With FingerprintLog
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
                 //BaseDeductedSalary
@@ -567,7 +569,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 //Check On It
                 if(DelayedFingerprintCount > 0)
                 {
-                    DeductedSalary = DeductedSalary - (DelayedFingerprintCount * (decimal)0.5);
+                    DeductedSalary = DeductedSalary - ((DelayedFingerprintCount / 2) * EmpSalaryPerDay);
                 }
                 //Get Count Of Overtimes
                 var TotalOverTime = emp.Requests.Where(
@@ -576,7 +578,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     R.StartDate >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
                     R.EndDate <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)) &&
                     R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
-                    .Sum(E => E.OverTimeHours);
+                    .Sum(E => E.Duration);
 
                 //Create Object
                 var EmployeePayslip = new PayslipToAddDto()
@@ -605,6 +607,52 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             {
                 Status = true,
                 Message = "Payrolls Added Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> EditEmployeePayslip(PayslipToEditDto? payslipToEditDto)
+        {
+            //Check On Data
+            if(payslipToEditDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = payslipToEditDto switch
+            {
+                { Id: null or ""} => throw new BadRequestException("Invalid Payslip Id!"),
+                { BasicSalary: <= 0} => throw new BadRequestException("Invalid Basic Salary!"),
+                { NetSalary: <= 0} => throw new BadRequestException("Invalid Net Salary!"),
+                { Status: var s} when !Enum.IsDefined(typeof(PayrollStatus), s) => throw new BadRequestException("Invalid Salary Status!"),
+                { PaymentWay: var p} when !Enum.IsDefined(typeof(PayrollPaymentWay), p) => throw new BadRequestException("Invalid Payment Way!"),
+                _ => payslipToEditDto
+            };
+            //Create Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var PayslipSpec = new PayslipById(payslipToEditDto.Id);
+            //Get Payslip
+            var Payslip = await PayslipRepo.GetByIdAsync(PayslipSpec);
+            //Check On Payslip
+            if (Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If The Employee Are The Same
+            if(Payslip.EmployeeId == payslipToEditDto.EmployeeId) throw new ConflictException("Can't Change The Employee For This Payslip!");
+            //Create First Day Of Current Month
+            var FirstDayOfCurrentMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1);
+            //Create Last Day Of Current Month
+            var LastDayOfCurrentMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+            //Check On Period Not Less Than Current Month
+            if (Payslip.StartDate < FirstDayOfCurrentMonth || Payslip.EndDate > LastDayOfCurrentMonth) throw new ConflictException("Not Allowed Period, Check StartDate & EndDate");
+            //Mapping Data
+            var mappedPayslip = _mapper.Map(payslipToEditDto, Payslip);
+            //Update Payslip
+            PayslipRepo.Update(mappedPayslip);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Salary Edited Successfully!"
             };
             return Obj;
         }

@@ -6,9 +6,8 @@
         public DateOnly? EndDate { get; set; }
         public string? Reason { get; set; }
         public string? Notes { get; set; }
-        public decimal? OverTimeHours { get; set; }
+        public decimal? Duration { get; set; }
         public required int Type { get; set; }
-        //public int? Duration { get; set; }
 
         //relationships
         public required string EmpId { get; set; }
