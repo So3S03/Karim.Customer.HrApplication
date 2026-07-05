@@ -30,8 +30,8 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
                 s => s.ToString(),
                 s => (TaskType)Enum.Parse(typeof(TaskType), s)
                 ).IsRequired(true);
-            builder.HasOne(T => T.Project).WithMany(P => P.Tasks).HasForeignKey(T => T.ProjectId).OnDelete(DeleteBehavior.Cascade);
-            builder.HasOne(T => T.Ticket).WithMany(T => T.Tasks).HasForeignKey(T => T.TicketId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(T => T.Project).WithMany(P => P.Tasks).HasForeignKey(T => T.ProjectId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(T => T.Ticket).WithMany(T => T.Tasks).HasForeignKey(T => T.TicketId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(T => T.Employee).WithMany(E => E.Tasks).HasForeignKey(T => T.EmployeeId).OnDelete(DeleteBehavior.Cascade);
         }
     }
