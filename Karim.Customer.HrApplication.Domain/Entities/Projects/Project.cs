@@ -26,7 +26,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Projects
         //relations
         public string? DepartmentId { get; set; }
         public department? Department { get; set; }
-        public string? ContractId { get; set; }
         public Contract? Contract { get; set; }
         public ICollection<Ticket>? Tickets { get; set; }
         public ICollection<Tasks.Tasks>? Tasks { get; set; }

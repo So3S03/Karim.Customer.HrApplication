@@ -55,9 +55,6 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             //Fingerprints
             builder.HasMany(E => E.FingerprintLog).WithOne(FB => FB.Employee)
                 .HasForeignKey(FB => FB.EmpId).OnDelete(DeleteBehavior.Cascade);
-            //Contract
-            builder.HasOne(E => E.Contract).WithOne(C => C.Employee)
-                .HasForeignKey<Employee>(E => E.ContractId).OnDelete(DeleteBehavior.SetNull);
             //Tasks
             builder.HasMany(E => E.Tasks).WithOne(T => T.Employee)
                 .HasForeignKey(T => T.EmployeeId).OnDelete(DeleteBehavior.Cascade);

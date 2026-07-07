@@ -5,7 +5,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Payrolls
     {
         public NotTerminatedOrResignedEmployees(): base(E => E.EmployeeStatus != Domain.Entities.Employee.EmployeeStatus.Terminated &&
         E.EmployeeStatus != Domain.Entities.Employee.EmployeeStatus.Resigned &&
-        E.ContractId != null)
+        E.Contract != null)
         {
             AddInclude(E => E.FingerprintLog!);
             AddInclude(E => E.Requests!);
