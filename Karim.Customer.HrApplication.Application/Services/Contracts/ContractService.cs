@@ -307,6 +307,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Contract = await Repo.GetByIdAsync(Spec);
             //Chcek If THere is Contract
             if (Contract is null) throw new NotFoundException("Contract You Want To Delete Not Exist!");
+            //Check If Contract Active
+            if(Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Can't Delete Active Contract!");
             //Delete Contract
             Repo.Delete(Contract);
             //Complete
