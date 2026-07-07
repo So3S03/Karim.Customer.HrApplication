@@ -133,6 +133,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Project = await getProject(projectContractToAddDto.ProjectId);
             //Check If Project Exists
             if (Project is null) throw new NotFoundException("Project You Try To Add Contract For It Is Not Found!");
+            //Check If Project Already Has Contract
+            if (Project.Contract is not null) throw new ConflictException("Project Already Has A Contract! Manage The Existing One First.");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec For Checking On Code If Already Exists
