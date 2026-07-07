@@ -8,6 +8,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
         {
             AddInclude(E => E.Department!);
             AddInclude(E => E.ManagedDepartment!);
+            AddInclude(E => E.Contract!);
         }
     }
 }

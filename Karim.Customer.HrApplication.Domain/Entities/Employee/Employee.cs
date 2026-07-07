@@ -47,7 +47,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
 
         //Contract
         public Contracts.Contract? Contract { get; set; }
-        public string? ContractId { get; set; }
 
         //Tasks
         public ICollection<Tasks.Tasks>? Tasks { get; set; }

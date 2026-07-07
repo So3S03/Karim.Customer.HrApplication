@@ -72,6 +72,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Employee = await getEmployee(employeeContractToAddDto.EmpId);
             //Check If Employee Exists
             if (Employee is null) throw new NotFoundException("Employee You Try To Add Contract For Him Is Not Found!");
+            //Check If Employee Already Has Contract
+            if(Employee.Contract is not null) throw new ConflictException("Employee Already Has A Contract! Manage The Existing One First.");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec For Checking On Code If Already Exists
@@ -88,6 +90,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             Employee.WorkType = (WorkType)employeeContractToAddDto.EmployeeWorkType;
             //Update Employee Salary
             Employee.Salary = employeeContractToAddDto.EmpSalary;
+            //Turn Employee Has Contract To True
+            Employee.IsHasContract = true;
+            //Set Employee Contract End Date
+            Employee.ContractEndDate = new DateTime(employeeContractToAddDto.EndDate.Year, employeeContractToAddDto.EndDate.Month, employeeContractToAddDto.EndDate.Day);
             //Create Emp Repo
             var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
             //Update Employee
@@ -127,6 +133,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Project = await getProject(projectContractToAddDto.ProjectId);
             //Check If Project Exists
             if (Project is null) throw new NotFoundException("Project You Try To Add Contract For It Is Not Found!");
+            //Check If Project Already Has Contract
+            if (Project.Contract is not null) throw new ConflictException("Project Already Has A Contract! Manage The Existing One First.");
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec For Checking On Code If Already Exists
@@ -307,6 +315,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Contract = await Repo.GetByIdAsync(Spec);
             //Chcek If THere is Contract
             if (Contract is null) throw new NotFoundException("Contract You Want To Delete Not Exist!");
+            //Check If Contract Active
+            if(Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Can't Delete Active Contract!");
             //Delete Contract
             Repo.Delete(Contract);
             //Complete
