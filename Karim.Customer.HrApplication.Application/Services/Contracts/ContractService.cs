@@ -199,7 +199,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Update Contract
             Repo.Update(mappedData);
             //Check If Employee Work Type Still The Same Or Not
-            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType || Employee.Salary != employeeContractToUpdateDto.EmpSalary)
+            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType || Employee.Salary != employeeContractToUpdateDto.EmpSalary || Employee.ContractEndDate != new DateTime(employeeContractToUpdateDto.EndDate.Year, employeeContractToUpdateDto.EndDate.Month, employeeContractToUpdateDto.EndDate.Day))
             {
                 //Create Repo
                 var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
@@ -207,6 +207,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
                 Employee.WorkType = (WorkType)employeeContractToUpdateDto.EmployeeWorkType;
                 //Update Employee Salary
                 Employee.Salary = employeeContractToUpdateDto.EmpSalary;
+                //Set Employee Contract End Date
+                Employee.ContractEndDate = new DateTime(employeeContractToUpdateDto.EndDate.Year, employeeContractToUpdateDto.EndDate.Month, employeeContractToUpdateDto.EndDate.Day);
                 //Update Employee
                 EmpRepo.Update(Employee);
             }
