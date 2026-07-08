@@ -278,7 +278,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Specification
-            var Spec = new ContractByIdSpecification(ContractId);
+            var Spec = new ContractByIdWithFilterByTypeSpecification(ContractId, ContractType.Project);
             //Get Contract 
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check On Contract
@@ -295,7 +295,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Forming Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec
-            var Spec = new ContractByIdSpecification(ContractId);
+            var Spec = new ContractByIdWithFilterByTypeSpecification(ContractId, ContractType.Employee);
             //Get Contract
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check On Contract
