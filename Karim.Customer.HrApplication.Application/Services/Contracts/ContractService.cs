@@ -317,6 +317,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             if (Contract is null) throw new NotFoundException("Contract You Want To Delete Not Exist!");
             //Check If Contract Active
             if(Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Can't Delete Active Contract!");
+            //Check If Contract For Employee
+            if(Contract.Employee is not null)
+            {
+                //Get Employee
+                var Employee = Contract.Employee;
+                //Turn Employee Has Contract To False
+                Employee.IsHasContract = false;
+                //Set Employee Contract End Date To Null
+                Employee.ContractEndDate = null;
+                //Create Emp Repo
+                var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+                //Update Employee
+                EmpRepo.Update(Employee);
+            }
             //Delete Contract
             Repo.Delete(Contract);
             //Complete
