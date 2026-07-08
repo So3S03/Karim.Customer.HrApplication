@@ -1,20 +1,22 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Specifications.Contracts;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
+using Karim.Customer.HrApplication.Application.Specifications.Tasks;
 using Karim.Customer.HrApplication.Domain.Entities._Common;
 using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Karim.Customer.HrApplication.Domain.Entities.Employee;
-using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
-using project = Karim.Customer.HrApplication.Domain.Entities.Projects.Project;
+using Karim.Customer.HrApplication.Domain.Entities.Projects;
+using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Contracts;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using System.Text.RegularExpressions;
-using Karim.Customer.HrApplication.Application.Specifications.Employee;
-using Karim.Customer.HrApplication.Domain.Entities.Projects;
-using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
+using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
+using project = Karim.Customer.HrApplication.Domain.Entities.Projects.Project;
 
 namespace Karim.Customer.HrApplication.Application.Services.Contracts
 {
@@ -199,7 +201,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Update Contract
             Repo.Update(mappedData);
             //Check If Employee Work Type Still The Same Or Not
-            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType || Employee.Salary != employeeContractToUpdateDto.EmpSalary)
+            if(Employee.WorkType != (WorkType)employeeContractToUpdateDto.EmployeeWorkType || Employee.Salary != employeeContractToUpdateDto.EmpSalary || Employee.ContractEndDate != new DateTime(employeeContractToUpdateDto.EndDate.Year, employeeContractToUpdateDto.EndDate.Month, employeeContractToUpdateDto.EndDate.Day))
             {
                 //Create Repo
                 var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
@@ -207,6 +209,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
                 Employee.WorkType = (WorkType)employeeContractToUpdateDto.EmployeeWorkType;
                 //Update Employee Salary
                 Employee.Salary = employeeContractToUpdateDto.EmpSalary;
+                //Set Employee Contract End Date
+                Employee.ContractEndDate = new DateTime(employeeContractToUpdateDto.EndDate.Year, employeeContractToUpdateDto.EndDate.Month, employeeContractToUpdateDto.EndDate.Day);
                 //Update Employee
                 EmpRepo.Update(Employee);
             }
@@ -276,7 +280,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Specification
-            var Spec = new ContractByIdSpecification(ContractId);
+            var Spec = new ContractByIdWithFilterByTypeSpecification(ContractId, ContractType.Project);
             //Get Contract 
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check On Contract
@@ -293,7 +297,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             //Forming Repo
             var Repo = _unitOfWork.GenerateRepository<Contract, string>();
             //Create Spec
-            var Spec = new ContractByIdSpecification(ContractId);
+            var Spec = new ContractByIdWithFilterByTypeSpecification(ContractId, ContractType.Employee);
             //Get Contract
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check On Contract
@@ -317,6 +321,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             if (Contract is null) throw new NotFoundException("Contract You Want To Delete Not Exist!");
             //Check If Contract Active
             if(Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Can't Delete Active Contract!");
+            //Check If Contract For Employee
+            if(Contract.Employee is not null)
+            {
+                //Get Employee
+                var Employee = Contract.Employee;
+                //Turn Employee Has Contract To False
+                Employee.IsHasContract = false;
+                //Set Employee Contract End Date To Null
+                Employee.ContractEndDate = null;
+                //Create Emp Repo
+                var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+                //Update Employee
+                EmpRepo.Update(Employee);
+            }
             //Delete Contract
             Repo.Delete(Contract);
             //Complete
@@ -367,13 +385,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check If Contract Exist
             if (Contract is null) throw new NotFoundException("Contract Not Exist!");
-            //Check if Has Project
-            if(Contract.ProjectId is not null && Contract.EmpId is null)
-            {
-                //Activate Project
-                var isActivated = await _projectServices.ActivateProject(Contract.ProjectId) is not null;
-                if (!isActivated) throw new Exception("Something Went Wrong");
-            }
+            //Check If Contract Already Active
+            if (Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Contract Is Already Active!");
             //Activate Contract
             Contract.ContractStatus = ContractStatus.Active;
             //Update
@@ -402,14 +415,32 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check On Contract
             if(Contract is null) throw new NotFoundException("Contract You Want To Terminate Doesn't Exist!");
+            //Check If Contract Already Terminated
+            if (Contract.ContractStatus == ContractStatus.Terminated) throw new ConflictException("Contract Is Already Terminated!");
+            //Check If Contract Already Expired
+            if (Contract.ContractStatus == ContractStatus.Expired) throw new ConflictException("This Contract Is Expired!");
             //Check if Has Project
-            if(Contract.Project is not null)
+            if (Contract.Project is not null)
             {
                 //Check On Project Status
                 if (Contract.Project.ProjectStatus == ProjectStatus.Active) throw new ConflictException("Can't Terminate This Contract Because It Has An Active Project Ongoing!");
             }
+            //Check If Contract For Employee
+            if (Contract.Employee is not null)
+            {
+                //Get Employee
+                var Employee = Contract.Employee;
+                //Get Tasks On This Employee
+                var TasksRepo = _unitOfWork.GenerateRepository<Tasks, string>();
+                //Get Tasks For This Employee Spec
+                var TasksSpec = new InprogressTasksByEmployeeSpecification(Employee.Id);
+                //Get All Tasks For This Employee
+                var Tasks = await TasksRepo.GetAllAsync(TasksSpec);
+                //Check If This Employee Has Tasks Ongoing
+                if (Tasks.Any()) throw new ConflictException("Can't Terminate This Contract Because The Employee Has Ongoing Tasks!");
+            }
             //Change Status
-            Contract.ContractStatus = ContractStatus.Active;
+            Contract.ContractStatus = ContractStatus.Terminated;
             //Update
             Repo.Update(Contract);
             //Complete 
