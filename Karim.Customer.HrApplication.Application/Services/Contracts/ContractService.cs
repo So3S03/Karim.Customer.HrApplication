@@ -383,13 +383,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             var Contract = await Repo.GetByIdAsync(Spec);
             //Check If Contract Exist
             if (Contract is null) throw new NotFoundException("Contract Not Exist!");
-            //Check if Has Project
-            if(Contract.ProjectId is not null && Contract.EmpId is null)
-            {
-                //Activate Project
-                var isActivated = await _projectServices.ActivateProject(Contract.ProjectId) is not null;
-                if (!isActivated) throw new Exception("Something Went Wrong");
-            }
+            //Check If Contract Already Active
+            if (Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Contract Is Already Active!");
             //Activate Contract
             Contract.ContractStatus = ContractStatus.Active;
             //Update
