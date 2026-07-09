@@ -9,6 +9,7 @@ using Karim.Customer.HrApplication.Shared.Exceptions;
 using System.Text.RegularExpressions;
 using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
+using Karim.Customer.HrApplication.Domain.Entities.Projects;
 
 namespace Karim.Customer.HrApplication.Application.Services.Ticket
 {
@@ -245,6 +246,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
             if (Tiket is null) throw new NotFoundException("Ticket Not Exist!");
             //Check On Code
             if (Tiket.TicketCode != data.TicketCode) throw new BadRequestException("Registered Code Not Match The Provided Code!");
+            //Get Project
+            var Project = Tiket.Project;
+            //Check On Project
+            if (Project is null) throw new ConflictException("Can't Adjust Ticket Have No Project!");
+            //Check On Project Status
+            switch (Project.ProjectStatus)
+            {
+                case Domain.Entities.Projects.ProjectStatus.Draft:
+                    throw new ConflictException("Can't Update Ticket That Have Draft Project, Activate Project First!");
+                case Domain.Entities.Projects.ProjectStatus.Cancelled:
+                    throw new ConflictException("Can't Update Ticket That Have Cancelled Project!");
+                case Domain.Entities.Projects.ProjectStatus.OnHold:
+                    throw new ConflictException("Can't Update Ticket That Have OnHold Project!");
+            }
             //Mapping Data
             var mappedData = _mapper.Map(data, Tiket);
             //Add Data
