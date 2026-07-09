@@ -8,6 +8,7 @@ using Karim.Customer.HrApplication.Application.Specifications.Tickets;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using System.Text.RegularExpressions;
 using Karim.Customer.HrApplication.Domain.Entities.Tickets;
+using Karim.Customer.HrApplication.Application.Specifications.Projects;
 
 namespace Karim.Customer.HrApplication.Application.Services.Ticket
 {
@@ -48,13 +49,32 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
             //Check On Specific Data
             _ = data switch
             {
+                { TicketCode: null or "" } => throw new BadRequestException("Invalid Code"),
                 { TicketCode: var code } when !Regex.IsMatch(code, codePattern) => throw new BadRequestException("Invalid Code"),
                 { Name: null or "" } => throw new BadRequestException("Invalid Name"),
                 { HoursNumber: <= 0 } => throw new BadRequestException("Tickets Hours Value Must Be Greater Than 0"),
                 { ProjectId: null or "" } => throw new BadRequestException("Must Select Project That Has The Issue"),
                 _ => data
             };
-            //Create Repo
+            //Create Project Repo
+            var ProjectRepo = _unitOfWork.GenerateRepository<Domain.Entities.Projects.Project, string>();
+            //Create Project Spec
+            var ProjSpec = new ProjectByIdSpecification(data.ProjectId);
+            //Get Project
+            var Project = await ProjectRepo.GetByIdAsync(ProjSpec);
+            //Check On Project
+            if(Project is null) throw new BadRequestException("Can't Create Ticket For Non-Existent Project!");
+            //Check On Project STATUS
+            switch(Project.ProjectStatus)
+            {
+                case Domain.Entities.Projects.ProjectStatus.Draft:
+                    throw new ConflictException("Can't Create Ticket On Draft Project, Activate Project First!");
+                case Domain.Entities.Projects.ProjectStatus.Cancelled:
+                    throw new ConflictException("Can't Create Ticket On Cancelled Project!");
+                case Domain.Entities.Projects.ProjectStatus.OnHold:
+                    throw new ConflictException("Can't Create Ticket On OnHold Project!");
+            }
+            //Create Ticket Repo
             var Repo = _unitOfWork.GenerateRepository<ticket, string>();
             //Create Code Spec
             var CodeSpec = new TicketByCodeSpecification(data.TicketCode);
