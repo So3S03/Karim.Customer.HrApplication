@@ -57,6 +57,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
                 { ProjectId: null or "" } => throw new BadRequestException("Must Select Project That Has The Issue"),
                 _ => data
             };
+            //Create Ticket Repo
+            var Repo = _unitOfWork.GenerateRepository<ticket, string>();
+            //Create Code Spec
+            var CodeSpec = new TicketByCodeSpecification(data.TicketCode);
+            //Get Ticket
+            var Tiket = await Repo.GetByIdAsync(CodeSpec);
+            //Check If Code Already Exist
+            if (Tiket is not null) throw new ConflictException("Ticket Code Already Exist!");
             //Create Project Repo
             var ProjectRepo = _unitOfWork.GenerateRepository<Domain.Entities.Projects.Project, string>();
             //Create Project Spec
@@ -75,14 +83,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
                 case Domain.Entities.Projects.ProjectStatus.OnHold:
                     throw new ConflictException("Can't Create Ticket On OnHold Project!");
             }
-            //Create Ticket Repo
-            var Repo = _unitOfWork.GenerateRepository<ticket, string>();
-            //Create Code Spec
-            var CodeSpec = new TicketByCodeSpecification(data.TicketCode);
-            //Get Ticket
-            var Tiket = await Repo.GetByIdAsync(CodeSpec);
-            //Check If Code Already Exist
-            if (Tiket is not null) throw new ConflictException("Ticket Code Already Exist!");
             //Mapping Data
             var mappedData = _mapper.Map<ticket>(data);
             //Add Data
@@ -111,10 +111,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
             var Ticket = await Repo.GetByIdAsync(Spec);
             //Check On Ticket
             if (Ticket is null) throw new NotFoundException("Ticket Not Exist!");
+            //Create Tasks Repo
+            var TasksRepo = _unitOfWork.GenerateRepository<Domain.Entities.Tasks.Tasks, string>();
+            //Create Spec
+            var TasksSpec = new InProgressTasksByTicketId(Ticket.Id);
+            //Get All Tasks
+            var TasksList = await TasksRepo.GetAllAsync(TasksSpec);
+            //Check If Ticket Has Tasks On Going && Status == InProgress
+            if (TasksList.Any()) throw new ConflictException("Can't Close Ticket That Has OnGoing Tasks");
+            //Check If Has Tasks On Going && Status == InProgress
+            if (Ticket.Status == TicketStatus.InProgres) throw new BadRequestException("Can't Archive InProgress Ticket!");
             //Check If Ticket Already Archived
             if (Ticket.IsArchive) throw new ConflictException("This Ticket Already Archived!");
-            //Check If Has Tasks On Going && Status == InProgress
-            if (Ticket.Status == TicketStatus.InProgres) throw new BadRequestException("Can't Archive Ticket With Ongoing Tasks!");
             //Archiving Ticket
             Ticket.IsArchive = true;
             //Update Ticket
@@ -340,6 +348,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
             if (Ticket is null) throw new NotFoundException("Ticket Not Exist!");
             //Check If Ticket Already Closed
             if (Ticket.Status != TicketStatus.Closed) throw new ConflictException("Can't Open Non Closed Ticket");
+            //Check On Project
+            if (Ticket.Project is null) throw new BadRequestException("Can't Operate On Ticket That Has No Project!");
+            //Check On Project Status
+            switch (Ticket.Project.ProjectStatus)
+            {
+                case Domain.Entities.Projects.ProjectStatus.Draft:
+                    throw new ConflictException("Can't Open Ticket That Have Draft Project");
+                case Domain.Entities.Projects.ProjectStatus.Cancelled:
+                    throw new ConflictException("Can't Open Ticket That Have Cancelled Project!");
+                case Domain.Entities.Projects.ProjectStatus.OnHold:
+                    throw new ConflictException("Can't Open Ticket That Have OnHold Project!");
+            }
             //Change Status
             Ticket.Status = TicketStatus.Opened;
             //Update
