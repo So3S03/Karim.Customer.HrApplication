@@ -57,6 +57,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
                 { ProjectId: null or "" } => throw new BadRequestException("Must Select Project That Has The Issue"),
                 _ => data
             };
+            //Create Ticket Repo
+            var Repo = _unitOfWork.GenerateRepository<ticket, string>();
+            //Create Code Spec
+            var CodeSpec = new TicketByCodeSpecification(data.TicketCode);
+            //Get Ticket
+            var Tiket = await Repo.GetByIdAsync(CodeSpec);
+            //Check If Code Already Exist
+            if (Tiket is not null) throw new ConflictException("Ticket Code Already Exist!");
             //Create Project Repo
             var ProjectRepo = _unitOfWork.GenerateRepository<Domain.Entities.Projects.Project, string>();
             //Create Project Spec
@@ -75,14 +83,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Ticket
                 case Domain.Entities.Projects.ProjectStatus.OnHold:
                     throw new ConflictException("Can't Create Ticket On OnHold Project!");
             }
-            //Create Ticket Repo
-            var Repo = _unitOfWork.GenerateRepository<ticket, string>();
-            //Create Code Spec
-            var CodeSpec = new TicketByCodeSpecification(data.TicketCode);
-            //Get Ticket
-            var Tiket = await Repo.GetByIdAsync(CodeSpec);
-            //Check If Code Already Exist
-            if (Tiket is not null) throw new ConflictException("Ticket Code Already Exist!");
             //Mapping Data
             var mappedData = _mapper.Map<ticket>(data);
             //Add Data
