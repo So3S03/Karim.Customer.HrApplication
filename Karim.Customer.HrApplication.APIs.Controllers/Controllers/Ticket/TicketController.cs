@@ -60,7 +60,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Ticket
         [HttpPut("CloseTicket")]
         public async Task<ActionResult<ActionStatusDto>> CloseTicket(string? ticketId)
         {
-            var result = await _servicesManager.TicketServices.ArchiveTicket(ticketId);
+            var result = await _servicesManager.TicketServices.CloseTicket(ticketId);
             return Ok(result);
         }
 

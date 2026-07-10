@@ -11,6 +11,7 @@
         public required DateOnly StartDate { get; set; }
         public required DateOnly EndDate { get; set; }
         public string? Description { get; set; }
+        public bool IsArchive { get; set; }
         public required string ProjectId { get; set; }
         public required string ProjectCode { get; set; }
         public required string ProjectName { get; set; }

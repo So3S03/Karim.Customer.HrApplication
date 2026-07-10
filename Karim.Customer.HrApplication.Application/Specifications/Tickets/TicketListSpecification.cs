@@ -13,6 +13,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Tickets
             )
         {
             AddInclude(T => T.Project);
+            SetOrderByAsc(T => T.TicketCode);
         }
     }
 }
