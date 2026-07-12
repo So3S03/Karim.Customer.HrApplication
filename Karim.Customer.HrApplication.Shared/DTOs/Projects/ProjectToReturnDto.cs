@@ -13,6 +13,7 @@
         public DateTime? CanceledAt { get; set; }
         public string? CancelationReason { get; set; }
         public required decimal CompletionPercentage { get; set; }
+        public required decimal HoursAmount { get; set; }
         public required decimal ProjectCoast { get; set; }
         public required string CoastCurrency { get; set; }
         public string? DepartmentId { get; set; }
