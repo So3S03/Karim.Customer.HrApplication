@@ -1,12 +1,14 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Task;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Tickets;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
 using Karim.Customer.HrApplication.Application.Specifications.Task;
 using Karim.Customer.HrApplication.Application.Specifications.Tasks;
 using Karim.Customer.HrApplication.Application.Specifications.Tickets;
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
 using Karim.Customer.HrApplication.Domain.Entities.Tasks;
+using Karim.Customer.HrApplication.Domain.Entities.Tickets;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Tasks;
@@ -27,6 +29,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             //Check On Specific Data
             _ = task switch
             {
+                { Code: null or "" } => throw new BadRequestException("Ivalid Code"),
                 { Code: var code } when !Regex.IsMatch(code, codePattern) => throw new BadRequestException("Ivalid Code"),
                 { Name: null or "" } => throw new BadRequestException("Must Provide Name"),
                 { EmployeeId: null or "" } => throw new BadRequestException("Must Provide Employee"),
@@ -34,9 +37,23 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 { Type: var type} when !Enum.IsDefined(typeof(TaskType), type) => throw new BadRequestException("Invalid Task Type"),
                 _ => task
             };
+            //Check On Project Id && Ticket Id
+            if(task.ProjectId is null && task.TicketId is null) throw new BadRequestException("Must Provide Project Or Ticket To Add Task!");
+            //Check If Employee Exist
+            //Create Emp Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<Domain.Entities.Employee.Employee, string>();
+            //Create Emp Spec
+            var EmpSpec = new EmployeeByIdSepecification(task.EmployeeId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
+            //Check On Employee
+            if(Employee is null) throw new NotFoundException("Employee Not Exist!");
+            //Check That Employee Not Terminated
+            if(Employee.EmployeeStatus.HasValue && (Employee.EmployeeStatus.Value == Domain.Entities.Employee.EmployeeStatus.Terminated || Employee.EmployeeStatus.Value == Domain.Entities.Employee.EmployeeStatus.Resigned))
+                throw new ConflictException("Cannot Add Task To Terminated / Resigned Employee!");
             //Check On The Time Amount
             //Project
-            if((TaskType)task.Type == TaskType.Project)
+            if ((TaskType)task.Type == TaskType.Project)
             {
                 if(string.IsNullOrEmpty(task.ProjectId)) throw new BadRequestException("Must Provid Project!");
                 //Create Repo
@@ -47,15 +64,29 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 var project = await ProjRepo.GetByIdAsync(ProjSpec);
                 //Check On It
                 if (project is null) throw new NotFoundException("Project Not Exist!");
+                //Check On Project Status
+                switch(project.ProjectStatus)
+                {
+                    case ProjectStatus.Draft:
+                        throw new ConflictException("Can't Add Task To Draft Project, Activate Project First!");
+                    case ProjectStatus.Cancelled:
+                        throw new ConflictException("Can't Add Task To Canceled Project!");
+                    case ProjectStatus.OnHold:
+                        throw new ConflictException("Can't Add Task To On-Hold Project!");
+                    case ProjectStatus.Completed:
+                        throw new ConflictException("Can't Add Task To Completed Project!");
+                }
                 //Check If The Project Hrs < Task Hrs
                 if (task.AssignedHours > project.HoursAmount) throw new ConflictException("Task Hours Exceeded Project Hours, Must Be Equal Or Less Than Project Hours!");
                 //Update Project Hours
                 project.HoursAmount = project.HoursAmount - task.AssignedHours;
+                //Update Project Status If Needed
+                if(project.ProjectStatus == ProjectStatus.Draft) project.ProjectStatus = ProjectStatus.InProgress;
                 //Update
                 ProjRepo.Update(project);
             }
             //Ticket
-            if((TaskType)task.Type == TaskType.Ticket)
+            else if((TaskType)task.Type == TaskType.Ticket)
             {
                 //Check If There Is Project | Ticket Exist
                 if (string.IsNullOrEmpty(task.TicketId)) throw new BadRequestException("Must Provid Ticket!");
@@ -67,10 +98,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 var ticket = await TickRepo.GetByIdAsync(TickSpec);
                 //Check On It
                 if (ticket is null) throw new NotFoundException("Ticket Not Exist!");
+                //Check On Ticket Status
+                if(ticket.Status == TicketStatus.Closed) throw new ConflictException("Can't Add Task To Closed Ticket!");
+                //Check On Ticket Period
+                var today = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+                //Check If End Date Passed Todays Date
+                if(ticket.EndDate < today) throw new ConflictException($"Ticket Ended On {ticket.EndDate.ToString()}, Edit The Ticket Period First!");
+                //Check If Task Period Exist In The Ticket Period
+                if(task.StartDate < ticket.StartDate || task.EndDate > ticket.EndDate) throw new ConflictException($"Task Period {task.StartDate} - {task.EndDate} Is Not Within Ticket Period {ticket.StartDate} - {ticket.EndDate}!");
                 //Check If The Project Hrs < Task Hrs
                 if (task.AssignedHours > ticket.HoursNumber) throw new ConflictException("Task Hours Exceeded Ticket Hours, Must Be Equal Or Less Than Ticket Hours!");
                 //Update Ticket Hours
                 ticket.HoursNumber = ticket.HoursNumber - task.AssignedHours;
+                //Update Ticket Status If Needed
+                if (ticket.Status == TicketStatus.Opened) ticket.Status = TicketStatus.InProgres;
                 //Update
                 TickRepo.Update(ticket);
             }
