@@ -8,6 +8,7 @@
         public string? Description { get; set; }
         public required string ProjectType { get; set; }
         public required string ProjectStatus { get; set; }
+        public required decimal HoursAmount { get; set; }
         public DateTime? ActivatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? CanceledAt { get; set; }

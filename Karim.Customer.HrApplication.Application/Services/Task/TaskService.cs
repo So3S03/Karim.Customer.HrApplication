@@ -76,6 +76,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                     case ProjectStatus.Completed:
                         throw new ConflictException("Can't Add Task To Completed Project!");
                 }
+                //Check If Employee Exist In The Same Department As The Project
+                if(Employee.DepartmentId != project.DepartmentId) throw new ConflictException("Employee Is Not In The Department The Project Assigned To!");
                 //Check If The Project Hrs < Task Hrs
                 if (task.AssignedHours > project.HoursAmount) throw new ConflictException("Task Hours Exceeded Project Hours, Must Be Equal Or Less Than Project Hours!");
                 //Update Project Hours
