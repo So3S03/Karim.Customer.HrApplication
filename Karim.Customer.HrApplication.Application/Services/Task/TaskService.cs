@@ -148,6 +148,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var Task = await Repo.GetByIdAsync(Spec);
             //Check On Task
             if (Task is null) throw new NotFoundException("Task Not Exist!");
+            //Check On Task Status
+            if (Task.Status == Domain.Entities.Tasks.TaskStatus.InProgress) throw new ConflictException("Can't Archive InProgress Task!");
             //Check If Already Archived
             if (Task.isArchived) throw new ConflictException("Task Already Archived");
             //Update isArchived
