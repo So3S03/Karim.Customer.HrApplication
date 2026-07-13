@@ -104,6 +104,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 if (ticket is null) throw new NotFoundException("Ticket Not Exist!");
                 //Check On Ticket Status
                 if(ticket.Status == TicketStatus.Closed) throw new ConflictException("Can't Add Task To Closed Ticket!");
+                //Check If Ticket Archived
+                if(ticket.IsArchive == true) throw new ConflictException("Can't Add Task To Archived Ticket!");
                 //Check On Ticket Period
                 var today = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
                 //Check If End Date Passed Todays Date
@@ -227,7 +229,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<MaxCodeResult> GenerateMaxCode()
         {
             //Create Repo
@@ -256,7 +257,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             //Return Code
             return Obj;
         }
-
         public async Task<DataWithPagination<ICollection<TaskToReturnDto>>> GetAllTasks(TaskParameters parameters)
         {
             //Forming Repo
