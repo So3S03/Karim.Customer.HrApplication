@@ -38,7 +38,9 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 _ => task
             };
             //Check On Project Id && Ticket Id
-            if(task.ProjectId is null && task.TicketId is null) throw new BadRequestException("Must Provide Project Or Ticket To Add Task!");
+            if(string.IsNullOrEmpty(task.ProjectId) && string.IsNullOrEmpty(task.TicketId)) throw new BadRequestException("Must Provide Project Or Ticket To Add Task!");
+            //Check If Both Have Values
+            else if(string.IsNullOrEmpty(task.ProjectId) == false && string.IsNullOrEmpty(task.TicketId) == false) throw new BadRequestException("Cannot Add Task On Both Project And Ticket In The Same Time!");
             //Check If Employee Exist
             //Create Emp Repo
             var EmpRepo = _unitOfWork.GenerateRepository<Domain.Entities.Employee.Employee, string>();
@@ -135,7 +137,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<ActionStatusDto> ArchiveTask(string? Id)
         {
             //Check On Id
@@ -168,7 +169,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<ActionStatusDto> CloseTask(string? Id)
         {
             //Check On Id
@@ -199,7 +199,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<ActionStatusDto> DeleteTask(string? Id)
         {
             //Check On Id
@@ -212,6 +211,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var Task = await Repo.GetByIdAsync(Spec);
             //Check On Task
             if (Task is null) throw new NotFoundException("Task Not Exist!");
+            //Check On Task Status
             //Delete Task
             Repo.Delete(Task);
             //Complete
