@@ -212,6 +212,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             //Check On Task
             if (Task is null) throw new NotFoundException("Task Not Exist!");
             //Check On Task Status
+            if(Task.Status == Domain.Entities.Tasks.TaskStatus.InProgress) throw new ConflictException("Can't Delete InProgress Task!");
             //Delete Task
             Repo.Delete(Task);
             //Complete
