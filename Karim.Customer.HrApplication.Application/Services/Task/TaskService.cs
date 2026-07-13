@@ -1,4 +1,5 @@
-﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
+﻿using Karim.Customer.HrApplication.Application._Common.EnumConverter;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Task;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Tickets;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
@@ -273,7 +274,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var Result = new DataWithPagination<ICollection<TaskToReturnDto>>(parameters.PageNumber, parameters.PageNumber + 1, parameters.PageSize, TotalRecords, mappedData);
             return Result;
         }
-
         public async Task<TaskDetailsToReturnDto> GetTaskById(string? Id)
         {
             //Check On Id
@@ -290,7 +290,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var mappedData = _mapper.Map<TaskDetailsToReturnDto>(Task);
             return mappedData;
         }
-
         public async Task<ActionStatusDto> PullingTask(TaskToPullDto? data)
         {
             //Check On data
@@ -301,6 +300,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 { TaskId: null or ""} => throw new BadRequestException("Task Id Invalid!"),
                 { EmployeeId: null or ""} => throw new BadRequestException("Employee Id Invalid!"),
                 { TodaysWorkedHours: null or <= 0} => throw new BadRequestException("Invalid Worked Hours!"),
+                { Status: var status } when !Enum.IsDefined(typeof(TaskToPullStatuses), status) => throw new BadRequestException("Invalid Task Status!"),
                 _ => data
             };
             //Forming Repo
@@ -311,32 +311,36 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var existingTask = await Repo.GetByIdAsync(Spec);
             //Chcek On Task
             if (existingTask is null) throw new NotFoundException("Task Not Exist!");
+            //Check If The Task Is Archived
+            if (existingTask.isArchived) throw new ConflictException("Can't Pull From Archived Task!");
             //Check If The Assigned Employee is The Same 
-            if (existingTask.EmployeeId != data.EmployeeId) throw new ForbiddenException("This Task Is Assigned On Different Employee!");
+            if (existingTask.EmployeeId != data.EmployeeId) throw new ForbiddenException("You Are Not Allowed To Pull This Task!");
             //Check If Today is After End Date
             if (new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day) > existingTask.EndDate) throw new BadRequestException("Can't Pull Task Because Todays Date Exceded Task EndDate!");
             //Check if pulled Hours Number > Task Hrs
             if (existingTask.TaskHours < data.TodaysWorkedHours || existingTask.RemainingHours < data.TodaysWorkedHours) throw new ConflictException("Number of Hours You Have Entered Exceeded Task Hour Budget!");
             //Check If LastPull Exist
-            if(existingTask.LastPull is null || existingTask.LastPull != DateTime.Now)
+            if(existingTask.LastPull is null || existingTask.LastPull.Value.Date != DateTime.Now.Date)
             {
                 //Make Log For Last Pull
                 existingTask.LastPull = DateTime.Now;
                 //Log Worked Hours
-                existingTask.WorkedHours += data.TodaysWorkedHours.Value;
+                if(existingTask.WorkedHours.HasValue == false)  existingTask.WorkedHours = data.TodaysWorkedHours.Value;
+                else existingTask.WorkedHours += data.TodaysWorkedHours.Value;
                 //Log Last Used Hrs
                 existingTask.LastUsedHours = data.TodaysWorkedHours.Value;
                 //Deduct The Hours From Remaining
                 existingTask.RemainingHours = existingTask.RemainingHours - data.TodaysWorkedHours.Value;
             }
-            else if(existingTask.LastPull is not null && existingTask.LastPull == DateTime.Now)
+            else if(existingTask.LastPull is not null && existingTask.LastPull.Value.Date == DateTime.Now.Date)
             {
                 //Log Last Pull
                 existingTask.LastPull = DateTime.Now;
                 //Add The Worked Hrs To Remaining
                 existingTask.RemainingHours += existingTask.LastUsedHours!.Value;
                 //Deduct Last Used Hours From Worked Hours
-                existingTask.WorkedHours -= existingTask.LastUsedHours.Value;
+                if (existingTask.WorkedHours.HasValue == false) existingTask.WorkedHours = 0;
+                else existingTask.WorkedHours -= existingTask.LastUsedHours!.Value;
                 //Reset Last Used Hrs
                 existingTask.LastUsedHours = data.TodaysWorkedHours.Value;
                 //Log New Worked Hours
@@ -344,6 +348,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 //Deduct The Hours From Remaining
                 existingTask.RemainingHours = existingTask.RemainingHours - data.TodaysWorkedHours.Value;
             }
+            existingTask.Status = (Domain.Entities.Tasks.TaskStatus)data.Status;
             //Update
             Repo.Update(existingTask);
             //Complete
@@ -358,7 +363,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<ActionStatusDto> ReOpenTask(string? Id)
         {
             //Check On Id
@@ -389,7 +393,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             };
             return Obj;
         }
-
         public async Task<ActionStatusDto> UnArchiveTask(string? Id)
         {
             //Check On Id
@@ -501,6 +504,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 Message = "Task Updated Successfully!"
             };
             return Obj;
+        }
+        public ICollection<EnumDto> GetTaskToPullStatuses()
+        {
+            var list = EnumsConvertion.CreateEnumLists<TaskToPullStatuses>();
+            return list;
         }
     }
 }

@@ -84,5 +84,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Task
             var tasks = await _servicesManager.TaskService.UnArchiveTask(Id);
             return Ok(tasks);
         }
+        [HttpGet("GetTaskStatusesForPull")]
+        public ActionResult<ICollection<EnumDto>> GetTaskStatusesForPull()
+        {
+            var statuses = _servicesManager.TaskService.GetTaskToPullStatuses();
+            return Ok(statuses);
+        }
     }
 }

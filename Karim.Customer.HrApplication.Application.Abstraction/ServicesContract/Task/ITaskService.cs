@@ -16,5 +16,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> PullingTask(TaskToPullDto? data);
         Task<DataWithPagination<ICollection<TaskToReturnDto>>> GetAllTasks(TaskParameters parameters);
         Task<ActionStatusDto> DeleteTask(string? Id);
+        ICollection<EnumDto> GetTaskToPullStatuses();
     }
 }
