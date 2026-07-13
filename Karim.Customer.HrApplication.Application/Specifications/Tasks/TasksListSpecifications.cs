@@ -19,6 +19,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Tasks
             AddInclude(x => x.Project!);
             AddInclude(x => x.Ticket!);
             AddInclude(x => x.Employee);
+            SetOrderByAsc(x => x.Code);
         }
     }
 }
