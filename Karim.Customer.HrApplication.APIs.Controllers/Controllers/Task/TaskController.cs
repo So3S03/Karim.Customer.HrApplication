@@ -90,5 +90,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Task
             var statuses = _servicesManager.TaskService.GetTaskToPullStatuses();
             return Ok(statuses);
         }
+        [HttpGet("GetActiveEmployeesByDepartment")]
+        public async Task<ActionResult<ICollection<FillEntityDto<string>>>> GetActiveEmployeesByDepartment(string DepartmentId)
+        {
+            var employees = await _servicesManager.TaskService.GetActiveEmployeesByDepartment(DepartmentId);
+            return Ok(employees);
+        }
     }
 }
