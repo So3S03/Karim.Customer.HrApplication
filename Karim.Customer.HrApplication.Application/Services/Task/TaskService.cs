@@ -530,5 +530,19 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var list = EnumsConvertion.CreateEnumLists<TaskToPullStatuses>();
             return list;
         }
+        public async Task<ICollection<FillEntityDto<string>>> GetActiveEmployeesByDepartment(string DepartmentId)
+        {
+            //Check On Department Id
+            if (string.IsNullOrEmpty(DepartmentId)) throw new BadRequestException("Invalid Department Id!");
+            //Create Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<Domain.Entities.Employee.Employee, string>();
+            //Create Spec
+            var EmpSpec = new ActiveEmployeesByDepartmentSpecification(DepartmentId);
+            //Get Employees
+            var Employees = await EmpRepo.GetAllAsync(EmpSpec);
+            //Mapping Data
+            var mappedData = _mapper.Map<ICollection<FillEntityDto<string>>>(Employees);
+            return mappedData;
+        }
     }
 }
