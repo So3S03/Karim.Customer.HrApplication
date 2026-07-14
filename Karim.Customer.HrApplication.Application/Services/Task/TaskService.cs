@@ -431,6 +431,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             _ = task switch
             {
                 { Id: null or "" } => throw new BadRequestException("Invalid Id"),
+                { Code: null or "" } => throw new BadRequestException("Ivalid Code"),
                 { Code: var code } when !Regex.IsMatch(code, codePattern) => throw new BadRequestException("Ivalid Code"),
                 { Name: null or "" } => throw new BadRequestException("Must Provide Name"),
                 { EmployeeId: null or "" } => throw new BadRequestException("Must Provide Employee"),
@@ -445,8 +446,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
             var existingTask = await Repo.GetByIdAsync(Spec);
             //Check On existing Task
             if (existingTask is null) throw new NotFoundException("Task Not Exist!");
+            //Create Emp Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<Domain.Entities.Employee.Employee, string>();
+            //Create Emp Spec
+            var EmpSpec = new EmployeeByIdSepecification(task.EmployeeId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
+            //Check On Employee If Exist
+            if(Employee is null) throw new NotFoundException("Employee You Try To Assign Task For Is Not Exist!");
+            //Check If Employee Is Terminated / Resigned
+            if(Employee.EmployeeStatus.HasValue && (Employee.EmployeeStatus == Domain.Entities.Employee.EmployeeStatus.Terminated || Employee.EmployeeStatus == Domain.Entities.Employee.EmployeeStatus.Resigned)) throw new ConflictException("Cannot Assign Task To Terminated Or Resigned Employee!");
             //Get Hours Differenc
-            var HoursDifference = existingTask.TaskHours > task.AssignedHours ? existingTask.TaskHours - task.AssignedHours : task.AssignedHours - existingTask.TaskHours;
+            //var HoursDifference = existingTask.TaskHours > task.AssignedHours ? existingTask.TaskHours - task.AssignedHours : task.AssignedHours - existingTask.TaskHours;
             //Check On The Time Amount
             //Project
             if (existingTask.Type == TaskType.Project)
@@ -460,10 +471,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 var project = await ProjRepo.GetByIdAsync(ProjSpec);
                 //Check On It
                 if (project is null) throw new NotFoundException("Project Not Exist!");
-                //Check If The Project Hrs < Task Hrs
-                if (task.AssignedHours > existingTask.TaskHours && HoursDifference > project.HoursAmount) throw new ConflictException("Task Hours Exceeded Project Hours, Must Be Equal Or Less Than Project Hours!");
+                //Check If This Employee Is The Same Department As The Project
+                if(Employee.DepartmentId != project.DepartmentId) throw new ConflictException("Employee Is Not In The Department The Project Assigned To!");
                 //Update Project Hours
-                project.HoursAmount = task.AssignedHours > existingTask.TaskHours ? project.HoursAmount - HoursDifference : project.HoursAmount + HoursDifference;
+                project.HoursAmount += existingTask.TaskHours;
+                //Check If The Project Hrs < Task Hrs
+                if (task.AssignedHours > project.HoursAmount) throw new ConflictException("Task Hours Exceeded Project Hours, Must Be Equal Or Less Than Project Hours!");
+                //Update Project Hours
+                project.HoursAmount -= task.AssignedHours;
                 //Update
                 ProjRepo.Update(project);
             }
@@ -480,14 +495,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Task
                 var ticket = await TickRepo.GetByIdAsync(TickSpec);
                 //Check On It
                 if (ticket is null) throw new NotFoundException("Ticket Not Exist!");
-                //Check If The Project Hrs < Task Hrs
-                if (task.AssignedHours > existingTask.TaskHours && HoursDifference > ticket.HoursNumber) throw new ConflictException("Task Hours Exceeded Ticket Hours, Must Be Equal Or Less Than Ticket Hours!");
+                //Check On Ticket Status
+                if(ticket.Status == TicketStatus.Closed) throw new ConflictException("Cannot Update Task On Closed Ticket!, Open It First!");
+                //Check On Task Period If Not In The Same Ticket Period
+                if(task.StartDate < ticket.StartDate || task.EndDate > ticket.EndDate) throw new ConflictException($"Task Period {task.StartDate} - {task.EndDate} Is Not Within Ticket Period {ticket.StartDate} - {ticket.EndDate}!");
                 //Update Ticket Hours
-                ticket.HoursNumber = task.AssignedHours > existingTask.TaskHours ? ticket.HoursNumber - HoursDifference : ticket.HoursNumber + HoursDifference;
+                ticket.HoursNumber += existingTask.TaskHours;
+                //Check If The Project Hrs < Task Hrs
+                if (task.AssignedHours > ticket.HoursNumber) throw new ConflictException("Task Hours Exceeded Ticket Hours, Must Be Equal Or Less Than Ticket Hours!");
+                //Update Ticket Hours
+                ticket.HoursNumber -= task.AssignedHours;
                 //Update
                 TickRepo.Update(ticket);
             }
-            
+            existingTask.RemainingHours = existingTask.WorkedHours.HasValue ? (existingTask.WorkedHours.Value > task.AssignedHours ? existingTask.WorkedHours.Value - task.AssignedHours : task.AssignedHours - existingTask.WorkedHours.Value) : 0;
             //Creating MappedData
             var mappedData = _mapper.Map(task, existingTask);
             //Add Task
