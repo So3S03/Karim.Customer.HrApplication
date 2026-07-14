@@ -1,7 +1,7 @@
-# 🏢 HR Application
+# 🏢 HR + PM Application
 
-A complete Human Resources Management System (HRMS) built with **ASP.NET Core 9** for the backend and **Angular 20** for the frontend.  
-The application is designed to streamline company operations, manage employees, departments, attendance, payroll, projects, and organizational structure — all in one integrated platform.
+A complete Human Resources Management System (HRMS) With PM Module built with **ASP.NET Core 9** for the backend and **Angular +20** for the frontend.  
+The application is designed to streamline company operations, manage employees, departments, attendance, payroll, projects, contracts, tasks, tickets and organizational structure — all in one integrated platform.
 
 ---
 
@@ -11,7 +11,7 @@ The application is designed to streamline company operations, manage employees, 
 - **ASP.NET Core 9 Web API**
 - **Entity Framework Core**
 - **SQL Server**
-- **AutoMapper**
+- **Mappster**
 - **JWT Authentication with Refresh Token**
 - **Unit of Work + Repository Pattern**
 - **Specification Design Pattern**
@@ -19,7 +19,7 @@ The application is designed to streamline company operations, manage employees, 
 - **Redis Caching**
 
 ### 🌐 Frontend
-- **Angular 20**
+- **Angular +20**
 - **RxJS**
 - **Tailwind CSS**
 - **State Management (NgRx or Signals)**
@@ -29,13 +29,13 @@ The application is designed to streamline company operations, manage employees, 
 
 ## 📦 Architecture
 
-This project follows a **Onion Architecture Pattern**:
+This project follows a **Onion Architecture Pattern** With some modifications on it:
 
-- **APIs Folder (ASP.NET Core Web APIs)** – Have class library for Controllers, Web APIs Project.
-- **Core Folder** – Domain  , Business logic-service abstraction and Business logic-service implimentation 3 class libraries.
-- **Infrastructure Folder** – Persistance and Infrastructure 2 class libraries.
-- **Shared Folder** – Shared data between all libraries 1 class libraries.
-- **UI Folder (Angular 20)** – Handles UI and UX interactions.
+- **APIs Folder (ASP.NET Core Web APIs)** – Have class library for Controllers seperated from Main Project + Web APIs Project.
+- **Core Folder** – Domain + Business logic-service (abstraction + Business logic-service implimentation) 3 class libraries.
+- **Infrastructure Folder** – Persistance + Infrastructure 2 class libraries.
+- **Shared Folder** – Shared data between all folders 1 class libraries.
+- **UI Folder (Angular +20)** – Handles UI and UX interactions.
 ---
 
 ## 🧩 Modules Overview
@@ -50,11 +50,11 @@ Displays the latest company statistics and progress:
 
 ### 2️⃣ Employees
 Manage all employee-related data and actions:
-- Add / Edit / Terminate / Pre-Terminate Employees  
+- Add / Edit / Terminate Employees  
 - Create System Users  
 - Print Employee ID  
 - Change Employee Position / Rank / Department / Team  
-- Assign Tasks (linked to Project ID)  
+- Assign Tasks (linked to Task Module)  
 - Manage Employee Contracts
 
 ---
@@ -72,28 +72,25 @@ Department-level management and structure:
 ### 4️⃣ Attendance
 Employee attendance tracking and management:
 - Daily Check-in/Check-out Records  
-- Add Single or Multiple Fingerprints  
-- Assign Tasks, Vacations, Permissions, and Overtime via Calendar  
-- Approve or Reject Employee Requests  
-- Cancel Delay Records  
+- Add Fingerprints per day 
+- Assign Vacations, Permissions, and Overtime via Calendar  
+- Approve or Reject Employee Requests
 
 ---
 
 ### 5️⃣ Payroll
 Comprehensive payroll and financial management:
 - Manage Employee Salaries  
-- Manage Project Budgets  
-- Manage Overall Company Budget  
-- (Future) Integration with Finance APIs and Stripe  
+- Manage Employee Deductions - Bonuses
 
 ---
 
-### 6️⃣ Organization Chart
-Hierarchical visualization of the company:
-- Display Company Structure (CEO → Employees)  
-- Display All Job Titles and Relations  
-- Show Employee Placement in the Hierarchy  
-- (Future) Editable Chart and Analytics  
+### 6️⃣ Contract
+Contracts Managements For Both Employees & Projects:
+- Controll Employee Salary & Allowamnces 
+- Controll Project Budjets  
+- Renew Contracts With Amount Of Years
+- Terminate & Activate Contracts
 
 ---
 
@@ -104,7 +101,23 @@ Full lifecycle project management:
 - Track Project Progress and Budget  
 - Edit Project Timeline / Department / Team  
 - Drop Lost Projects (Contract Termination)  
-- Multi-department Collaboration Support  
+
+---
+
+### 8️⃣ Tasks
+Assign & Tracking Employees Tasks:
+- Show All Tasks Per Employee  
+- Manage Tasks Period & Worked Time On Them
+- Track Task Progress For Employees
+- Pull Tasks Per Day With Controll On Its Status
+
+---
+
+### 9️⃣ Ticket
+Create Tickets On Projects That Have Proplems With Following Up On Them:
+- Show All Tickets Per Project  
+- Creating Tasks From Them And Assign It To Employees
+- Track Ticket Progress For Clients
 
 ---
 
