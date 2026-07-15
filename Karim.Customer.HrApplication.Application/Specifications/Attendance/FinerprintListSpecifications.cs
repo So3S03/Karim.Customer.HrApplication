@@ -16,6 +16,7 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Attendance
             )
         {
             AddInclude(FB => FB.Employee);
+            SetOrderByAsc(FB => FB.Date);
             Pagination(fingerprintParameters.PageNum, fingerprintParameters.PageSize!);
         }
     }

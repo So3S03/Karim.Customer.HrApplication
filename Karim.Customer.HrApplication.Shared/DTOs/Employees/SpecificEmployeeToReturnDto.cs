@@ -25,7 +25,6 @@ namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
         public string? DepartmentCode { get; set; }
         public bool IsHasContract { get; set; }
         public required string Rank { get; set; }
-        public DateTime? ContractStartDate { get; set; }
         public DateTime? ContractEndDate { get; set; }
         public required DateTime CreatedOn { get; set; }
         public required string CreatedBy { get; set; }

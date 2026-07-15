@@ -9,14 +9,14 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
     public class PayrollController(IServicesManager _servicesManager) : ApiBaseController
     {
         [HttpGet("GetAllPayslipsPerMonth")]
-        public async Task<ActionResult<DataWithPagination<ICollection<PayslipToReturnDto>>>> GetAllPayslipsPerMonth(PayrollParameter parameter)
+        public async Task<ActionResult<DataWithPagination<ICollection<PayslipToReturnDto>>>> GetAllPayslipsPerMonth([FromQuery]PayrollParameter parameter)
         {
             var result = await _servicesManager.PayrollService.GetAllEmployeesPayslipsPerMonth(parameter);
             return Ok(result);
         }
 
         [HttpGet("GetAllEmployeePayslips")]
-        public async Task<ActionResult<DataWithPagination<ICollection<PayslipToReturnDto>>>> GetAllEmployeePayslips(EmployeePayslipsParameter parameter)
+        public async Task<ActionResult<DataWithPagination<ICollection<PayslipToReturnDto>>>> GetAllEmployeePayslips([FromQuery]EmployeePayslipsParameter parameter)
         {
             var result = await _servicesManager.PayrollService.GetEmployeeAllPayslips(parameter);
             return Ok(result);
