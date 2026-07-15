@@ -374,7 +374,7 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
             config.NewConfig<PayslipToEditDto, Payslip>()
                 .Map(dest => dest.Status, src => (PayrollStatus)src.Status)
                 .Map(dest => dest.PaymentWay, src => src.PaymentWay.HasValue ? (PayrollPaymentWay)src.PaymentWay.Value : (PayrollPaymentWay?)null);
-            
+
         }
     }
 }
