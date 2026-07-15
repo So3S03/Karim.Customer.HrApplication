@@ -143,6 +143,7 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Status, src => src.Status.ToString())
                 .Map(dest => dest.EmployeeName, src => src.Employee.FullName)
                 .Map(dest => dest.EmpId, src => src.Employee.Id)
+                .Map(dest => dest.Duration, src => src.DurationInHours)
                 .Map(dest => dest.FingerprintId, src => src.Id)
                 .Map(dest => dest.CheckIn, src => src.CheckIn.ToString("hh:mm tt"))
                 .Map(dest => dest.CheckOut, src => src.CheckOut.HasValue ? src.CheckOut.Value.ToString("hh:mm tt") : null);

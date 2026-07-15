@@ -518,6 +518,14 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
         }
         public async Task<ActionStatusDto> CalculateEmployeesPayrolls()
         {
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Specification
+            var PayslipSpec = new PayslipsPerMonthSpeciications();
+            //Get Payslips Count For Current Month
+            var PayslipsCount = await PayslipRepo.GetDataCountAsync(PayslipSpec);
+            //Check If There is Payslip For Current Month
+            if(PayslipsCount > 0) throw new ConflictException("Payrolls Already Calculated For Current Month!");
             //Create Employee Repo
             var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
             //Create Specification
@@ -529,6 +537,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             //Looping On Emp List
             foreach( var emp in EmpList )
             {
+                //Show Employee
+                Console.WriteLine(emp);
                 //Get Salary Per Month
                 var EmpSalaryPerMonth = emp.Salary;
                 //Get Current Year & Current Month
@@ -545,7 +555,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     if(Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
                 }
                 //Get Salary Per Day
-                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / (MonthDaysCount - VacationCounter);
+                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / MonthDaysCount;
                 //Get Salary Per Hour
                 var EmpSalaryPerHour = EmpSalaryPerDay / 8;
                 //Get Count Of Fingerprints This Month
@@ -555,21 +565,42 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 //Get Differences Between ActualWorkingDays With FingerprintLog
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
                 //BaseDeductedSalary
-                decimal DeductedSalary = 0;
+                decimal DeductedSalary = EmpSalaryPerMonth.Value;
                 //Get Deductions For Absens
                 if (AbsensDayes > 0)
                 {
-                    DeductedSalary = EmpSalaryPerMonth.Value - (AbsensDayes * EmpSalaryPerDay * 3);
+                    DeductedSalary = DeductedSalary - (AbsensDayes * EmpSalaryPerDay * 3);
                 }
-                //Get Count Of Delayed Fingerprint
-                var DelayedFingerprintCount = emp.FingerprintLog.Where(FP => 
+                //Get Count Of Late Fingerprint
+                var LateFingerprintCount = emp.FingerprintLog.Where(FP => 
                 FP.Status == Domain.Entities.Attendance.FingerprintStatus.Late &&
                 FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
                 FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).Count();
                 //Check On It
-                if(DelayedFingerprintCount > 0)
+                if(LateFingerprintCount > 0)
                 {
-                    DeductedSalary = DeductedSalary - ((DelayedFingerprintCount / 2) * EmpSalaryPerDay);
+                    DeductedSalary = DeductedSalary - ((LateFingerprintCount * EmpSalaryPerDay) / 2);
+                }
+                //Get Delay Fingerprint List
+                var DelayFingerprints = emp.FingerprintLog.Where(FP =>
+                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Delay &&
+                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
+                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).ToList();
+                //Check On It
+                if(DelayFingerprints.Count > 0)
+                {
+                    //Get Delay Fingerprint Count
+                    var DelayFingerprintCount = DelayFingerprints.Count;
+                    //Get Sum Of Duration For Delay Fingerprints
+                    var WorkedDuration = DelayFingerprints.Sum(FP => FP.DurationInHours);
+                    //Get Supposed Duration With No Delay
+                    var SupposedDuration = DelayFingerprintCount * 8;
+                    //Get Delay Duration
+                    var DelayDurationInMinute = (SupposedDuration - WorkedDuration) * 60;
+                    //Get Minute Salary
+                    var EmpSalaryPerMinute = EmpSalaryPerHour / 60;
+                    //Get Deducted Salary For Delay
+                    DeductedSalary = DeductedSalary - (EmpSalaryPerMinute * DelayDurationInMinute.Value);
                 }
                 //Get Count Of Overtimes
                 var TotalOverTime = emp.Requests.Where(
@@ -587,15 +618,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     EmployeeId = emp.Id,
                     StartDate = new DateOnly(CurrentYear, CurrentMonth, 1),
                     EndDate = new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)),
-                    NetSalary = DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2),
+                    NetSalary = TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary,
                     TotalOvertime = TotalOverTime
                 };
                 PayrollList.Add(EmployeePayslip);
             }
             //Mapping Data
             var mappedList = _mapper.Map<ICollection<Payslip>>(PayrollList);
-            //Create Payslip Repo
-            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Add Range
             await PayslipRepo.AddRangeAsync(mappedList);
             //Complete
