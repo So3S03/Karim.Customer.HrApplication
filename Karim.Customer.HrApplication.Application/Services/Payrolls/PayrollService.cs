@@ -518,6 +518,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
         }
         public async Task<ActionStatusDto> CalculateEmployeesPayrolls()
         {
+            //Get Current Year & Current Month
+            var CurrentYear = DateTime.Now.Year;
+            var CurrentMonth = DateTime.Now.Month;
+            //Get Current Month Days Count
+            var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
+            //Check If Today Is The Last Day Of The Month
+            if(DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
             //Create Payslip Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Specification
@@ -541,11 +548,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 Console.WriteLine(emp);
                 //Get Salary Per Month
                 var EmpSalaryPerMonth = emp.Salary;
-                //Get Current Year & Current Month
-                var CurrentYear = DateTime.Now.Year;
-                var CurrentMonth = DateTime.Now.Month;
-                //Get Current Month Days Count
-                var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
+                
                 //Vacation Counter
                 var VacationCounter = 0;
                 //Get Count Of Official Vacation Dayes
@@ -555,7 +558,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     if(Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
                 }
                 //Get Salary Per Day
-                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / MonthDaysCount;
+                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / 30;
                 //Get Salary Per Hour
                 var EmpSalaryPerHour = EmpSalaryPerDay / 8;
                 //Get Count Of Fingerprints This Month
@@ -610,7 +613,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     R.EndDate <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)) &&
                     R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
                     .Sum(E => E.Duration);
-
+                //Check If the Salary Below 0
+                if (DeductedSalary < 0) DeductedSalary = 0;
                 //Create Object
                 var EmployeePayslip = new PayslipToAddDto()
                 {
