@@ -562,9 +562,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 //Get Salary Per Hour
                 var EmpSalaryPerHour = EmpSalaryPerDay / 8;
                 //Get Count Of Fingerprints This Month
-                var FingerprintCounts = emp.FingerprintLog.Where(FP =>
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount)).Count();
+                var FingerprintCounts = emp.FingerprintLog.Count();
                 //Get Differences Between ActualWorkingDays With FingerprintLog
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
                 //BaseDeductedSalary
@@ -576,9 +574,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 }
                 //Get Count Of Late Fingerprint
                 var LateFingerprintCount = emp.FingerprintLog.Where(FP => 
-                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Late &&
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).Count();
+                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Late).Count();
                 //Check On It
                 if(LateFingerprintCount > 0)
                 {
@@ -586,9 +582,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 }
                 //Get Delay Fingerprint List
                 var DelayFingerprints = emp.FingerprintLog.Where(FP =>
-                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Delay &&
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).ToList();
+                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Delay).ToList();
                 //Check On It
                 if(DelayFingerprints.Count > 0)
                 {
@@ -609,8 +603,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 var TotalOverTime = emp.Requests.Where(
                     R =>
                     R.Type == Domain.Entities.Attendance.RequestType.Overtime &&
-                    R.StartDate >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                    R.EndDate <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)) &&
                     R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
                     .Sum(E => E.Duration);
                 //Check If the Salary Below 0
