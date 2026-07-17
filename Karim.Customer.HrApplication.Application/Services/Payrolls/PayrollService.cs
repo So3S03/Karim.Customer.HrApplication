@@ -562,6 +562,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 var FingerprintCounts = emp.FingerprintLog.Count();
                 //Get Differences Between ActualWorkingDays With FingerprintLog
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
+                //Absens Days Can't Be With Negative Value
+                if (AbsensDayes < 0) AbsensDayes = 0;
                 //BaseDeductedSalary
                 decimal DeductedSalary = EmpSalaryPerMonth.Value;
                 //Check If Emp Have Approved Vacation Requests
@@ -572,7 +574,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     .Sum(R => (R.EndDate.DayNumber - R.StartDate.DayNumber) + 1);
                 //Check If Vacations > 0 to Deduct It From Absense Day
                 if (VacationRequests > 0) AbsensDayes = AbsensDayes - VacationRequests;
-                if(AbsensDayes < 0) AbsensDayes = 0;
                 //Get Deductions For Absens
                 if (AbsensDayes > 0)
                 {
@@ -619,7 +620,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     BasicSalary = emp.Salary.Value,
                     EmployeeId = emp.Id,
                     StartDate = new DateOnly(CurrentYear, CurrentMonth, 1),
-                    EndDate = new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)),
+                    EndDate = new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount),
                     NetSalary = Math.Round((TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary), 2),
                     TotalOvertime = TotalOverTime
                 };
