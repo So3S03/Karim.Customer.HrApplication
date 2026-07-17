@@ -518,6 +518,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
         }
         public async Task<ActionStatusDto> CalculateEmployeesPayrolls()
         {
+            //Get Current Year & Current Month
+            var CurrentYear = DateTime.Now.Year;
+            var CurrentMonth = DateTime.Now.Month;
+            //Get Current Month Days Count
+            var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
+            //Check If Today Is The Last Day Of The Month
+            if (DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
             //Create Payslip Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Specification
@@ -532,40 +539,41 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var EmpSpec = new NotTerminatedOrResignedEmployees();
             //Get All Employees
             var EmpList = await EmpRepo.GetAllAsync(EmpSpec);
+            //Vacation Counter
+            var VacationCounter = 0;
+            //Get Count Of Official Vacation Dayes
+            for (int day = 1; day <= MonthDaysCount; day++)
+            {
+                var Date = new DateTime(CurrentYear, CurrentMonth, day);
+                if (Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
+            }
             //Create List Of Payroll For Add Range
             var PayrollList = new List<PayslipToAddDto>();
             //Looping On Emp List
             foreach( var emp in EmpList )
             {
-                //Show Employee
-                Console.WriteLine(emp);
                 //Get Salary Per Month
                 var EmpSalaryPerMonth = emp.Salary;
-                //Get Current Year & Current Month
-                var CurrentYear = DateTime.Now.Year;
-                var CurrentMonth = DateTime.Now.Month;
-                //Get Current Month Days Count
-                var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
-                //Vacation Counter
-                var VacationCounter = 0;
-                //Get Count Of Official Vacation Dayes
-                for(int day = 1; day <= MonthDaysCount; day++)
-                {
-                    var Date = new DateTime(CurrentYear, CurrentMonth, day);
-                    if(Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
-                }
                 //Get Salary Per Day
-                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / MonthDaysCount;
+                var EmpSalaryPerDay = EmpSalaryPerMonth.Value / 30;
                 //Get Salary Per Hour
                 var EmpSalaryPerHour = EmpSalaryPerDay / 8;
                 //Get Count Of Fingerprints This Month
-                var FingerprintCounts = emp.FingerprintLog.Where(FP =>
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount)).Count();
+                var FingerprintCounts = emp.FingerprintLog.Count();
                 //Get Differences Between ActualWorkingDays With FingerprintLog
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
+                //Absens Days Can't Be With Negative Value
+                if (AbsensDayes < 0) AbsensDayes = 0;
                 //BaseDeductedSalary
                 decimal DeductedSalary = EmpSalaryPerMonth.Value;
+                //Check If Emp Have Approved Vacation Requests
+                var VacationRequests = emp.Requests.Where(
+                    R =>
+                    R.Type == Domain.Entities.Attendance.RequestType.Vacation &&
+                    R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
+                    .Sum(R => (R.EndDate.DayNumber - R.StartDate.DayNumber) + 1);
+                //Check If Vacations > 0 to Deduct It From Absense Day
+                if (VacationRequests > 0) AbsensDayes = AbsensDayes - VacationRequests;
                 //Get Deductions For Absens
                 if (AbsensDayes > 0)
                 {
@@ -573,9 +581,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 }
                 //Get Count Of Late Fingerprint
                 var LateFingerprintCount = emp.FingerprintLog.Where(FP => 
-                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Late &&
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).Count();
+                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Late).Count();
                 //Check On It
                 if(LateFingerprintCount > 0)
                 {
@@ -583,9 +589,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 }
                 //Get Delay Fingerprint List
                 var DelayFingerprints = emp.FingerprintLog.Where(FP =>
-                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Delay &&
-                FP.Date >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                FP.Date <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth))).ToList();
+                FP.Status == Domain.Entities.Attendance.FingerprintStatus.Delay).ToList();
                 //Check On It
                 if(DelayFingerprints.Count > 0)
                 {
@@ -606,19 +610,18 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 var TotalOverTime = emp.Requests.Where(
                     R =>
                     R.Type == Domain.Entities.Attendance.RequestType.Overtime &&
-                    R.StartDate >= new DateOnly(CurrentYear, CurrentMonth, 1) &&
-                    R.EndDate <= new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)) &&
                     R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
                     .Sum(E => E.Duration);
-
+                //Check If the Salary Below 0
+                if (DeductedSalary < 0) DeductedSalary = 0;
                 //Create Object
                 var EmployeePayslip = new PayslipToAddDto()
                 {
                     BasicSalary = emp.Salary.Value,
                     EmployeeId = emp.Id,
                     StartDate = new DateOnly(CurrentYear, CurrentMonth, 1),
-                    EndDate = new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)),
-                    NetSalary = TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary,
+                    EndDate = new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount),
+                    NetSalary = Math.Round((TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary), 2),
                     TotalOvertime = TotalOverTime
                 };
                 PayrollList.Add(EmployeePayslip);
