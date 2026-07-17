@@ -524,7 +524,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             //Get Current Month Days Count
             var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
             //Check If Today Is The Last Day Of The Month
-            if(DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
+            //if(DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
             //Create Payslip Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Specification
@@ -539,24 +539,21 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var EmpSpec = new NotTerminatedOrResignedEmployees();
             //Get All Employees
             var EmpList = await EmpRepo.GetAllAsync(EmpSpec);
+            //Vacation Counter
+            var VacationCounter = 0;
+            //Get Count Of Official Vacation Dayes
+            for (int day = 1; day <= MonthDaysCount; day++)
+            {
+                var Date = new DateTime(CurrentYear, CurrentMonth, day);
+                if (Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
+            }
             //Create List Of Payroll For Add Range
             var PayrollList = new List<PayslipToAddDto>();
             //Looping On Emp List
             foreach( var emp in EmpList )
             {
-                //Show Employee
-                Console.WriteLine(emp);
                 //Get Salary Per Month
                 var EmpSalaryPerMonth = emp.Salary;
-                
-                //Vacation Counter
-                var VacationCounter = 0;
-                //Get Count Of Official Vacation Dayes
-                for(int day = 1; day <= MonthDaysCount; day++)
-                {
-                    var Date = new DateTime(CurrentYear, CurrentMonth, day);
-                    if(Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
-                }
                 //Get Salary Per Day
                 var EmpSalaryPerDay = EmpSalaryPerMonth.Value / 30;
                 //Get Salary Per Hour
@@ -567,6 +564,15 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 var AbsensDayes = (MonthDaysCount - VacationCounter) - FingerprintCounts;
                 //BaseDeductedSalary
                 decimal DeductedSalary = EmpSalaryPerMonth.Value;
+                //Check If Emp Have Approved Vacation Requests
+                var VacationRequests = emp.Requests.Where(
+                    R =>
+                    R.Type == Domain.Entities.Attendance.RequestType.Vacation &&
+                    R.Status == Domain.Entities.Attendance.RequestStatus.Approved)
+                    .Sum(R => (R.EndDate.DayNumber - R.StartDate.DayNumber) + 1);
+                //Check If Vacations > 0 to Deduct It From Absense Day
+                if (VacationRequests > 0) AbsensDayes = AbsensDayes - VacationRequests;
+                if(AbsensDayes < 0) AbsensDayes = 0;
                 //Get Deductions For Absens
                 if (AbsensDayes > 0)
                 {
@@ -614,7 +620,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                     EmployeeId = emp.Id,
                     StartDate = new DateOnly(CurrentYear, CurrentMonth, 1),
                     EndDate = new DateOnly(CurrentYear, CurrentMonth, DateTime.DaysInMonth(CurrentYear, CurrentMonth)),
-                    NetSalary = TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary,
+                    NetSalary = Math.Round((TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary), 2),
                     TotalOvertime = TotalOverTime
                 };
                 PayrollList.Add(EmployeePayslip);
