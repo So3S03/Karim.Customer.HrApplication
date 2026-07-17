@@ -524,7 +524,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             //Get Current Month Days Count
             var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
             //Check If Today Is The Last Day Of The Month
-            //if(DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
+            if (DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
             //Create Payslip Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Specification
