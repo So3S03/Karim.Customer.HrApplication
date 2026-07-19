@@ -92,6 +92,20 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
             return Ok(result);
         }
 
+        [HttpPost("AddAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
+        {
+            var result = await _servicesManager.PayrollService.AddAllowance(allowanceToAddDto);
+            return Ok(result);
+        }
+
+        [HttpPut("EditAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> EditAllowances(AllowanceToEditDto? allowanceToEditDto)
+        {
+            var result = await _servicesManager.PayrollService.EditAllownace(allowanceToEditDto);
+            return Ok(result);
+        }
+
         [HttpDelete("DeleteAllowances")]
         public async Task<ActionResult<ActionStatusDto>> DeleteAllowances(string? allowanceId)
         {

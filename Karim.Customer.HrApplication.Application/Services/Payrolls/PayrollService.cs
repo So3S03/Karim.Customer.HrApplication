@@ -740,12 +740,50 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
-
-        public Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
+        public async Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
         {
-            throw new NotImplementedException();
+            //Check On Data
+            if(allowanceToAddDto is null) throw new BadRequestException("Invalid Data!");
+            //Check OnInternal Data
+            _ = allowanceToAddDto switch
+            {
+                { PayslipId: null or "" } => throw new BadRequestException("Invalid Payslip Id!"),
+                { Title: null or "" } => throw new BadRequestException("Invalid Allowance Title!"),
+                { Value: <= 0 } => throw new BadRequestException("Invalid Allowance Value!"),
+                _ => allowanceToAddDto
+            };
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Payslip Spec
+            var PayslipSpec = new PayslipById(allowanceToAddDto.PayslipId);
+            //Get Payslip
+            var Payslip = await PayslipRepo.GetByIdAsync(PayslipSpec);
+            //Check On Payslip
+            if(Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Payslip Is Not Pending
+            if (Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Update Net Salary
+            Payslip.NetSalary = Payslip.NetSalary + allowanceToAddDto.Value;
+            //Update Payslip
+            PayslipRepo.Update(Payslip);
+            //Create Allowance Repo
+            var AllowanceRepo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //Mapping Data
+            var MappedAllowance = _mapper.Map<PayrollAllowance>(allowanceToAddDto);
+            //Add Allowance
+            await AllowanceRepo.AddAsync(MappedAllowance);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Allowance Added Successfully!"
+            };
+            return Obj;
         }
-
         public Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto)
         {
             throw new NotImplementedException();
