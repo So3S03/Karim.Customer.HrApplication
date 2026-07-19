@@ -92,6 +92,27 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
             return Ok(result);
         }
 
+        [HttpPost("AddAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
+        {
+            var result = await _servicesManager.PayrollService.AddAllowance(allowanceToAddDto);
+            return Ok(result);
+        }
+
+        [HttpPut("EditAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> EditAllowances(AllowanceToEditDto? allowanceToEditDto)
+        {
+            var result = await _servicesManager.PayrollService.EditAllownace(allowanceToEditDto);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteAllowances(string? allowanceId)
+        {
+            var result = await _servicesManager.PayrollService.DeleteAllowance(allowanceId);
+            return Ok(result);
+        }
+
         [HttpDelete("DeleteSalary")]
         public async Task<ActionResult<ActionStatusDto>> DeleteSalary(string? PayslipId)
         {
@@ -127,13 +148,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
             return Ok(result);
         }
 
-        [HttpPost("CalculateEmployeesPayrolls")]
-        public async Task<ActionResult<ActionStatusDto>> CalculateEmployeesPayrolls()
+        [HttpPost("CreateManualPayslip")]
+        public async Task<ActionResult<ActionStatusDto>> CreateManualPayslip(PayslipToAddDto? payslipToAddDto)
         {
-            var result = await _servicesManager.PayrollService.CalculateEmployeesPayrolls();
+            var result = await _servicesManager.PayrollService.CreateManualPayslip(payslipToAddDto);
             return Ok(result);
         }
-
-
     }
 }

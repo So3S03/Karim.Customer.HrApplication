@@ -4,6 +4,5 @@
     {
         Contract = 1,
         Freelance = 2,
-        LongLife = 3
     }
 }

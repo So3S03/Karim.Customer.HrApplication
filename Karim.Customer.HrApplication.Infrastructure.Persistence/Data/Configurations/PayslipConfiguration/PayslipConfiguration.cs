@@ -1,4 +1,5 @@
-﻿using Karim.Customer.HrApplication.Domain.Entities.Payroll;
+﻿using Karim.Customer.HrApplication.Domain.Entities.Employee;
+using Karim.Customer.HrApplication.Domain.Entities.Payroll;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configurations.BaseConfigurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -20,6 +21,10 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(p => p.Status).HasConversion(
                 (s) => s.ToString(),
                 (s) => (PayrollStatus)Enum.Parse(typeof(PayrollStatus), s)
+                ).IsRequired();
+            builder.Property(p => p.EmployeeType).HasConversion(
+                (s) => s.ToString(),
+                (s) => (EmployeeType)Enum.Parse(typeof(EmployeeType), s)
                 ).IsRequired();
             builder.Property(p => p.PaymentWay).HasConversion(
                 (s) => s.ToString(),

@@ -1,5 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Payrolls;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Payrolls;
+using Karim.Customer.HrApplication.Domain.Entities.Employee;
 using Karim.Customer.HrApplication.Domain.Entities.Payroll;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
@@ -516,7 +518,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var Obj = new DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>(parameter.PageNum, parameter.PageNum + 1, parameter.PageSize, ListCont, MappedList);
             return Obj;
         }
-        public async Task<ActionStatusDto> CalculateEmployeesPayrolls()
+        public async Task<ActionStatusDto> CalculateEmployeesPayrolls() 
         {
             //Get Current Year & Current Month
             var CurrentYear = DateTime.Now.Year;
@@ -548,7 +550,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 if (Date.DayOfWeek == DayOfWeek.Friday || Date.DayOfWeek == DayOfWeek.Saturday) VacationCounter++;
             }
             //Create List Of Payroll For Add Range
-            var PayrollList = new List<PayslipToAddDto>();
+            var PayrollList = new List<AutoPayslipToAddDto>();
             //Looping On Emp List
             foreach( var emp in EmpList )
             {
@@ -615,10 +617,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 //Check If the Salary Below 0
                 if (DeductedSalary < 0) DeductedSalary = 0;
                 //Create Object
-                var EmployeePayslip = new PayslipToAddDto()
+                var EmployeePayslip = new AutoPayslipToAddDto()
                 {
                     BasicSalary = emp.Salary.Value,
                     EmployeeId = emp.Id,
+                    EmployeeType = (int)emp.EmployeeType,
                     StartDate = new DateOnly(CurrentYear, CurrentMonth, 1),
                     EndDate = new DateOnly(CurrentYear, CurrentMonth, MonthDaysCount),
                     NetSalary = Math.Round((TotalOverTime.HasValue ? DeductedSalary + (TotalOverTime.Value * EmpSalaryPerHour * 2) : DeductedSalary), 2),
@@ -685,6 +688,181 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             {
                 Status = true,
                 Message = "Salary Edited Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> CreateManualPayslip(PayslipToAddDto? payslipToAddDto)
+        {
+            //Chec On Data
+            if (payslipToAddDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = payslipToAddDto switch
+            {
+                { StartDate: var s, EndDate: var e } when s > e => throw new BadRequestException("Start Date Can't Be Greater Than End Date!"),
+                { BasicSalary: <= 0 } => throw new BadRequestException("Invalid Basic Salary!"),
+                { NetSalary: <= 0 } => throw new BadRequestException("Invalid Net Salary!"),
+                { EmployeeId: null or "" } => throw new BadRequestException("Invalid Employee Id!"),
+                _ => payslipToAddDto
+            };
+            //Create Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Spec
+            var EmpSpec = new EmployeeByIdSepecification(payslipToAddDto.EmployeeId);
+            //Get Employee
+            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
+            //Check On Employee
+            if (Employee is null) throw new NotFoundException("Employee Not Exist!");
+            //Check On The Status Of The Employee
+            if(Employee.EmployeeStatus == Domain.Entities.Employee.EmployeeStatus.Terminated || Employee.EmployeeStatus == Domain.Entities.Employee.EmployeeStatus.Resigned)throw new BadRequestException("Can't Create Payslip For Terminated Or Resigned Employee!");
+            //Check On Employee Type
+            if(Employee.EmployeeType != Domain.Entities.Employee.EmployeeType.Freelance) throw new ConflictException("Manual Payslip Can Only Be Created For Freelance Employees!");
+            //Create Repo For Payslip
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec For Payslip
+            var PayslipSpec = new PayslipByEmployeeIdAndDateSpecification(payslipToAddDto.EmployeeId, payslipToAddDto.StartDate, payslipToAddDto.EndDate);
+            //Get Payslip
+            var Payslip = await PayslipRepo.GetDataCountAsync(PayslipSpec);
+            //Check If There Is Already Payslip For This Employee In The Same Period
+            if (Payslip > 0) throw new ConflictException("There Is Already A Payslip For This Employee In The Same Period, Choose Another Period!");
+            //Mapping Data
+            var mappedPayslip = _mapper.Map<Payslip>(payslipToAddDto);
+            //Add Payslip
+            await PayslipRepo.AddAsync(mappedPayslip);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Salary Created Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
+        {
+            //Check On Data
+            if(allowanceToAddDto is null) throw new BadRequestException("Invalid Data!");
+            //Check OnInternal Data
+            _ = allowanceToAddDto switch
+            {
+                { PayslipId: null or "" } => throw new BadRequestException("Invalid Payslip Id!"),
+                { Title: null or "" } => throw new BadRequestException("Invalid Allowance Title!"),
+                { Value: <= 0 } => throw new BadRequestException("Invalid Allowance Value!"),
+                _ => allowanceToAddDto
+            };
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Payslip Spec
+            var PayslipSpec = new PayslipById(allowanceToAddDto.PayslipId);
+            //Get Payslip
+            var Payslip = await PayslipRepo.GetByIdAsync(PayslipSpec);
+            //Check On Payslip
+            if(Payslip is null) throw new NotFoundException("Payslip Not Exist!");
+            //Check If Payslip Is Not Pending
+            if (Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Update Net Salary
+            Payslip.NetSalary = Payslip.NetSalary + allowanceToAddDto.Value;
+            //Update Payslip
+            PayslipRepo.Update(Payslip);
+            //Create Allowance Repo
+            var AllowanceRepo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //Mapping Data
+            var MappedAllowance = _mapper.Map<PayrollAllowance>(allowanceToAddDto);
+            //Add Allowance
+            await AllowanceRepo.AddAsync(MappedAllowance);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Allowance Added Successfully!"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto)
+        {
+            //Check On Data
+            if (allowanceToEditDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = allowanceToEditDto switch
+            {
+                { Id: null or "" } => throw new BadRequestException("Invalid Penalty Id!"),
+                { Title: null or "" } => throw new BadRequestException("Invalid Penalty Title!"),
+                { Value: <= 0 } => throw new BadRequestException("Invalid Value!"),
+                _ => allowanceToEditDto
+            };
+            //Generate Bonus Repo
+            var AllowanceRepo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //generate Bonus Spec
+            var AllowanceSpec = new AllowanceByIdSpecification(allowanceToEditDto.Id);
+            //get Bonus
+            var Allowance = await AllowanceRepo.GetByIdAsync(AllowanceSpec);
+            //check On Bonus
+            if (Allowance is null) throw new NotFoundException("Allowance Not Exist!");
+            //check If Payslip is pending
+            if (Allowance.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Get Net Salary
+            var restoredNetSalary = Allowance.Payslip.NetSalary - Allowance.Value;
+            //New Net Salary
+            var newNetSalary = restoredNetSalary + allowanceToEditDto.Value;
+            //Set New Net Salary
+            Allowance.Payslip.NetSalary = newNetSalary;
+            //Generate Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Allowance.Payslip);
+            //Mapping DATA
+            var mappedData = _mapper.Map(allowanceToEditDto, Allowance);
+            //Update Bonus
+            AllowanceRepo.Update(mappedData);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Bonus Updated Successfully"
+            };
+            return Obj;
+        }
+        public async Task<ActionStatusDto> DeleteAllowance(string? allowanceId)
+        {
+            //Check On Id
+            if(allowanceId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //Create Spec
+            var Spec = new AllowanceByIdSpecification(allowanceId);
+            //Get Allowance
+            var Allowance = await Repo.GetByIdAsync(Spec);
+            //Check On Allowance
+            if(Allowance is null) throw new NotFoundException("Allowance Not Exist!");
+            //Check If Payslip Is Not Pending
+            if(Allowance.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Restore Net Salary
+            Allowance.Payslip.NetSalary = Allowance.Payslip.NetSalary - Allowance.Value;
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Allowance.Payslip);
+            //Remove Allowance
+            Repo.Delete(Allowance);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if(!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Allowance Deleted Successfully!"
             };
             return Obj;
         }
