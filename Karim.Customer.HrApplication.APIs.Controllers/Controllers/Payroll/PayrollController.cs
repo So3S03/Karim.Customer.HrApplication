@@ -127,13 +127,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
             return Ok(result);
         }
 
-        [HttpPost("CalculateEmployeesPayrolls")]
-        public async Task<ActionResult<ActionStatusDto>> CalculateEmployeesPayrolls()
+        [HttpPost("CreateManualPayslip")]
+        public async Task<ActionResult<ActionStatusDto>> CreateManualPayslip(PayslipToAddDto? payslipToAddDto)
         {
-            var result = await _servicesManager.PayrollService.CalculateEmployeesPayrolls();
+            var result = await _servicesManager.PayrollService.CreateManualPayslip(payslipToAddDto);
             return Ok(result);
         }
-
-
     }
 }

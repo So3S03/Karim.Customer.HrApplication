@@ -14,6 +14,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Payroll
         public DateTime? PaidAt { get; set; }
         public PayrollPaymentWay? PaymentWay { get; set; }
         public string? PaidNotes { get; set; }
+        public EmployeeType EmployeeType { get; set; }
 
         //Relations
         //Employee

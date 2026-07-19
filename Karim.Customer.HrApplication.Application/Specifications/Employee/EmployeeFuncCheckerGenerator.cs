@@ -29,7 +29,6 @@ namespace Karim.Customer.HrApplication.Application.Specifications.Employee
             {
                 EmployeeTypeLockup.Freelance => E => E.EmployeeType == EmployeeType.Freelance,
                 EmployeeTypeLockup.Contract => E => E.EmployeeType == EmployeeType.Contract,
-                EmployeeTypeLockup.LongLife => E => E.EmployeeType == EmployeeType.LongLife,
                 _ => null
             };
             return expression;

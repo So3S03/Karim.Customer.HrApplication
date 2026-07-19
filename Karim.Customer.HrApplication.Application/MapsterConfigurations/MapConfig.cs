@@ -370,6 +370,12 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
 
             config.NewConfig<PayslipToAddDto, Payslip>()
                 .Map(dest => dest.Status, src => PayrollStatus.Pending)
+                .Map(dest => dest.PaymentWay, src => (PayrollPaymentWay?)null)
+                .Map(dest => dest.EmployeeType, src => EmployeeType.Freelance);
+
+            config.NewConfig<AutoPayslipToAddDto, Payslip>()
+                .Map(dest => dest.Status, src => PayrollStatus.Pending)
+                .Map(dest => dest.EmployeeType, src => (EmployeeType)src.EmployeeType)
                 .Map(dest => dest.PaymentWay, src => (PayrollPaymentWay?)null);
 
             config.NewConfig<PayslipToEditDto, Payslip>()

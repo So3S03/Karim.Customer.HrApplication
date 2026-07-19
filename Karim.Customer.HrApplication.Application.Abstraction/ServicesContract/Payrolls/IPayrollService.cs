@@ -23,5 +23,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>> PayslipAllowancesGrid(PayrollRelationsParameter parameter);
         Task<ActionStatusDto> CalculateEmployeesPayrolls();
         Task<ActionStatusDto> EditEmployeePayslip(PayslipToEditDto? payslipToEditDto);
+        Task<ActionStatusDto> CreateManualPayslip(PayslipToAddDto? payslipToAddDto);
     }
 }
