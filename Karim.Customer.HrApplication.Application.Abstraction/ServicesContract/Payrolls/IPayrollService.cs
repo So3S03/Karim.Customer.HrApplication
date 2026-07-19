@@ -24,5 +24,8 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<ActionStatusDto> CalculateEmployeesPayrolls();
         Task<ActionStatusDto> EditEmployeePayslip(PayslipToEditDto? payslipToEditDto);
         Task<ActionStatusDto> CreateManualPayslip(PayslipToAddDto? payslipToAddDto);
+        Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto);
+        Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto);
+        Task<ActionStatusDto> DeleteAllowance(string? allowanceId);
     }
 }

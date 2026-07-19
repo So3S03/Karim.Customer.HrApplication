@@ -740,5 +740,49 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
+
+        public Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto)
+        {
+            throw new NotImplementedException();
+        }
+        public async Task<ActionStatusDto> DeleteAllowance(string? allowanceId)
+        {
+            //Check On Id
+            if(allowanceId is null) throw new BadRequestException("Invalid Id!");
+            //Create Repo
+            var Repo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //Create Spec
+            var Spec = new AllowanceByIdSpecification(allowanceId);
+            //Get Allowance
+            var Allowance = await Repo.GetByIdAsync(Spec);
+            //Check On Allowance
+            if(Allowance is null) throw new NotFoundException("Allowance Not Exist!");
+            //Check If Payslip Is Not Pending
+            if(Allowance.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Restore Net Salary
+            Allowance.Payslip.NetSalary = Allowance.Payslip.NetSalary - Allowance.Value;
+            //Create Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Allowance.Payslip);
+            //Remove Allowance
+            Repo.Delete(Allowance);
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if(!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Allowance Deleted Successfully!"
+            };
+            return Obj;
+        }
     }
 }

@@ -92,6 +92,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
             return Ok(result);
         }
 
+        [HttpDelete("DeleteAllowances")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteAllowances(string? allowanceId)
+        {
+            var result = await _servicesManager.PayrollService.DeleteAllowance(allowanceId);
+            return Ok(result);
+        }
+
         [HttpDelete("DeleteSalary")]
         public async Task<ActionResult<ActionStatusDto>> DeleteSalary(string? PayslipId)
         {
