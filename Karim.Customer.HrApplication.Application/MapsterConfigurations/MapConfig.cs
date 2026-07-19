@@ -368,6 +368,10 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
 
             config.NewConfig<BonusToEditDto, PayrollBonus>();
 
+            config.NewConfig<AllowanceToAddDto, PayrollAllowance>();
+
+            config.NewConfig<AllowanceToEditDto, PayrollAllowance>();
+
             config.NewConfig<PayslipToAddDto, Payslip>()
                 .Map(dest => dest.Status, src => PayrollStatus.Pending)
                 .Map(dest => dest.PaymentWay, src => (PayrollPaymentWay?)null)

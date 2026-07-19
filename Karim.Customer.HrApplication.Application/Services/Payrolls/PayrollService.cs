@@ -784,9 +784,53 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             };
             return Obj;
         }
-        public Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto)
+        public async Task<ActionStatusDto> EditAllownace(AllowanceToEditDto? allowanceToEditDto)
         {
-            throw new NotImplementedException();
+            //Check On Data
+            if (allowanceToEditDto is null) throw new BadRequestException("Invalid Data!");
+            //Check On Internal Data
+            _ = allowanceToEditDto switch
+            {
+                { Id: null or "" } => throw new BadRequestException("Invalid Penalty Id!"),
+                { Title: null or "" } => throw new BadRequestException("Invalid Penalty Title!"),
+                { Value: <= 0 } => throw new BadRequestException("Invalid Value!"),
+                _ => allowanceToEditDto
+            };
+            //Generate Bonus Repo
+            var AllowanceRepo = _unitOfWork.GenerateRepository<PayrollAllowance, string>();
+            //generate Bonus Spec
+            var AllowanceSpec = new AllowanceByIdSpecification(allowanceToEditDto.Id);
+            //get Bonus
+            var Allowance = await AllowanceRepo.GetByIdAsync(AllowanceSpec);
+            //check On Bonus
+            if (Allowance is null) throw new NotFoundException("Allowance Not Exist!");
+            //check If Payslip is pending
+            if (Allowance.Payslip.Status != PayrollStatus.Pending) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
+            //Get Net Salary
+            var restoredNetSalary = Allowance.Payslip.NetSalary - Allowance.Value;
+            //New Net Salary
+            var newNetSalary = restoredNetSalary + allowanceToEditDto.Value;
+            //Set New Net Salary
+            Allowance.Payslip.NetSalary = newNetSalary;
+            //Generate Payslip Repo
+            var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Update Payslip
+            PayslipRepo.Update(Allowance.Payslip);
+            //Mapping DATA
+            var mappedData = _mapper.Map(allowanceToEditDto, Allowance);
+            //Update Bonus
+            AllowanceRepo.Update(mappedData);
+            //Compelete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check On Complete
+            if (!Complete) throw new Exception("Something Went Wrong!");
+            //Forming Object
+            var Obj = new ActionStatusDto()
+            {
+                Status = true,
+                Message = "Bonus Updated Successfully"
+            };
+            return Obj;
         }
         public async Task<ActionStatusDto> DeleteAllowance(string? allowanceId)
         {
