@@ -656,9 +656,9 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
                 { BasicSalary: <= 0} => throw new BadRequestException("Invalid Basic Salary!"),
                 { NetSalary: <= 0} => throw new BadRequestException("Invalid Net Salary!"),
                 { Status: var s} when !Enum.IsDefined(typeof(PayrollStatus), s) => throw new BadRequestException("Invalid Salary Status!"),
-                { PaymentWay: var p} when !Enum.IsDefined(typeof(PayrollPaymentWay), p) => throw new BadRequestException("Invalid Payment Way!"),
                 _ => payslipToEditDto
             };
+            if (payslipToEditDto.PaymentWay is not null && !Enum.IsDefined(typeof(PayrollPaymentWay), payslipToEditDto.PaymentWay)) throw new BadRequestException("Invalid Payment Way!");
             //Create Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Spec
@@ -667,8 +667,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var Payslip = await PayslipRepo.GetByIdAsync(PayslipSpec);
             //Check On Payslip
             if (Payslip is null) throw new NotFoundException("Payslip Not Exist!");
-            //Check If The Employee Are The Same
-            if(Payslip.EmployeeId == payslipToEditDto.EmployeeId) throw new ConflictException("Can't Change The Employee For This Payslip!");
             //Create First Day Of Current Month
             var FirstDayOfCurrentMonth = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, 1);
             //Create Last Day Of Current Month
@@ -828,7 +826,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var Obj = new ActionStatusDto()
             {
                 Status = true,
-                Message = "Bonus Updated Successfully"
+                Message = "Allowance Updated Successfully"
             };
             return Obj;
         }

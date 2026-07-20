@@ -10,7 +10,6 @@
         public DateTime? PaidAt { get; set; }
         public int? PaymentWay { get; set; }
         public string? PaidNotes { get; set; }
-        public required string EmployeeId { get; set; }
 
     }
 }
