@@ -8,20 +8,25 @@ namespace Karim.Customer.HrApplication.Application.Specifications._Common
         public static Expression<Func<T, bool>>? GenerateCriteria(params List<Expression<Func<T, bool>>> expressions)
         {
             if (expressions is null) return null;
-            if (expressions.Count(E => E is not null) == 1) expressions.Where(E => E is not null).First();
-            var parameter = Expression.Parameter(typeof(PayrollBonus), "T");
-            var invokedList = new List<InvocationExpression>();
-            foreach (var item in expressions.Where(E => E is not null))
+
+            var validExpressions = expressions.Where(E => E is not null).ToList();
+
+            if (validExpressions.Count == 0) return null;
+            if (validExpressions.Count == 1) return validExpressions[0];
+
+            var parameter = Expression.Parameter(typeof(T), "T");
+
+            var invokedList = validExpressions
+                .Select(item => (Expression)Expression.Invoke(item, parameter))
+                .ToList();
+
+            var combinedExpr = invokedList[0];
+            for (var i = 1; i < invokedList.Count; i++)
             {
-                var expr = Expression.Invoke(item, parameter);
-                invokedList.Add(expr);
+                combinedExpr = Expression.AndAlso(combinedExpr, invokedList[i]);
             }
-            var compinedExper = Expression.AndAlso(invokedList[0], invokedList[1]);
-            for (var i = 2; i < expressions.Count; i++)
-            {
-                compinedExper = Expression.AndAlso(compinedExper, expressions[i]);
-            }
-            return Expression.Lambda<Func<T, bool>>(compinedExper, parameter);
+
+            return Expression.Lambda<Func<T, bool>>(combinedExpr, parameter);
         }
     }
 }

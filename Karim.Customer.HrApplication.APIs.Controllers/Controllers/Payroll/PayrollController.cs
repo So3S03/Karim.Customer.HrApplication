@@ -121,21 +121,21 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Payroll
         }
 
         [HttpGet("GetPayslipBonusesGrid")]
-        public async Task<ActionResult<DataWithPagination<ICollection<PayrollBonusToReturnDto>>>> GetPayslipBonusesGrid(PayrollRelationsParameter parameter)
+        public async Task<ActionResult<DataWithPagination<ICollection<PayrollBonusToReturnDto>>>> GetPayslipBonusesGrid([FromQuery]PayrollRelationsParameter parameter)
         {
             var result = await _servicesManager.PayrollService.PayslipBonusesGrid(parameter);
             return Ok(result);
         }
 
         [HttpGet("GetPayslipPenaltiesGrid")]
-        public async Task<ActionResult<DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>>> GetPayslipPenaltiesGrid(PayrollRelationsParameter parameter)
+        public async Task<ActionResult<DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>>> GetPayslipPenaltiesGrid([FromQuery]PayrollRelationsParameter parameter)
         {
             var result = await _servicesManager.PayrollService.PayslipPenaltiesGrid(parameter);
             return Ok(result);
         }
 
         [HttpGet("GetPayslipAllowancesGrid")]
-        public async Task<ActionResult<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>>> GetPayslipAllowancesGrid(PayrollRelationsParameter parameter)
+        public async Task<ActionResult<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>>> GetPayslipAllowancesGrid([FromQuery]PayrollRelationsParameter parameter)
         {
             var result = await _servicesManager.PayrollService.PayslipAllowancesGrid(parameter);
             return Ok(result);
