@@ -63,7 +63,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             //Check On Payslip
             if (Payslip == null) throw new NotFoundException("Payslip Doesn't Exist!");
             //Check If Already Approved
-            if (Payslip.Status == PayrollStatus.Approved) throw new ConflictException("This Payroll is Already Approved!");
+            if (Payslip.Status == PayrollStatus.Approved || Payslip.Status == PayrollStatus.Paid) throw new ConflictException("Can't Operate On Approved Or Paid Salary!");
             //Change Status
             Payslip.Status = PayrollStatus.Approved;
             //Update
