@@ -71,6 +71,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
                 PhoneNumber = user.PhoneNumber,
                 EmpId = user.EmpId,
             };
+            //Update Account Id
+            EmployeeExist.AccountId = newUser.Id;
             var result = await _userManager.CreateAsync(newUser, user.Password);
             //Check Result
             if (!result.Succeeded) throw new BadRequestException($"Failed to create user: {result.Errors.First().Description}");
@@ -193,7 +195,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
 
             var token = new JwtSecurityToken(
                 issuer: _configs.GetSection("JwtConfigs")["Issure"],
-                audience: _configs.GetSection("JwtConfigs")["ExpiringTime"],
+                audience: _configs.GetSection("JwtConfigs")["Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(int.Parse(_configs.GetSection("JwtConfigs")["ExpiringTime"]!)),
                 signingCredentials: credinsial

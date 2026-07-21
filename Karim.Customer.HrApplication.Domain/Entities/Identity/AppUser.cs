@@ -3,12 +3,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Identity
 {
-    public class AppUser : IdentityUser<string>
+    public class AppUser : IdentityUser
     {
-        public AppUser()
-        {
-            Id = new Guid().ToString();
-        }
         public Employee.Employee? Employee { get; set; }
         public string? EmpId { get; set; }
         public required string DisplayName { get; set; }
