@@ -2,10 +2,12 @@
 using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Task
 {
+    [Authorize]
     public class TaskController(IServicesManager _servicesManager): ApiBaseController
     {
         [HttpGet("GetAllTasks")]

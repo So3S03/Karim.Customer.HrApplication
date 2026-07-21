@@ -3,8 +3,8 @@
     public abstract class BaseAuditableEntity<TKey> : BaseEntity<TKey>
         where TKey : IEquatable<TKey>
     {
-        public required DateTime CreatedOn { get; set; } = DateTime.UtcNow;
-        public required string CreatedBy { get; set; } = "1";
+        public required DateTime CreatedOn { get; set; }
+        public required string CreatedBy { get; set; }
         public DateTime? ModifiedOn { get; set; }
         public string? ModifiedBy { get; set; }
         public required bool isRemoved { get; set; } = false;

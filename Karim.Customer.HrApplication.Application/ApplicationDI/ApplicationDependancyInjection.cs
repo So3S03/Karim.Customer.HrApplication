@@ -21,6 +21,7 @@ using Karim.Customer.HrApplication.Application.Services.Projects;
 using Karim.Customer.HrApplication.Application.Services.Task;
 using Karim.Customer.HrApplication.Application.Services.Ticket;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
+using Karim.Customer.HrApplication.Shared._Common.Interfaces;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
@@ -94,6 +95,9 @@ namespace Karim.Customer.HrApplication.Application.ApplicationDI
             {
                 return () => serviceProvider.GetRequiredService<IPayrollService>();
             });
+
+            services.AddHttpContextAccessor();
+            services.AddScoped<ILoggedInUserService, LoggedInUserService>();
 
             services.AddScoped(typeof(IServicesManager), typeof(ServicesManager));
             return services;
