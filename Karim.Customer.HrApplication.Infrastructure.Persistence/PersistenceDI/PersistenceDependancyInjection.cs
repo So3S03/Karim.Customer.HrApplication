@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
+using Karim.Customer.HrApplication.Infrastructure.Persistence.Interceptors;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,11 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI
     {
         public static IServiceCollection AddPersistenceDI(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<HRMSDBContext>(optionAction =>
+            services.AddScoped<AuditableDataInterceptor>();
+            services.AddDbContext<HRMSDBContext>((serviceProvider, optionAction) =>
             {
                 optionAction.UseSqlServer(configuration.GetConnectionString("HRMSContext"));
+                optionAction.AddInterceptors(serviceProvider.GetRequiredService<AuditableDataInterceptor>());
             });
 
             services.AddIdentity<AppUser, AppPrivilages>(
