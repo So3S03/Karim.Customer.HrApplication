@@ -2,7 +2,7 @@
 
 namespace Karim.Customer.HrApplication.Domain.Entities.Identity
 {
-    public class AppPrivilages : IdentityRole<string>
+    public class AppPrivilages : IdentityRole
     {
         public decimal PrivNumber { get; set; }
     }
