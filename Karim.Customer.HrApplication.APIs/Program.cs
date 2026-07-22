@@ -1,8 +1,10 @@
 
+using Hangfire;
 using Karim.Customer.HrApplication.APIs.Controllers.Assembly;
 using Karim.Customer.HrApplication.APIs.ErrorHandeler;
 using Karim.Customer.HrApplication.APIs.Extentions;
 using Karim.Customer.HrApplication.Application.ApplicationDI;
+using Karim.Customer.HrApplication.Infrastructure.HangfireServices;
 using Karim.Customer.HrApplication.Infrastructure.InfraDIContainer;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Contexts;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.PersistenceDI;
@@ -39,7 +41,7 @@ namespace Karim.Customer.HrApplication.APIs
             builder.Services.AddPersistenceDI(builder.Configuration);
 
             //registering Infrastructure DI
-            builder.Services.AddInfrastructure();
+            builder.Services.AddInfrastructure(builder.Configuration);
 
             //registering Application DI 
             builder.Services.ApplicationDIContainer();
@@ -95,13 +97,18 @@ namespace Karim.Customer.HrApplication.APIs
             //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApi();
-
             #endregion
 
            var app = builder.Build();
 
             //Migrate Database
             await app.DbMigrate<HRMSDBContext>();
+            using (var scope = app.Services.CreateScope())
+            {
+                var recuringJob = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+                HangfireServices.HangfireJobs(recuringJob);
+            }
+            app.UseHangfireDashboard("/HangfireDashboard");
 
             #region Middilewares
             app.UseMiddleware<ErrorHandlerMiddleware>();
