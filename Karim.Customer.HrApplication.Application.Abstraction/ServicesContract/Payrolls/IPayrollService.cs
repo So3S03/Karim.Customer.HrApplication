@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Payroll;
+using systemTask = System.Threading.Tasks.Task;
 
 namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Payrolls
 {
@@ -21,7 +22,7 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
         Task<DataWithPagination<ICollection<PayrollBonusToReturnDto>>> PayslipBonusesGrid(PayrollRelationsParameter parameter);
         Task<DataWithPagination<ICollection<PayrollPenaltyToReturnDto>>> PayslipPenaltiesGrid(PayrollRelationsParameter parameter);
         Task<DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>> PayslipAllowancesGrid(PayrollRelationsParameter parameter);
-        Task<ActionStatusDto> CalculateEmployeesPayrolls();
+        systemTask CalculateEmployeesPayrolls();
         Task<ActionStatusDto> EditEmployeePayslip(PayslipToEditDto? payslipToEditDto);
         Task<ActionStatusDto> CreateManualPayslip(PayslipToAddDto? payslipToAddDto);
         Task<ActionStatusDto> AddAllowance(AllowanceToAddDto? allowanceToAddDto);
