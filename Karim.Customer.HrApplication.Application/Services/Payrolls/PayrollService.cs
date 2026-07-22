@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
+using systemTask = System.Threading.Tasks.Task;
 
 namespace Karim.Customer.HrApplication.Application.Services.Payrolls
 {
@@ -518,7 +519,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var Obj = new DataWithPagination<ICollection<PayrollAllowanceToReturnDto>>(parameter.PageNum, parameter.PageNum + 1, parameter.PageSize, ListCont, MappedList);
             return Obj;
         }
-        public async Task<ActionStatusDto> CalculateEmployeesPayrolls() 
+        public async systemTask CalculateEmployeesPayrolls() 
         {
             //Get Current Year & Current Month
             var CurrentYear = DateTime.Now.Year;
@@ -526,7 +527,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             //Get Current Month Days Count
             var MonthDaysCount = DateTime.DaysInMonth(CurrentYear, CurrentMonth);
             //Check If Today Is The Last Day Of The Month
-            if (DateTime.Now.Day < MonthDaysCount) throw new BadRequestException("Payrolls Can Only Be Calculated On The Last Day Of The Month!");
+            if (DateTime.Now.Day < MonthDaysCount) return;
             //Create Payslip Repo
             var PayslipRepo = _unitOfWork.GenerateRepository<Payslip, string>();
             //Create Specification
@@ -637,13 +638,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Payrolls
             var Complete = await _unitOfWork.CompleteAsync() > 0;
             //Check On Complete
             if (!Complete) throw new Exception("Something Went Wrong!");
-            //Forming Object
-            var Obj = new ActionStatusDto()
-            {
-                Status = true,
-                Message = "Payrolls Added Successfully!"
-            };
-            return Obj;
+            return;
         }
         public async Task<ActionStatusDto> EditEmployeePayslip(PayslipToEditDto? payslipToEditDto)
         {
