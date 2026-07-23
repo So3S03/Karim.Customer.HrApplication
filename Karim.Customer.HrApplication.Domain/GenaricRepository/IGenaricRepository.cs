@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Domain.Entities.BaseEntities;
 using Karim.Customer.HrApplication.Domain.Specifications;
+using System.Linq.Expressions;
 
 namespace Karim.Customer.HrApplication.Domain.GenaricRepository
 {
@@ -11,6 +12,7 @@ namespace Karim.Customer.HrApplication.Domain.GenaricRepository
         Task<TEntity?> GetByIdAsync(ISpecifications<TEntity, TKey> specifications);
         Task<TEntity?> GetByIdAsyncWithNoTracking(ISpecifications<TEntity, TKey> specifications);
         Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications); //Get Count Of Data After Applying Filteration
+        Task<decimal> GetDataSumAsync(ISpecifications<TEntity, TKey> specifications, Expression<Func<TEntity, decimal>> sumExprission);
         Task AddAsync(TEntity entity);
         Task AddRangeAsync(IEnumerable<TEntity> entities); //it will be for upload bulk methods
         Task<IEnumerable<TResult>> GetProjectedAsync<TGroupKey, TResult>(

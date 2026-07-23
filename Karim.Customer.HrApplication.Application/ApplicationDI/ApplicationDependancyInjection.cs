@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Dashboard;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
@@ -13,6 +14,7 @@ using Karim.Customer.HrApplication.Application.Manager;
 using Karim.Customer.HrApplication.Application.MapsterConfigurations;
 using Karim.Customer.HrApplication.Application.Services.Attendance;
 using Karim.Customer.HrApplication.Application.Services.Contracts;
+using Karim.Customer.HrApplication.Application.Services.Dashboard;
 using Karim.Customer.HrApplication.Application.Services.Department;
 using Karim.Customer.HrApplication.Application.Services.Employee;
 using Karim.Customer.HrApplication.Application.Services.Identity;
@@ -94,6 +96,11 @@ namespace Karim.Customer.HrApplication.Application.ApplicationDI
             services.AddScoped<Func<IPayrollService>>(serviceProvider =>
             {
                 return () => serviceProvider.GetRequiredService<IPayrollService>();
+            });
+            services.AddScoped(typeof(IDashboardService), typeof(DashboardService));
+            services.AddScoped<Func<IDashboardService>>(serviceProvider =>
+            {
+                return () => serviceProvider.GetRequiredService<IDashboardService>();
             });
 
             services.AddHttpContextAccessor();

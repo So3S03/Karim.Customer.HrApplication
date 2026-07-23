@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Projects;
 using Karim.Customer.HrApplication.Application.Specifications.Contracts;
+using Karim.Customer.HrApplication.Application.Specifications.Dashboard;
 using Karim.Customer.HrApplication.Application.Specifications.Employee;
 using Karim.Customer.HrApplication.Application.Specifications.Projects;
 using Karim.Customer.HrApplication.Application.Specifications.Tasks;
@@ -12,11 +13,13 @@ using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.DTOs.Contracts;
+using Karim.Customer.HrApplication.Shared.DTOs.Employees;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using System.Text.RegularExpressions;
 using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 using project = Karim.Customer.HrApplication.Domain.Entities.Projects.Project;
+using task = System.Threading.Tasks.Task;
 
 namespace Karim.Customer.HrApplication.Application.Services.Contracts
 {
@@ -92,8 +95,6 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             Employee.WorkType = (WorkType)employeeContractToAddDto.EmployeeWorkType;
             //Update Employee Salary
             Employee.Salary = employeeContractToAddDto.EmpSalary;
-            //Turn Employee Has Contract To True
-            Employee.IsHasContract = true;
             //Set Employee Contract End Date
             Employee.ContractEndDate = new DateTime(employeeContractToAddDto.EndDate.Year, employeeContractToAddDto.EndDate.Month, employeeContractToAddDto.EndDate.Day);
             //Create Emp Repo
@@ -389,6 +390,17 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
             if (Contract.ContractStatus == ContractStatus.Active) throw new ConflictException("Contract Is Already Active!");
             //Activate Contract
             Contract.ContractStatus = ContractStatus.Active;
+            //Check If Contract Is For Employee
+            if(Contract.Employee is not null)
+            {
+                //Create Employee Repo
+                var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+                //Update IsHasContract For Employee
+                Contract.Employee.IsHasContract = true;
+                //Update Employee
+                EmpRepo.Update(Contract.Employee);
+            }
+
             //Update
             Repo.Update(Contract);
             //Complete
@@ -484,6 +496,34 @@ namespace Karim.Customer.HrApplication.Application.Services.Contracts
                 Message = "Contract Renewed Successfully!"
             };
             return Obj;
+        }
+        public async task CheckForExpiredContracts()
+        {
+            //Create Contract Repo
+            var ContractRepo = _unitOfWork.GenerateRepository<Contract, string>();
+            //Create Spec
+            var ExpiredContractSpec = new AllExpiredContractsSpecification();
+            //Get All Contracts
+            var ExpiresContractList = await ContractRepo.GetAllAsync(ExpiredContractSpec);
+            //Check On List
+            if (!ExpiresContractList.Any()) return;
+            //Loop On Them To Change Status And
+            foreach(var Contract in ExpiresContractList)
+            {
+                //Update Contract Status
+                Contract.ContractStatus = ContractStatus.Expired;
+                //Check If Contract Is For Employee
+                if(Contract.Employee is not null)
+                {
+                    //Update Employee
+                    Contract.Employee.IsHasContract = false;
+                }
+            }
+            //Complete
+            var Complete = await _unitOfWork.CompleteAsync() > 0;
+            //Check on Complete
+            if (!Complete) throw new Exception("Something Went Wrong");
+            return;
         }
         private async Task<employee?> getEmployee(string employeeId)
         {
