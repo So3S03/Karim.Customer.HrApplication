@@ -3,6 +3,7 @@ using Karim.Customer.HrApplication.Domain.GenaricRepository;
 using Karim.Customer.HrApplication.Domain.Specifications;
 using Karim.Customer.HrApplication.Infrastructure.Persistence.Specifications;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricRepository
 {
@@ -18,7 +19,9 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public async Task AddAsync(TEntity entity) => await dbContext.Set<TEntity>().AddAsync(entity);
 
-        public Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications) => Evaluator(specifications).CountAsync();
+        public async Task<int> GetDataCountAsync(ISpecifications<TEntity, TKey> specifications) => await Evaluator(specifications).CountAsync();
+
+        public async Task<decimal> GetDataSumAsync(ISpecifications<TEntity, TKey> specifications, Expression<Func<TEntity, decimal>> sumExprission) => await Evaluator(specifications).SumAsync(sumExprission);
 
         public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await dbContext.Set<TEntity>().AddRangeAsync(entities); //it will be for upload bulk methods
 

@@ -1,5 +1,6 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Dashboard;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
@@ -21,5 +22,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ManagerContract
         public ITicketServices TicketServices { get; }
         public ITaskService TaskService { get; }
         public IPayrollService PayrollService { get; }
+        public IDashboardService DashboardService { get; }
     }
 }

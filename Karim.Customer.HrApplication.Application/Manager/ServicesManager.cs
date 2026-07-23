@@ -1,6 +1,7 @@
 ﻿using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Attendance;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Contracts;
+using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Dashboard;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Department;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
 using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
@@ -23,6 +24,7 @@ namespace Karim.Customer.HrApplication.Application.Manager
         private readonly Lazy<ITicketServices> _ticketServices;
         private readonly Lazy<ITaskService> _taskService;
         private readonly Lazy<IPayrollService> _payrollService;
+        private readonly Lazy<IDashboardService> _dasheboardService;
 
         public ServicesManager(
             Func<IDepartmentService> departmentServicesFactory,
@@ -33,7 +35,8 @@ namespace Karim.Customer.HrApplication.Application.Manager
             Func<IContractService> contractFactory,
             Func<ITicketServices> ticketFactory,
             Func<ITaskService> taskService,
-            Func<IPayrollService> payrollService
+            Func<IPayrollService> payrollService,
+            Func<IDashboardService> dashboardFactory
             )
         {
             _departmentService = new Lazy<IDepartmentService>(departmentServicesFactory, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -45,6 +48,7 @@ namespace Karim.Customer.HrApplication.Application.Manager
             _ticketServices = new Lazy<ITicketServices>(ticketFactory, LazyThreadSafetyMode.ExecutionAndPublication);
             _taskService = new Lazy<ITaskService>(taskService, LazyThreadSafetyMode.ExecutionAndPublication);
             _payrollService = new Lazy<IPayrollService>(payrollService, LazyThreadSafetyMode.ExecutionAndPublication);
+            _dasheboardService = new Lazy<IDashboardService>(dashboardFactory, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public IDepartmentService DepartmentService => _departmentService.Value;
@@ -56,5 +60,6 @@ namespace Karim.Customer.HrApplication.Application.Manager
         public ITicketServices TicketServices => _ticketServices.Value;
         public ITaskService TaskService => _taskService.Value;
         public IPayrollService PayrollService => _payrollService.Value;
+        public IDashboardService DashboardService => _dasheboardService.Value;
     }
 }
