@@ -121,6 +121,8 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.Code, src => src.EmployeeCode)
                 .Map(dest => dest.Name, src => src.FullName);
 
+            config.NewConfig<HangfireEmployeeToUpdateDto, Employee>();
+
             //Auth Section
             config.NewConfig<AppPrivilages, PrivilagesToReturnDto>();
 
@@ -283,6 +285,9 @@ namespace Karim.Customer.HrApplication.Application.MapsterConfigurations
                 .Map(dest => dest.EmployeeCode, src => src.Employee!.EmployeeCode)
                 .Map(dest => dest.ProjectName, src => src.Project!.ProjectName)
                 .Map(dest => dest.ProjectCode, src => src.Project!.ProjectCode);
+
+            config.NewConfig<HangfireContractToUpdateDto, Contract>()
+                .Map(dest => dest.ContractStatus, src => (ContractStatus)src.ContractStatus);
 
             //Tickets
             config.NewConfig<TicketToAddDto, Ticket>()
