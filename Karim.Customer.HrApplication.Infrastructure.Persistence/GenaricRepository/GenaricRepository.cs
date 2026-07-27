@@ -25,22 +25,6 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await dbContext.Set<TEntity>().AddRangeAsync(entities); //it will be for upload bulk methods
 
-        public async Task<IEnumerable<TResult>> GetProjectedAsync<TGroupKey, TResult>(
-            IProjectionSpecification<TEntity, TKey, TGroupKey, TResult> spec)
-            where TResult : class
-        {
-            var baseQuery = dbContext.Set<TEntity>().AsQueryable();
-
-            var filteredQuery = spec.Criteria is not null
-                ? baseQuery.Where(spec.Criteria)
-                : baseQuery;
-
-            var projectedQuery = filteredQuery
-                .GroupBy(spec.GroupBy!)
-                .Select(spec.SelectProjection!);
-
-            return await projectedQuery.ToListAsync();
-        }
 
         public void Update(TEntity entity) => dbContext.Set<TEntity>().Update(entity);
 
@@ -50,6 +34,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.GenaricReposit
 
         public void DeleteRange(IEnumerable<TEntity> entities) => dbContext.Set<TEntity>().RemoveRange(entities); //it will be for upload bulk methods
 
+        public IQueryable<TEntity> GetQuery(ISpecifications<TEntity, TKey> specifications) => Evaluator(specifications);
 
         //helper method
         private IQueryable<TEntity> Evaluator(ISpecifications<TEntity, TKey> specs)

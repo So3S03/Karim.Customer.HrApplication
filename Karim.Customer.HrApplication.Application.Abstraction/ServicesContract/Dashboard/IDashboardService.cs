@@ -5,5 +5,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
     public interface IDashboardService
     {
         Task<CompanyStatusToReturnDto> GetCompanyStatusDto();
+        Task<ICollection<PayrollComparisonPerMonthDto>> GetMonthlyPayrollsSumComparison(int? year);
     }
 }

@@ -13,5 +13,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Dashboard
             var result = await _servicesManager.DashboardService.GetCompanyStatusDto();
             return Ok(result);
         }
+        [HttpGet("GetYearlyPayrollsSumComparisons")]
+        public async Task<ActionResult<ICollection<PayrollComparisonPerMonthDto>>> GetYearlyPayrollsSumComparisons(int? year)
+        {
+            var result = await _servicesManager.DashboardService.GetMonthlyPayrollsSumComparison(year);
+            return Ok(result);
+        }
     }
 }

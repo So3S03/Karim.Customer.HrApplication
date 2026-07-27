@@ -15,7 +15,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.HangfireServices
             recurringJobManager.AddOrUpdate<IContractService>("update-expired-contracts",
                 contractService => contractService.CheckForExpiredContracts(),
                 "0 1 * * *",
-                new RecurringJobOptions() {TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standared Time") });
+                new RecurringJobOptions() {TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time") });
         }
     }
 }
