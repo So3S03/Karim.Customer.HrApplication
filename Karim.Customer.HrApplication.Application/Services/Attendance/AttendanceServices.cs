@@ -325,38 +325,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
 
 
         //Need Fixing
-        public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
-        {
-            //Check On Data
-            if (EmpId is null) throw new BadRequestException("Employee Id Must Be Provided");
-            //Form Employee Repo
-            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
-            //Forming Spec
-            var EmpSpec = new EmployeeByIdSepecification(EmpId);
-            //Get Employee
-            var Employee = await EmpRepo.GetByIdAsync(EmpSpec);
-            //Check If Employee Exist
-            if (Employee is null) throw new NotFoundException("Employee Not Exist");
-            //Forming FingerprintRepo
-            var FPRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
-            //Forming Spec
-            var FPSpec = new FingerprintSummarySpecification(EmpId, new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Now.Day));
-            //Get Status
-            var FPSummary = await FPRepo.GetProjectedAsync<FingerprintStatus, FingerprintSummaryDto>(FPSpec);
-            //Get Requests Summary
-            //...Need To Create Requests First
-
-            //Forming Object
-            var Obj = new EmployeeAttendanceStatusDto()
-            {
-                FingerprintSummary = FPSummary,
-                RequestsSummary = new RequestsSummryDto(),
-                AbsentCount = 0,
-                AttendancePercentage = 0,
-                TotalAttendanceDays = 0
-            };
-            return Obj;
-        }
+        //public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        //{
+            
+        //}
 
         public async Task<ActionStatusDto> CreateRequest(RequestToAddDto? request)
         {

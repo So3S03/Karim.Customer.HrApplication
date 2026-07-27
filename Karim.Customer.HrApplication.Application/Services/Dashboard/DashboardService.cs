@@ -12,6 +12,8 @@ using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Application.Specifications.Dashboard;
 using Karim.Customer.HrApplication.Domain.Entities.Payroll;
 using Karim.Customer.HrApplication.Domain.Entities.Contracts;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Karim.Customer.HrApplication.Application.Services.Dashboard
 {
@@ -74,6 +76,32 @@ namespace Karim.Customer.HrApplication.Application.Services.Dashboard
                 TotalExpiredEmployeeContracts = ExpiredEmployeeContractCount,
                 TotalExpiredProjectsContracts = ExpiredProjectsContractCount
             };
+        }
+        public async Task<ICollection<PayrollComparisonPerMonthDto>> GetMonthlyPayrollsSumComparison(int? year)
+        {
+            //Check On Year
+            if (year is null) year = DateTime.Now.Year;
+            //Create Repo
+            var PayrollRepo = _unitOfWork.GenerateRepository<Payslip, string>();
+            //Create Spec
+            var PayrollSpec = new PayrollsPeYearChartSpecification(year.Value);
+            //Create Query With Grouping For Data Per Months
+            var groupedData = await PayrollRepo.GetQuery(PayrollSpec)
+                .GroupBy(P => P.StartDate.Month)
+                .Select(G => new
+                {
+                    MonthNumber = G.Key,
+                    MonthTotalSalary = G.Sum(S => S.NetSalary)
+                }).ToListAsync();
+            //Create Dictionary For Grouped Data
+            var dictionaryData = groupedData.ToDictionary(x => x.MonthNumber, x => x.MonthTotalSalary);
+            //Looping And Retrive Data
+            var result = Enumerable.Range(1, 12).Select(X => new PayrollComparisonPerMonthDto()
+            {
+                MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(X),
+                MonthTotalSalary = dictionaryData.TryGetValue(X, out decimal salary) ? salary : 0,
+            }).ToList();
+            return result;
         }
     }
 }

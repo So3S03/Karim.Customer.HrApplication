@@ -72,12 +72,12 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Attendance
             return Ok(result);
         }
 
-        [HttpGet("GetAttendanceSummaryPerEmployeeForCurrentMonth")]
-        public async Task<ActionResult<EmployeeAttendanceStatusDto>> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
-        {
-            var result = await servicesManager.AttendanceService.GetAttendanceSummaryPerEmployeeForCurrentMonth(EmpId);
-            return Ok(result);
-        }
+        //[HttpGet("GetAttendanceSummaryPerEmployeeForCurrentMonth")]
+        //public async Task<ActionResult<EmployeeAttendanceStatusDto>> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        //{
+        //    var result = await servicesManager.AttendanceService.GetAttendanceSummaryPerEmployeeForCurrentMonth(EmpId);
+        //    return Ok(result);
+        //}
 
         [HttpPost("CreateRequest")]
         public async Task<ActionResult<ActionStatusDto>> CreateRequest(RequestToAddDto? request)
