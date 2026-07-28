@@ -14,6 +14,8 @@ using Karim.Customer.HrApplication.Domain.Entities.Payroll;
 using Karim.Customer.HrApplication.Domain.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using Karim.Customer.HrApplication.Domain.Entities.Attendance;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Dashboard
 {
@@ -100,6 +102,50 @@ namespace Karim.Customer.HrApplication.Application.Services.Dashboard
             {
                 MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(X),
                 MonthTotalSalary = dictionaryData.TryGetValue(X, out decimal salary) ? salary : 0,
+            }).ToList();
+            return result;
+        }
+        public async Task<ICollection<AllEmployeesAttendanceRatePerMonthDto>> GetAttendanceRatePerMonthComparison(int? year)
+        {
+            //Check On Year
+            if (year is null) year = DateTime.Now.Year;
+            //Create Fingerprint Repo
+            var FingerPrintRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Create Spec
+            var FingerPrintSpec = new AllFingerPrintsPerYearSpecification(year.Value);
+            //Get All FingerPrints
+            var GroupedData = await FingerPrintRepo.GetQuery(FingerPrintSpec)
+                .GroupBy(FP => FP.Date.Month).Select(X => new
+                {
+                    MonthNumber = X.Key,
+                    CountOfFPThisMonth = X.Count()
+                }).ToListAsync();
+            //Save Data Into Dictionary
+            var DictionaryData = GroupedData.ToDictionary(x => x.MonthNumber, x => x.CountOfFPThisMonth);
+            //Create EmpRepo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Spec
+            var EmpSpec = new AllNotTerminatedOrRisignedEmployees();
+            //Get Count Of Employees
+            var EmpsCount = await EmpRepo.GetDataCountAsync(EmpSpec);
+            //Create Result
+            var result = Enumerable.Range(1, 12).Select(X =>
+            {
+                var daysInMonth = DateTime.DaysInMonth(year.Value, X);
+                var workingDays = 0;
+                for(int day = 1; day <= daysInMonth; day++)
+                {
+                    var date = new DateOnly(year.Value, X, day);
+                    if(date.DayOfWeek != DayOfWeek.Friday && date.DayOfWeek != DayOfWeek.Saturday) workingDays++;
+                }
+                var excpectedAttendacne = EmpsCount * workingDays;
+                DictionaryData.TryGetValue(X, out int actualAttendacne);
+                decimal attendanceRate = excpectedAttendacne == 0 ? 0 : Math.Round(((decimal)actualAttendacne / excpectedAttendacne) * 100, 2);
+                return new AllEmployeesAttendanceRatePerMonthDto()
+                {
+                    Month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(X),
+                    AttendanceRate = attendanceRate,
+                };
             }).ToList();
             return result;
         }
