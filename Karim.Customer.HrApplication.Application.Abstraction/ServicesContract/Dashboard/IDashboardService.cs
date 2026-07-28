@@ -6,5 +6,6 @@ namespace Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.
     {
         Task<CompanyStatusToReturnDto> GetCompanyStatusDto();
         Task<ICollection<PayrollComparisonPerMonthDto>> GetMonthlyPayrollsSumComparison(int? year);
+        Task<ICollection<AllEmployeesAttendanceRatePerMonthDto>> GetAttendanceRatePerMonthComparison(int? year);
     }
 }
