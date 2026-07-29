@@ -282,6 +282,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             Emp.isRemoved = true;
             //Change Status To Terminated
             Emp.EmployeeStatus = EmployeeStatus.Terminated;
+            //Create Date Of Resignation
+            Emp.TerminateResignedDate = DateTime.Now;
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
             //Update it on Database
@@ -312,6 +314,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             Emp.isRemoved = false;
             //Force Employee To Be InActive
             Emp.EmployeeStatus = EmployeeStatus.InActive;
+            //Remove Resignation Date
+            Emp.TerminateResignedDate = null;
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
             //Update The Entity
@@ -453,6 +457,9 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             if (!RequestDeleteWithTermination)
             {   //Change Status
                 Emp.EmployeeStatus = EmployeeStatus.Terminated;
+                //Add Termination Date
+                Emp.TerminateResignedDate = DateTime.Now;
+                //Update
                 Repo.Update(Emp);
             }
             //Complete
@@ -479,6 +486,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
             if (Emp.EmployeeStatus != EmployeeStatus.Terminated) throw new ConflictException("Employee Already Is Not Terminated");
             //Change Status
             Emp.EmployeeStatus = EmployeeStatus.InActive;
+            //Update Termination Date
+            Emp.TerminateResignedDate = null;
             //Create Repo
             var Repo = _unitOfWork.GenerateRepository<employee, string>();
             //Update Record
@@ -522,6 +531,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
                 if (Emp is null) throw new NotFoundException(id, "Employee");
                 //Terminate The Employee
                 Emp.EmployeeStatus = EmployeeStatus.Terminated;
+                //Change Termination Date To Now
+                Emp.TerminateResignedDate = DateTime.Now;
                 //Push EMP To The List
                 terminatedEmps.Add(Emp);
             }
@@ -567,6 +578,8 @@ namespace Karim.Customer.HrApplication.Application.Services.Employee
                 if (Emp is null) throw new NotFoundException(id, "Employee");
                 //UnTerminate The Employee
                 Emp.EmployeeStatus = EmployeeStatus.InActive;
+                //Restore Termination Date
+                Emp.TerminateResignedDate = null;
                 //Push EMP To The List
                 restoredEmps.Add(Emp);
             }

@@ -19,6 +19,7 @@ namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
         public required string WorkLocation { get; set; }
         public decimal? Salary { get; set; }
         public DateTime JoinDate { get; set; }
+        public DateTime? TerminateResignedDate { get; set; }
         public required string EmployeeStatus { get; set; }
         public string? Department { get; set; }
         public string? DepartmentId { get; set; }
