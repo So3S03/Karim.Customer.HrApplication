@@ -31,5 +31,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Dashboard
             var result = await _servicesManager.DashboardService.GetHiringVsResignedOrTermiunatedPerMonthComparison(year);
             return Ok(result);
         }
+        [HttpGet("GetCountOfEmployeesPerDepartment")]
+        public async Task<ActionResult<ICollection<CountOfEmployeeInDepartmentsDto>>> GetCountOfEmployeesPerDepartment()
+        {
+            var result = await _servicesManager.DashboardService.GetCountOfEmployeesInDepartments();
+            return Ok(result);
+        }
     }
 }

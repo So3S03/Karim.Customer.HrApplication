@@ -187,5 +187,19 @@ namespace Karim.Customer.HrApplication.Application.Services.Dashboard
             }).ToList();
             return result;
         }
+        public async Task<ICollection<CountOfEmployeeInDepartmentsDto>> GetCountOfEmployeesInDepartments()
+        {
+            //Create Department Repo
+            var DeptRepo = _unitOfWork.GenerateRepository<department, string>();
+            //Create Spec For Get All Active Department
+            var DeptSpec = new AllDepartments();
+            //Get All Department
+            var DeptList = await DeptRepo.GetQuery(DeptSpec).Select(D => new CountOfEmployeeInDepartmentsDto()
+            {
+                DepartmentName = D.DepartmentName,
+                EmployeeCount = D.Employees.Any() ? D.Employees!.Count() : 0,
+            }).ToListAsync();
+            return DeptList;
+        }
     }
 }
