@@ -34,6 +34,7 @@ namespace Karim.Customer.HrApplication.Infrastructure.Persistence.Data.Configura
             builder.Property(E => E.ContractEndDate).HasColumnType("datetime2");
             builder.Property(E => E.Salary).HasPrecision(22, 2).IsRequired(false);
             builder.Property(E => E.JoinDate).HasColumnType("datetime2").IsRequired();
+            builder.Property(E => E.TerminateResignedDate).HasColumnType("datetime2").IsRequired(false);
             builder.Property(E => E.EmployeeStatus).HasConversion(
                 (es) => es.ToString(),
                 (es) => (EmployeeStatus)Enum.Parse(typeof(EmployeeStatus), es)

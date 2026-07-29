@@ -25,6 +25,7 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Employee
         public DateTime? ContractEndDate { get; set; } //Determined On Contract Module
         public decimal? Salary { get; set; } //Determined On Contract Module
         public DateTime JoinDate { get; set; }
+        public DateTime? TerminateResignedDate { get; set; }
         public required EmployeeRank Rank { get; set; }
         public EmployeeStatus? EmployeeStatus { get; set; } //Determined By Attendance Module
 

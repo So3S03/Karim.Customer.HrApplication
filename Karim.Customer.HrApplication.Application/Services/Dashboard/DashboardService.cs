@@ -149,5 +149,43 @@ namespace Karim.Customer.HrApplication.Application.Services.Dashboard
             }).ToList();
             return result;
         }
+        public async Task<ICollection<HiringVsResignedOrTerminatedEmployeesDto>> GetHiringVsResignedOrTermiunatedPerMonthComparison(int? year)
+        {
+            //Check On year
+            if (year is null) year = DateTime.Now.Year;
+            //Create Employee Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create Spec For Getting Employees Are Hired In The Same Year
+            var EmpHiredSpec = new EmpHiredSpecification(year.Value);
+            //Get List Of Data
+            var HiredData = await EmpRepo.GetQuery(EmpHiredSpec)
+                .GroupBy(E => E.JoinDate.Month).Select(X => new
+                {
+                    MonthNumber = X.Key,
+                    HiredCount = X.Count(),
+                }).ToListAsync();
+            //Transforme To Dictionary
+            var HiredDic = HiredData.ToDictionary(key => key.MonthNumber,value => value.HiredCount);
+            //Create Spec For Getting Resigned Or Terminated Employees
+            var EmpTerminateSpec = new EmpTerminatedSpecification(year.Value);
+            //Get Grouped Data
+            var TerminatedData = await EmpRepo.GetQuery(EmpTerminateSpec)
+                .GroupBy(E => E.TerminateResignedDate.Value.Month)
+                .Select(X => new
+                {
+                    MonthNumber = X.Key,
+                    TerminatedCount = X.Count(),
+                }).ToListAsync();
+            //Transforme To Dictionary
+            var TerminateDic = TerminatedData.ToDictionary(key => key.MonthNumber, value => value.TerminatedCount);
+            //Create Final List
+            var result = Enumerable.Range(1, 12).Select(month => new HiringVsResignedOrTerminatedEmployeesDto()
+            {
+                Month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
+                PersonsHired = HiredDic.TryGetValue(month, out var hireCount) ? hireCount : 0,
+                PersonsTerminated = TerminateDic.TryGetValue(month, out var terminateCount) ? terminateCount : 0
+            }).ToList();
+            return result;
+        }
     }
 }
