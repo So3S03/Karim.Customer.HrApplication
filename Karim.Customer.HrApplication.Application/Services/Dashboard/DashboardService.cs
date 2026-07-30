@@ -3,10 +3,6 @@ using employee =  Karim.Customer.HrApplication.Domain.Entities.Employee.Employee
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.Dashboard;
 using department = Karim.Customer.HrApplication.Domain.Entities.Departmnet.Department;
-
-
-
-
 using Karim.Customer.HrApplication.Domain.Entities.Projects;
 using Karim.Customer.HrApplication.Domain.Entities.Tasks;
 using Karim.Customer.HrApplication.Application.Specifications.Dashboard;
@@ -200,6 +196,22 @@ namespace Karim.Customer.HrApplication.Application.Services.Dashboard
                 EmployeeCount = D.Employees.Any() ? D.Employees!.Count() : 0,
             }).ToListAsync();
             return DeptList;
+        }
+        public async Task<ICollection<EmployeesTypesCountDto>> GetCountOfEmployeesPerTypes()
+        {
+            //Create Employee Repo
+            var EmpRepo = _unitOfWork.GenerateRepository<employee, string>();
+            //Create EmpSpec
+            var EmpSpec = new AllNotTerminatedOrRisignedEmployees();
+            //Create Query
+            var GroupedData = await EmpRepo.GetQuery(EmpSpec)
+                .GroupBy(E => E.EmployeeType)
+                .Select(X => new EmployeesTypesCountDto()
+                {
+                    Type = X.Key.ToString(),
+                    Count = X.Count()
+                }).ToListAsync();
+            return GroupedData;
         }
     }
 }
