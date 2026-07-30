@@ -37,5 +37,11 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Dashboard
             var result = await _servicesManager.DashboardService.GetCountOfEmployeesInDepartments();
             return Ok(result);
         }
+        [HttpGet("GetCountOfEmployeesPerType")]
+        public async Task<ActionResult<ICollection<EmployeesTypesCountDto>>> GetCountOfEmployeesPerType()
+        {
+            var result = await _servicesManager.DashboardService.GetCountOfEmployeesPerTypes();
+            return Ok(result);
+        }
     }
 }
