@@ -13,6 +13,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
@@ -321,15 +322,63 @@ namespace Karim.Customer.HrApplication.Application.Services.Attendance
             };
             return Obj;
         }
-
-
-
-        //Need Fixing
-        //public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
-        //{
-            
-        //}
-
+        public async Task<EmployeeAttendanceStatusDto> GetAttendanceSummaryPerEmployeeForCurrentMonth(string? EmpId)
+        {
+            //Check On Emp Id
+            if (string.IsNullOrEmpty(EmpId)) throw new BadRequestException("Invalid EmpId!");
+            //Create Repo For Fingerprint
+            var FPRepo = _unitOfWork.GenerateRepository<Fingerprint, string>();
+            //Create Repo For Requests
+            var ReqRepo = _unitOfWork.GenerateRepository<Requests, string>();
+            //Create Spec For FingerPrint
+            var FingerPrintSpec = new FingerPrintStatusSpecification(EmpId);
+            //Get Query
+            var GroupedFingerprints = await FPRepo.GetQuery(FingerPrintSpec)
+                .GroupBy(FP => FP.Status)
+                .Select(X => new
+                {
+                    FPStatus = X.Key,
+                    Count = X.Count(),
+                }).ToDictionaryAsync(key => key.FPStatus, value => value.Count);
+            //Create Spec For Requests
+            var ReqSpec = new RequestsStatusSpecification(EmpId);
+            //Get Data
+            var AcceptedRequests = await ReqRepo.GetQuery(ReqSpec).ToListAsync(); //Had To Do it Cause EFCore Can't Understand The DateOnly Codition On Sum
+            var GroupedAcceptedRequests = AcceptedRequests
+                .GroupBy(R => R.Type)
+                .Select(X => new
+                {
+                    Type = X.Key,
+                    CountOfAccepted = X.Sum(R => (R.EndDate.DayNumber - R.StartDate.DayNumber) + 1)
+                }).ToDictionary(key => key.Type, value => value.CountOfAccepted);
+            //Get Count Of Dayes in This Month
+            var Date = DateTime.Now;
+            //var DaysInThisMonth = DateTime.DaysInMonth(Date.Year, Date.Month);
+            var TodaysDay = Date.Day;
+            //Get Actual Working Days
+            var ExpectedWorkingDaysTellToday = 0;
+            for(int day = 1; day <= TodaysDay; day++)
+            {
+                var DatePerDay = new DateOnly(Date.Year, Date.Month, day);
+                if(DatePerDay.DayOfWeek != DayOfWeek.Friday && DatePerDay.DayOfWeek != DayOfWeek.Saturday) ExpectedWorkingDaysTellToday++;
+            }
+            var totalAttendanceDays = GroupedFingerprints.Sum(FP => FP.Value);
+            var result = new EmployeeAttendanceStatusDto()
+            {
+                //Requests Section
+                VacationDays = GroupedAcceptedRequests.TryGetValue(RequestType.Vacation, out int vacCount) ? vacCount : 0,
+                PermissionDays = GroupedAcceptedRequests.TryGetValue(RequestType.Permission, out int permCount) ? permCount : 0,
+                LeaveDays = GroupedAcceptedRequests.TryGetValue(RequestType.Leave, out int leaveCount) ? leaveCount : 0,
+                OverTimeDays = GroupedAcceptedRequests.TryGetValue(RequestType.Overtime, out int OvertimeCount) ? OvertimeCount : 0,
+                //Fingerprint Section
+                AbsensCount = ExpectedWorkingDaysTellToday - (totalAttendanceDays + vacCount + leaveCount),
+                AttendancePercentage = ExpectedWorkingDaysTellToday <= 0 ? 0 : Math.Round(((decimal)(totalAttendanceDays + vacCount + leaveCount) / ExpectedWorkingDaysTellToday) * 100, 2),
+                DelayInDurationDays = GroupedFingerprints.TryGetValue(FingerprintStatus.Delay, out int delayCount) ? delayCount : 0,
+                LateForWorkDays = GroupedFingerprints.TryGetValue(FingerprintStatus.Late, out int lateCount) ? lateCount : 0,
+                TotalAttendanceDays = totalAttendanceDays
+            };
+            return result;
+        }
         public async Task<ActionStatusDto> CreateRequest(RequestToAddDto? request)
         {
             //Check On Data
