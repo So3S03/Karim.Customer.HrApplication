@@ -1,24 +1,23 @@
-﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Employee;
-using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
-using Karim.Customer.HrApplication.Domain.Entities.Employee;
-using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
+﻿using Karim.Customer.HrApplication.Application.Abstraction.ServicesContract.Identity;
+using Karim.Customer.HrApplication.Application.Specifications.Employee;
+using Karim.Customer.HrApplication.Application.Specifications.Identity;
 using Karim.Customer.HrApplication.Domain.Entities.Identity;
 using Karim.Customer.HrApplication.Domain.UnitOfWork;
 using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Karim.Customer.HrApplication.Shared.Exceptions;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Karim.Customer.HrApplication.Application.Specifications.Employee;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
+using employee = Karim.Customer.HrApplication.Domain.Entities.Employee.Employee;
 
 namespace Karim.Customer.HrApplication.Application.Services.Identity
 {
@@ -37,11 +36,11 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
             //Check On All Data
             _ = user switch
             {
-                { Email: null or ""} => throw new BadRequestException("Must Provied an Email"),
-                { UserName: null or ""} => throw new BadRequestException("Must Provied an UserName"),
-                { Password: null or ""} => throw new BadRequestException("Must Provied an Password"),
-                { PhoneNumber: null or ""} => throw new BadRequestException("Must Provied an PhoneNumber"),
-                { EmpId: null or ""} => throw new BadRequestException("Must Provied an Existance Employee"),
+                { Email: null or "" } => throw new BadRequestException("Must Provied an Email"),
+                { UserName: null or "" } => throw new BadRequestException("Must Provied an UserName"),
+                { Password: null or "" } => throw new BadRequestException("Must Provied an Password"),
+                { PhoneNumber: null or "" } => throw new BadRequestException("Must Provied an PhoneNumber"),
+                { EmpId: null or "" } => throw new BadRequestException("Must Provied an Existance Employee"),
                 _ => user
             };
             //Check Password
@@ -101,7 +100,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
             //returning Object
             return Obj;
         }
-        public async Task<SignInResultDto> SignIn(SignInDto? user)
+        public async Task<SignInResultDto> SignIn(SignInDto? user, HttpResponse response)
         {
             //Check On Data
             if (user is null) throw new BadRequestException("Provided Data Is Invalid");
@@ -112,16 +111,40 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
                 { Password: null or "" } => throw new BadRequestException("Password Must Be Provided!"),
                 _ => user
             };
-            AppUser userExist;
-            //Check User Data Kind and get the user
-            if (user.UserNameOrEmail.ToLower().Contains("@") || user.UserNameOrEmail.ToLower().Contains(".com")) userExist = await _userManager.FindByEmailAsync(user.UserNameOrEmail);
-            else userExist = await _userManager.FindByNameAsync(user.UserNameOrEmail);
+            //Get User By Email Or UserName
+            AppUser? userExist = Regex.IsMatch(user.UserNameOrEmail, @"/^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm") ? await _userManager.FindByEmailAsync(user.UserNameOrEmail) : await _userManager.FindByNameAsync(user.UserNameOrEmail);
             //Check If User Exist
-            if (userExist is null) throw new NotFoundException("User Isn't Exist!");
-            //Check On Password
-            bool passwordCorrect = await _userManager.CheckPasswordAsync(userExist, user.Password);
-            //Check on Password
-            if (!passwordCorrect) throw new BadRequestException("The Password You Have Entered is Wrong!");
+            if (userExist is null || !(await _userManager.CheckPasswordAsync(userExist, user.Password))) throw new BadRequestException("Wrong User or Password!");
+            //Check If User is Suspended
+            if (userExist.isSuspended) throw new BadRequestException("Your Account Is Suspended, Contact System Administrator!");
+            //Generate Refresh Token
+            var generatedToken = GenerateRefreshToken();
+            //Create Variable For Refresh Token
+            RefreshToken token = new RefreshToken()
+            {
+                TokenHash = HashToken(generatedToken),
+                UserId = userExist.Id,
+                IsRevoked = false,
+                ExpiryDate = DateTime.UtcNow.AddDays(_configs.GetSection("RefreshTokenConfig").GetValue<int>("RefreshTokenExpirationTime")),
+                CreatedAt = DateTime.UtcNow
+            };
+            //Add Refresh Token To Database
+            userExist.RefreshTokens ??= new List<RefreshToken>();
+            userExist.RefreshTokens.Add(token);
+            //Update Last Login Date
+            userExist.LastLoginDate = DateTime.UtcNow;
+            //Update User
+            await _userManager.UpdateAsync(userExist);
+            //Save Refresh Token In Cookie
+            response.Cookies.Append("refreshToken", generatedToken, new CookieOptions()
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(_configs.GetSection("RefreshTokenConfig").GetValue<int>("RefreshTokenExpirationTime")),
+                Path = "/Api/Account/RefreshToken"
+            });
+
             //Start Forming Object
             var Obj = new SignInResultDto()
             {
@@ -146,13 +169,13 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
         public async Task<ICollection<PrivilagesToReturnDto>> GetAllUserPrivilages(string? userNameOrEmail)
         {
             //Check On Data
-            if(string.IsNullOrWhiteSpace(userNameOrEmail) || string.IsNullOrEmpty(userNameOrEmail)) throw new BadRequestException("User Name Or Email is invalid");
+            if (string.IsNullOrWhiteSpace(userNameOrEmail) || string.IsNullOrEmpty(userNameOrEmail)) throw new BadRequestException("User Name Or Email is invalid");
             //Check On User
             AppUser? user = null;
             //Check if Email
-            if(userNameOrEmail.Contains("@")) user = await _userManager.FindByEmailAsync(userNameOrEmail);
+            if (userNameOrEmail.Contains("@")) user = await _userManager.FindByEmailAsync(userNameOrEmail);
             //Check if user name
-            if(!userNameOrEmail.Contains("@")) user = await _userManager.FindByNameAsync(userNameOrEmail);
+            if (!userNameOrEmail.Contains("@")) user = await _userManager.FindByNameAsync(userNameOrEmail);
             //Check on User
             if (user is null) throw new NotFoundException("User Not Exist !");
             //Get his privilages
@@ -162,6 +185,62 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
             //Compare it with all
             var convertedUserPrivis = AllPrivs.Where(P => UserPrivilages.Contains(P.Name)).ToList();
             return convertedUserPrivis;
+        }
+        public async Task<SignInResultDto> RefreshingToken(HttpRequest? request, HttpResponse response)
+        {
+            //Get Refresh Token From Cookie
+            var CookieToken = request?.Cookies["refreshToken"];
+            //Check On Token
+            if(string.IsNullOrEmpty(CookieToken)) throw new UnauthorizedException("No Token Found In Cookie!");
+            //Hashing The Token
+            var hashedToken = HashToken(CookieToken);
+            //Create Repo For Refresh Token
+            var refreshTokenRepo = _unitOfWork.GenerateRepository<RefreshToken, string>();
+            //Create Specification For Refresh Token
+            var RTSpec = new RefreshTokenByHashedTokenSpecification(hashedToken);
+            //Try Get Refresh Token From Database
+            var tokenFromDb = await refreshTokenRepo.GetByIdAsync(RTSpec);
+            //Check If Token Exist or Expired or revoked 
+            if (tokenFromDb is null || tokenFromDb.IsRevoked || tokenFromDb.ExpiryDate < DateTime.UtcNow) throw new UnauthorizedException("Invalid or expired refresh token");
+            //Get User
+            var user = tokenFromDb.User;
+            //Revoke the old refresh token
+            tokenFromDb.IsRevoked = true;
+            //Generate New Refresh Token
+            var newRefreshToken = GenerateRefreshToken();
+            //Create New Refresh Token Object
+            var newToken = new RefreshToken()
+            {
+                TokenHash = HashToken(newRefreshToken),
+                UserId = user.Id,
+                IsRevoked = false,
+                ExpiryDate = DateTime.UtcNow.AddDays(_configs.GetSection("RefreshTokenConfig").GetValue<int>("RefreshTokenExpirationTime")),
+                CreatedAt = DateTime.UtcNow
+            };
+            //Add New Refresh Token To Database
+            user.RefreshTokens.Add(newToken);
+            //Update User
+            await _userManager.UpdateAsync(user);
+            //Save New Refresh Token In Cookie
+            response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions()
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(_configs.GetSection("RefreshTokenConfig").GetValue<int>("RefreshTokenExpirationTime")),
+                Path = "/Api/Account/RefreshToken"
+            });
+            //Create Object For Return
+            var Obj = new SignInResultDto()
+            {
+                Status = new ActionStatusDto()
+                {
+                    Status = true,
+                    Message = "Token Refreshed Successfuly"
+                },
+                Token = await tokenGenerator(user)
+            };
+            return Obj;
         }
 
         //Token Generator
@@ -203,6 +282,20 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
 
             //return token
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+        private string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }

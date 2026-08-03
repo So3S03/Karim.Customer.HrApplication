@@ -20,7 +20,8 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers
         [HttpPost("SignIn")]
         public async Task<ActionResult<SignInResultDto>> SignIn(SignInDto? User)
         {
-            var result = await servicesManager.AuthService.SignIn(User);
+            var response = Response;
+            var result = await servicesManager.AuthService.SignIn(User, response);
             return Ok(result);
         }
         [Authorize]
@@ -35,6 +36,13 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers
         public async Task<ActionResult<ICollection<PrivilagesToReturnDto>>> GetUserPrivilages(string? UserNameOrEmail)
         {
             var result = await servicesManager.AuthService.GetAllUserPrivilages(UserNameOrEmail);
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("RefreshToken")]
+        public async Task<ActionResult<SignInResultDto>> RefreshToken()
+        {
+            var result = await servicesManager.AuthService.RefreshingToken(Request, Response);
             return Ok(result);
         }
     }
