@@ -112,7 +112,10 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
                 _ => user
             };
             //Get User By Email Or UserName
-            AppUser? userExist = Regex.IsMatch(user.UserNameOrEmail, @"/^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm") ? await _userManager.FindByEmailAsync(user.UserNameOrEmail) : await _userManager.FindByNameAsync(user.UserNameOrEmail);
+            AppUser? userExist =
+                Regex.IsMatch(user.UserNameOrEmail, @"^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$") ?
+                await _userManager.FindByEmailAsync(user.UserNameOrEmail) :
+                await _userManager.FindByNameAsync(user.UserNameOrEmail);
             //Check If User Exist
             if (userExist is null || !(await _userManager.CheckPasswordAsync(userExist, user.Password))) throw new BadRequestException("Wrong User or Password!");
             //Check If User is Suspended
@@ -256,7 +259,7 @@ namespace Karim.Customer.HrApplication.Application.Services.Identity
                 new Claim(JwtRegisteredClaimNames.Name, user.DisplayName!),
                 new Claim(JwtRegisteredClaimNames.PhoneNumber, user.PhoneNumber!),
                 new Claim("AccountId", user.Id!),
-                new Claim("EmployeeId", user.EmpId!)
+                new Claim("EmployeeId", user.EmpId ?? "Admin"!)
             };
             //Get Roles
             var roles = await _userManager.GetRolesAsync(user);
