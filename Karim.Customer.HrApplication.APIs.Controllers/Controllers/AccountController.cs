@@ -39,7 +39,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers
             return Ok(result);
         }
         [Authorize]
-        [HttpGet("RefreshToken")]
+        [HttpPost("RefreshToken")]
         public async Task<ActionResult<SignInResultDto>> RefreshToken()
         {
             var result = await servicesManager.AuthService.RefreshingToken(Request, Response);
