@@ -10,7 +10,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Identity
         public required string DisplayName { get; set; }
         public bool isSuspended { get; set; }
         public DateTime? LastLoginDate { get; set; }
-        public string? LastLoginIp { get; set; }
         public string? CreatedBy { get; set; }
         public DateTime? CreatedOn { get; set; }
         public string? ModifiedBy { get; set; }
@@ -18,5 +17,6 @@ namespace Karim.Customer.HrApplication.Domain.Entities.Identity
         public bool isRemoved { get; set; }
         public string? RemovedBy { get; set; }
         public DateTime? RemovedOn { get; set; }
+        public ICollection<RefreshToken>? RefreshTokens { get; set; }
     }
 }
