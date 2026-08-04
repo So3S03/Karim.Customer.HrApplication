@@ -4,6 +4,7 @@ using Karim.Customer.HrApplication.Shared.DTOs.Auth;
 using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers
 {
@@ -18,6 +19,7 @@ namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers
         }
 
         [HttpPost("SignIn")]
+        [EnableRateLimiting("SignInPolicy")]
         public async Task<ActionResult<SignInResultDto>> SignIn(SignInDto? User)
         {
             var response = Response;
