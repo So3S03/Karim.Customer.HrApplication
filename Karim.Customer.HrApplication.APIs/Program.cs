@@ -15,6 +15,7 @@ using Serilog;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 
 namespace Karim.Customer.HrApplication.APIs
@@ -93,6 +94,27 @@ namespace Karim.Customer.HrApplication.APIs
                         ClockSkew = TimeSpan.FromMinutes(int.Parse(expireTime!))
                     };
                 });
+            //Rate Limiting Configuration For Stop Brute Force Attacks
+            builder.Services.AddRateLimiter(RLOptions =>
+            {
+                RLOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                RLOptions.AddPolicy("SignInPolicy", httpContext =>
+                {
+                    var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                    return RateLimitPartition.GetSlidingWindowLimiter(remoteIp, _ => new SlidingWindowRateLimiterOptions()
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        SegmentsPerWindow = 4,
+                        QueueLimit = 0
+                    });
+                });
+                RLOptions.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.ContentType = "application/json";
+                    await context.HttpContext.Response.WriteAsync("{\"Message\":\"Too many login attempts. Please try again later.\"}", cancellationToken);
+                };
+            });
             builder.Services.AddAuthorization();
             //registering Swagger UI DI
             builder.Services.AddSwaggerGen();
@@ -101,8 +123,10 @@ namespace Karim.Customer.HrApplication.APIs
 
            var app = builder.Build();
 
+            
             //Migrate Database
             await app.DbMigrate<HRMSDBContext>();
+            app.UseRateLimiter();
             using (var scope = app.Services.CreateScope())
             {
                 var recuringJob = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
