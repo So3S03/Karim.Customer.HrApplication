@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="9.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karim.Customer.HrApplication.APIs.Controllers\Karim.Customer.HrApplication.APIs.Controllers.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Infrastructure.Persistence\Karim.Customer.HrApplication.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Infrastructure\Karim.Customer.HrApplication.Infrastructure.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="wwwroot\Resources\" />
+  </ItemGroup>
+
+</Project>

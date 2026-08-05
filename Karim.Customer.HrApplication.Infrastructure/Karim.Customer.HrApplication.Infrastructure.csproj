@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.24" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.24" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Application\Karim.Customer.HrApplication.Application.csproj" />
+    <ProjectReference Include="..\Karim.Customer.HrApplication.Shared\Karim.Customer.HrApplication.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

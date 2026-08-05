@@ -1,0 +1,95 @@
+﻿using Karim.Customer.HrApplication.APIs.Controllers.Controllers.BaseController;
+using Karim.Customer.HrApplication.Application.Abstraction.ManagerContract;
+using Karim.Customer.HrApplication.Shared.DTOs.CommonDTOs;
+using Karim.Customer.HrApplication.Shared.DTOs.Contracts;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Karim.Customer.HrApplication.APIs.Controllers.Controllers.Contract
+{
+    public class ContractController(IServicesManager _servicesManager) : ApiBaseController
+    {
+        [HttpGet("GetContractMaxCode")]
+        public async Task<ActionResult<MaxCodeResult>> GetContractMaxCode()
+        {
+            var result = await _servicesManager.ContractService.GetContractCode();
+            return Ok(result);
+        }
+
+        [HttpGet("GetAllContracts")]
+        public async Task<ActionResult<MaxCodeResult>> GetAllContract([FromQuery]ContractParameters parameters)
+        {
+            var result = await _servicesManager.ContractService.GetAllContracts(parameters);
+            return Ok(result);
+        }
+
+        [HttpPost("AddEmployeeContract")]
+        public async Task<ActionResult<ActionStatusDto>> AddEmployeeContract([FromBody] EmployeeContractToAddDto? data)
+        {
+            var result = await _servicesManager.ContractService.AddEmployeeContract(data);
+            return Ok(result);
+        }
+
+        [HttpPut("UpdateEmployeeContract")]
+        public async Task<ActionResult<ActionStatusDto>> UpdateEmployeeContract([FromBody] EmployeeContractToUpdateDto? data)
+        {
+            var result = await _servicesManager.ContractService.UpdateEmployeeContract(data);
+            return Ok(result);
+        }
+
+        [HttpPost("AddProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> AddProjectContract([FromBody] ProjectContractToAddDto? data)
+        {
+            var result = await _servicesManager.ContractService.AddProjectContract(data);
+            return Ok(result);
+        }
+
+        [HttpPut("UpdateProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> UpdateProjectContract([FromBody] ProjectContractToUpdateDto? data)
+        {
+            var result = await _servicesManager.ContractService.UpdateProjectContract(data);
+            return Ok(result);
+        }
+
+        [HttpGet("GetSpecificProjectContract")]
+        public async Task<ActionResult<ActionStatusDto>> GetSpecificProjectContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.GetProjectContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpGet("GetSpecificEmployeeContract")]
+        public async Task<ActionResult<ActionStatusDto>> GetSpecificEmployeeContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.GetEmployeeContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpDelete("DeleteContract")]
+        public async Task<ActionResult<ActionStatusDto>> DeleteContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.DeleteContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpPut("ActivateContract")]
+        public async Task<ActionResult<ActionStatusDto>> ActivateContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.ActivateContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpPut("TerminateContract")]
+        public async Task<ActionResult<ActionStatusDto>> TerminateContract(string? ContractId)
+        {
+            var result = await _servicesManager.ContractService.TerminateContract(ContractId);
+            return Ok(result);
+        }
+
+        [HttpPut("RenewContractWithOldConditions")]
+        public async Task<ActionResult<ActionStatusDto>> RenewContractWithOldConditions(string? ContractId, int? AmmountOfYears)
+        {
+            var result = await _servicesManager.ContractService.RenewContractWithOldConditions(ContractId, AmmountOfYears);
+            return Ok(result);
+        }
+    }
+}

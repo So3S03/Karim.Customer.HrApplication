@@ -1,0 +1,21 @@
+﻿namespace Karim.Customer.HrApplication.Shared.DTOs.Employees
+{
+    public class SingleEmployeeToUpdateDto
+    {
+        public required string Id { get; set; }
+        public required string EmployeeCode { get; set; } //Must be EMP001
+        public required string FullName { get; set; }
+        public string? PersonalEmail { get; set; }
+        public required string Position { get; set; }
+        public required string PhoneNumber { get; set; }
+        public string? ExtraPhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public required int WorkType { get; set; }
+        public required int EmployeeType { get; set; }
+        public required int EmployeeRank { get; set; }
+        public required string WorkLocation { get; set; }
+        public DateTime? JoinDate { get; set; }
+        //Department Relation
+        public string? DepartmentId { get; set; }
+    }
+}
