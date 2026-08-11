@@ -67,8 +67,6 @@ namespace Karim.Customer.HrApplication.APIs
 
             //add serilog into DI container
             builder.Services.AddSerilog();
-            //creating serilog configurations to read from appsettings
-            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
             //Add Authentication
             builder.Services.AddAuthentication(configOptions =>
@@ -127,6 +125,8 @@ namespace Karim.Customer.HrApplication.APIs
             //Migrate Database
             await app.DbMigrate<HRMSDBContext>();
             app.UseRateLimiter();
+            //creating serilog configurations to read from appsettings
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
             using (var scope = app.Services.CreateScope())
             {
                 var recuringJob = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
